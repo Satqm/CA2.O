@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CA Final Study Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --success: #2ecc71;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Login/Signup Page */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        }
+        
+        .auth-box {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            transition: all 0.3s;
+        }
+        
+        .auth-tab.active {
+            color: var(--secondary);
+            border-bottom: 3px solid var(--secondary);
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .auth-form h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--secondary);
+            outline: none;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-accent {
+            background-color: var(--accent);
+        }
+        
+        .btn-accent:hover {
+            background-color: #c0392b;
+        }
+        
+        .auth-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .auth-message.success {
+            background-color: #d5edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .auth-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* App Layout */
+        .app-container {
+            display: none;
+        }
+        
+        .app-container.active {
+            display: block;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+        
+        .logo-icon {
+            color: var(--secondary);
+            font-size: 28px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .logout-btn {
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        nav {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+        
+        .nav-links li {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .nav-links a {
+            display: block;
+            padding: 15px 10px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            background-color: var(--secondary);
+        }
+        
+        .nav-links i {
+            margin-right: 8px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 30px 0;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .page-title {
+            margin-bottom: 25px;
+            color: var(--primary);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        /* Dashboard */
+        .kpi-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .kpi-card h3 {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .kpi-subtext {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .kpi-icon.time {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+        }
+        
+        .kpi-icon.progress {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+        }
+        
+        .kpi-icon.subjects {
+            background-color: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+        
+        .kpi-icon.topics {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: #f1c40f;
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .chart-title {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .chart-wrapper {
+            height: 300px;
+            position: relative;
+        }
+        
+        .progress-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .progress-filter {
+            padding: 8px 16px;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .progress-filter.active {
+            background-color: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+        
+        /* Subjects Page */
+        .subject-selector {
+            margin-bottom: 30px;
+        }
+        
+        .subject-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--primary);
+        }
+        
+        .subject-dropdown {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: white;
+            cursor: pointer;
+        }
+        
+        .subject-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        
+        .topic-list {
+            margin-top: 20px;
+        }
+        
+        .topic-item {
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .topic-header {
+            background-color: #f9f9f9;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .topic-header:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .topic-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .topic-weightage {
+            background-color: var(--secondary);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .topic-priority {
+            font-size: 14px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .priority-A {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--accent);
+        }
+        
+        .priority-B {
+            background-color: rgba(241, 196, 15, 0.1);
+            color: #f1c40f;
+        }
+        
+        .priority-C {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+        }
+        
+        .subtopic-list {
+            padding: 15px;
+            background-color: white;
+            display: none;
+        }
+        
+        .subtopic-list.expanded {
+            display: block;
+        }
+        
+        .subtopic-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .subtopic-item:last-child {
+            border-bottom: none;
+        }
+        
+        .subtopic-info {
+            flex: 1;
+        }
+        
+        .subtopic-name {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .subtopic-details {
+            display: flex;
+            gap: 15px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .subtopic-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .time-info {
+            text-align: right;
+            font-size: 14px;
+        }
+        
+        .planned-time {
+            color: var(--gray);
+        }
+        
+        .actual-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        
+        .actual-time input {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            text-align: center;
+        }
+        
+        .completion-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .status-complete {
+            color: var(--success);
+            font-weight: 500;
+        }
+        
+        /* Videos & Notes Pages */
+        .resources-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .resources-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .add-resource-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+        }
+        
+        .add-resource-form h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .resource-list {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        .resource-list h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .resource-item {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .resource-info h4 {
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        
+        .resource-subject {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .resource-link {
+            font-size: 14px;
+            color: var(--secondary);
+            word-break: break-all;
+        }
+        
+        .resource-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .resource-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f5f5f5;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .resource-btn:hover {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 18px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .social-link:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .app-designer {
+            margin-top: 10px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--secondary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+            }
+            
+            .nav-links li {
+                flex: 1 0 50%;
+            }
+            
+            .kpi-cards {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Screen -->
+    <div class="auth-container" id="auth-container">
+        <div class="auth-box">
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">Login</div>
+                <div class="auth-tab" data-tab="signup">Sign Up</div>
+            </div>
+            
+            <div class="auth-form active" id="login-form">
+                <h2>Welcome Back</h2>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password">
+                </div>
+                <button class="btn" id="login-btn">Login</button>
+                <div id="login-message" class="auth-message"></div>
+            </div>
+            
+            <div class="auth-form" id="signup-form">
+                <h2>Create Account</h2>
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your full name">
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password (min. 6 characters)">
+                </div>
+                <button class="btn btn-accent" id="signup-btn">Sign Up</button>
+                <div id="signup-message" class="auth-message"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- App Container -->
+    <div class="app-container" id="app-container">
+        <header>
+            <div class="container header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line logo-icon"></i>
+                    <h1>CA Final Study Tracker</h1>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">SK</div>
+                    <button class="logout-btn" id="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <nav>
+                <div class="container">
+                    <ul class="nav-links">
+                        <li><a href="#" class="nav-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" class="nav-link" data-page="subjects"><i class="fas fa-book"></i> Subjects</a></li>
+                        <li><a href="#" class="nav-link" data-page="videos"><i class="fas fa-video"></i> Videos</a></li>
+                        <li><a href="#" class="nav-link" data-page="notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        
+        <main class="main-content">
+            <div class="container">
+                <!-- Dashboard Page -->
+                <div class="page active" id="dashboard-page">
+                    <h2 class="page-title">Study Dashboard</h2>
+                    
+                    <div class="progress-filters">
+                        <div class="progress-filter active" data-filter="all">All Subjects</div>
+                        <div class="progress-filter" data-filter="paper1">Paper 1: FR</div>
+                        <div class="progress-filter" data-filter="paper2">Paper 2: AFM</div>
+                        <div class="progress-filter" data-filter="paper3">Paper 3: Audit</div>
+                        <div class="progress-filter" data-filter="paper4">Paper 4: DT</div>
+                        <div class="progress-filter" data-filter="paper5">Paper 5: IDT</div>
+                        <div class="progress-filter" data-filter="paper6">Paper 6: IBS</div>
+                    </div>
+                    
+                    <div class="kpi-cards">
+                        <div class="kpi-card">
+                            <div class="kpi-icon time">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>Study Time</h3>
+                            <div class="kpi-value" id="actual-hours">0</div>
+                            <div class="kpi-subtext">of <span id="planned-hours">680</span> planned hours</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon progress">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3>Overall Progress</h3>
+                            <div class="kpi-value" id="overall-progress">0%</div>
+                            <div class="kpi-subtext">Course Completion</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon subjects">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h3>Subjects</h3>
+                            <div class="kpi-value" id="subjects-completed">0</div>
+                            <div class="kpi-subtext">of 6 Subjects</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon topics">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3>Topics Completed</h3>
+                            <div class="kpi-value" id="topics-completed">0</div>
+                            <div class="kpi-subtext">of 58 Topics</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3 class="chart-title">Progress Overview</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="progress-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subjects Page -->
+                <div class="page" id="subjects-page">
+                    <h2 class="page-title">Subjects & Topics</h2>
+                    
+                    <div class="subject-selector">
+                        <label for="subject-select">Select Subject:</label>
+                        <select id="subject-select" class="subject-dropdown">
+                            <option value="all">All Subjects</option>
+                            <option value="paper1">Paper 1: Financial Reporting (FR)</option>
+                            <option value="paper2">Paper 2: Advanced Financial Management (AFM)</option>
+                            <option value="paper3">Paper 3: Auditing and Assurance (Audit)</option>
+                            <option value="paper4">Paper 4: Direct Tax (DT)</option>
+                            <option value="paper5">Paper 5: Indirect Tax (IDT)</option>
+                            <option value="paper6">Paper 6: Integrated Business Solutions (IBS)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="subject-content">
+                        <!-- Subject content will be loaded here dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Videos Page -->
+                <div class="page" id="videos-page">
+                    <h2 class="page-title">Video Resources</h2>
+                    
+                    <div class="resources-container">
+                        <div class="add-resource-form">
+                            <h3>Add New Video</h3>
+                            <div class="form-group">
+                                <label for="video-title">Video Title</label>
+                                <input type="text" id="video-title" placeholder="Enter video title">
+                            </div>
+                            <div class="form-group">
+                                <label for="video-subject">Subject</label>
+                                <select id="video-subject" class="subject-dropdown">
+                                    <option value="paper1">Paper 1: FR</option>
+                                    <option value="paper2">Paper 2: AFM</option>
+                                    <option value="paper3">Paper 3: Audit</option>
+                                    <option value="paper4">Paper 4: DT</option>
+                                    <option value="paper5">Paper 5: IDT</option>
+                                    <option value="paper6">Paper 6: IBS</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="video-link">Video URL</label>
+                                <input type="text" id="video-link" placeholder="Paste YouTube or other video link">
+                            </div>
+                            <button class="btn" id="add-video-btn">Add Video</button>
+                            <div id="video-message" class="auth-message" style="margin-top: 15px;"></div>
+                        </div>
+                        
+                        <div class="resource-list">
+                            <h3>Saved Videos</h3>
+                            <div id="videos-list">
+                                <!-- Videos will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notes Page -->
+                <div class="page" id="notes-page">
+                    <h2 class="page-title">Study Notes</h2>
+                    
+                    <div class="resources-container">
+                        <div class="add-resource-form">
+                            <h3>Add New Notes</h3>
+                            <div class="form-group">
+                                <label for="notes-title">Notes Title</label>
+                                <input type="text" id="notes-title" placeholder="Enter notes title">
+                            </div>
+                            <div class="form-group">
+                                <label for="notes-subject">Subject</label>
+                                <select id="notes-subject" class="subject-dropdown">
+                                    <option value="paper1">Paper 1: FR</option>
+                                    <option value="paper2">Paper 2: AFM</option>
+                                    <option value="paper3">Paper 3: Audit</option>
+                                    <option value="paper4">Paper 4: DT</option>
+                                    <option value="paper5">Paper 5: IDT</option>
+                                    <option value="paper6">Paper 6: IBS</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="notes-link">Notes Link</label>
+                                <input type="text" id="notes-link" placeholder="Paste Google Drive or other link">
+                            </div>
+                            <button class="btn" id="add-notes-btn">Add Notes</button>
+                            <div id="notes-message" class="auth-message" style="margin-top: 15px;"></div>
+                        </div>
+                        
+                        <div class="resource-list">
+                            <h3>Saved Notes</h3>
+                            <div id="notes-list">
+                                <!-- Notes will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="container">
+                <h3>Nice Connect</h3>
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/satyam-kumar5286o" target="_blank" class="social-link">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="https://youtube.com/@__satyamkumar?si=DFCsdCFrJCIIJglR" target="_blank" class="social-link">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://www.instagram.com/satyqm2.o?igsh=bmQ0aThzamRmMHli" target="_blank" class="social-link">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-link">
+                        <i class="fas fa-briefcase"></i>
+                    </a>
+                </div>
+                <div class="copyright">© 2023 CA Final Study Tracker. All rights reserved.</div>
+                <div class="app-designer">App Designed by Satyam Kumar | WhatsApp: 9142300129</div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqLun-YXJBxDjXgzzrrprIuaQs-L5A7qk",
+            authDomain: "ca-final-537aa.firebaseapp.com",
+            projectId: "ca-final-537aa",
+            storageBucket: "ca-final-537aa.firebasestorage.app",
+            messagingSenderId: "156489737512",
+            appId: "1:156489737512:web:14435d787884c3f5e99c1d"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // CA Final Syllabus Data
+        const syllabusData = {
+            paper1: {
+                name: "Paper 1: Financial Reporting (FR)",
+                topics: [
+                    {
+                        name: "Introduction to GPFS",
+                        weightage: "10-15%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Ind AS 1 basics", time: 4 },
+                            { name: "Schedule III Div II", time: 2 },
+                            { name: "Applicability criteria", time: 2 }
+                        ]
+                    },
+                    {
+                        name: "Conceptual Framework",
+                        weightage: "5-10%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Application to GPFS", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "Presentation of Items",
+                        weightage: "5-10%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 1: Presentation", time: 3 },
+                            { name: "Ind AS 34: Interim", time: 2 },
+                            { name: "Ind AS 7: Cash Flows", time: 3 }
+                        ]
+                    },
+                    {
+                        name: "Measurement Policies",
+                        weightage: "5-10%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 8: Policies/Errors", time: 3 },
+                            { name: "Ind AS 10: Events", time: 2 },
+                            { name: "Ind AS 113: Fair Value", time: 2 }
+                        ]
+                    },
+                    {
+                        name: "Income Statement",
+                        weightage: "5-10%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 115: Revenue", time: 12 }
+                        ]
+                    },
+                    {
+                        name: "Assets",
+                        weightage: "15-25%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 2: Inventories", time: 4 },
+                            { name: "Ind AS 16: PPE", time: 5 },
+                            { name: "Ind AS 116: Leases", time: 6 },
+                            { name: "Ind AS 23: Borrowing Costs", time: 2 },
+                            { name: "Ind AS 36: Impairment", time: 4 },
+                            { name: "Ind AS 38: Intangibles", time: 3 }
+                        ]
+                    },
+                    {
+                        name: "Liabilities",
+                        weightage: "15-25%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 19: Employee Benefits", time: 5 },
+                            { name: "Ind AS 37: Provisions", time: 5 }
+                        ]
+                    },
+                    {
+                        name: "Items Impacting FS",
+                        weightage: "15-20%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 12: Income Taxes", time: 8 },
+                            { name: "Ind AS 21: FX Rates", time: 2 }
+                        ]
+                    },
+                    {
+                        name: "Disclosures",
+                        weightage: "15-20%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Ind AS 24: Related Parties", time: 2 },
+                            { name: "Ind AS 33: EPS", time: 2 },
+                            { name: "Ind AS 108: Segments", time: 2 }
+                        ]
+                    },
+                    {
+                        name: "Financial Instruments",
+                        weightage: "10-15%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 32/107/109 Classification", time: 8 },
+                            { name: "Derivatives/Hedge Accounting", time: 8 }
+                        ]
+                    },
+                    {
+                        name: "Group Accounting",
+                        weightage: "10-20%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Ind AS 103: Business Combos", time: 10 },
+                            { name: "Ind AS 110/111/28: Consolidation", time: 8 }
+                        ]
+                    },
+                    {
+                        name: "First-time Adoption",
+                        weightage: "5-10%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Ind AS 101", time: 4 }
+                        ]
+                    },
+                    {
+                        name: "FS Analysis",
+                        weightage: "5-10%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Ind AS based analysis", time: 5 }
+                        ]
+                    },
+                    {
+                        name: "Ethics & Tech",
+                        weightage: "5-10%",
+                        priority: "C",
+                        subtopics: [
+                            { name: "Ethical issues", time: 2 },
+                            { name: "Technology evolution", time: 1 }
+                        ]
+                    }
+                ]
+            },
+            paper2: {
+                name: "Paper 2: Advanced Financial Management (AFM)",
+                topics: [
+                    {
+                        name: "Financial Policy",
+                        weightage: "8-15%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "CFO role + Value creation", time: 3 },
+                            { name: "Strategic framework", time: 3 }
+                        ]
+                    },
+                    {
+                        name: "Risk Management",
+                        weightage: "8-15%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Risk types + VaR", time: 10 }
+                        ]
+                    },
+                    {
+                        name: "Advanced Cap Budgeting",
+                        weightage: "20-30%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Inflation/Tech impact", time: 7 },
+                            { name: "Risk methods + APV", time: 7 }
+                        ]
+                    },
+                    {
+                        name: "Security Analysis",
+                        weightage: "20-30%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Fundamental Analysis", time: 6 },
+                            { name: "Technical Analysis + EMH", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "Security Valuation",
+                        weightage: "20-30%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Equity/Pref/Debentures", time: 6 },
+                            { name: "CAPM + Risk premium", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "Portfolio Management",
+                        weightage: "20-30%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Analysis/Selection/Revision", time: 8 },
+                            { name: "Securitization + Mutual Funds", time: 4 }
+                        ]
+                    },
+                    {
+                        name: "Derivatives",
+                        weightage: "20-25%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Forwards/Futures/Options", time: 8 },
+                            { name: "Swaps + Greeks", time: 8 }
+                        ]
+                    },
+                    {
+                        name: "Forex Risk",
+                        weightage: "20-25%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "FX factors + SWIFT", time: 12 }
+                        ]
+                    },
+                    {
+                        name: "Business Valuation",
+                        weightage: "10-15%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Asset/Earning/Cashflow models", time: 7 },
+                            { name: "CAPM/APT + EVA/MVA", time: 7 }
+                        ]
+                    },
+                    {
+                        name: "Mergers",
+                        weightage: "2-5%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "M&A + Takeovers + LBO", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "Startup Finance",
+                        weightage: "2-5%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Unicorns + Funding", time: 6 }
+                        ]
+                    }
+                ]
+            },
+            paper3: {
+                name: "Paper 3: Auditing and Assurance (Audit)",
+                topics: [
+                    {
+                        name: "Quality Control",
+                        weightage: "45-55%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SQC 1 + SA 220", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "General Principles",
+                        weightage: "45-55%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SA 240 (Fraud) + SA 250", time: 4 },
+                            { name: "SA 260 + SA 299 (Joint Audit)", time: 4 }
+                        ]
+                    },
+                    {
+                        name: "Audit Planning",
+                        weightage: "45-55%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SA 300/450/520/540", time: 5 }
+                        ]
+                    },
+                    {
+                        name: "Materiality & Risk",
+                        weightage: "3-6%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SA 265/315/320/330", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "Audit Evidence",
+                        weightage: "3-6%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SA 500/501/505/530", time: 5 }
+                        ]
+                    },
+                    {
+                        name: "Completion",
+                        weightage: "17-24%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SA 560/570/580", time: 4 }
+                        ]
+                    },
+                    {
+                        name: "Reporting",
+                        weightage: "17-24%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "SA 700/701/705/706", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "Special Audits",
+                        weightage: "17-24%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Banks + NBFC + PSU", time: 5 }
+                        ]
+                    },
+                    {
+                        name: "Digital Auditing",
+                        weightage: "3-6%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "CAATs + AI + Data Analytics", time: 8 }
+                        ]
+                    },
+                    {
+                        name: "Professional Ethics",
+                        weightage: "17-24%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "CA Act + IESBA Code", time: 10 }
+                        ]
+                    }
+                ]
+            },
+            paper4: {
+                name: "Paper 4: Direct Tax (DT)",
+                topics: [
+                    {
+                        name: "Company Taxation",
+                        weightage: "40-45%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Computation - General Provisions", time: 12 },
+                            { name: "Special Regimes (115BAA/BAB)", time: 8 },
+                            { name: "Charitable Trusts (Sec 11-13)", time: 5 },
+                            { name: "GAAR + Business Trusts", time: 5 }
+                        ]
+                    },
+                    {
+                        name: "Tax Administration",
+                        weightage: "20-30%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "TDS/TCS (Sec 192-206C)", time: 6 },
+                            { name: "Assessment Procedures", time: 5 },
+                            { name: "Appeals + Revision", time: 4 }
+                        ]
+                    },
+                    {
+                        name: "International Taxation",
+                        weightage: "30-35%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Transfer Pricing (Sec 92)", time: 10 },
+                            { name: "Non-Resident Taxation", time: 8 },
+                            { name: "DTAA + BEPS", time: 7 }
+                        ]
+                    }
+                ]
+            },
+            paper5: {
+                name: "Paper 5: Indirect Tax (IDT)",
+                topics: [
+                    {
+                        name: "GST - Core Concepts",
+                        weightage: "45-65%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "Levy/Collection CGST/IGST", time: 5 },
+                            { name: "Supply (Sec 7 + Sch I/II/III)", time: 4 },
+                            { name: "Charge of Tax + RCM", time: 3 },
+                            { name: "ITC (Sec 16-18)", time: 6 }
+                        ]
+                    },
+                    {
+                        name: "GST - Procedures",
+                        weightage: "10-30%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Registration (Sec 22-29)", time: 4 },
+                            { name: "Returns (GSTR 1/3B/9)", time: 4 }
+                        ]
+                    },
+                    {
+                        name: "GST - Compliance",
+                        weightage: "15-30%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Demands/Recovery (Sec 73-76)", time: 4 },
+                            { name: "Appeals/Advance Ruling", time: 3 }
+                        ]
+                    },
+                    {
+                        name: "Customs",
+                        weightage: "40-65%",
+                        priority: "B",
+                        subtopics: [
+                            { name: "Levy + Classification", time: 4 },
+                            { name: "Import/Export Procedures", time: 3 }
+                        ]
+                    },
+                    {
+                        name: "FTP",
+                        weightage: "10-20%",
+                        priority: "C",
+                        subtopics: [
+                            { name: "Export Promotion Schemes", time: 4 }
+                        ]
+                    }
+                ]
+            },
+            paper6: {
+                name: "Paper 6: Integrated Business Solutions (IBS)",
+                topics: [
+                    {
+                        name: "Multi-disciplinary Cases",
+                        weightage: "100%",
+                        priority: "A",
+                        subtopics: [
+                            { name: "FR + AFM + Audit + DT + IDT", time: 60 }
+                        ]
+                    }
+                ]
+            }
+        };
+        
+        // Global variables
+        let currentUser = null;
+        let userProgress = {};
+        let progressChart = null;
+        
+        // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const subjectSelect = document.getElementById('subject-select');
+        const subjectContent = document.getElementById('subject-content');
+        const progressFilters = document.querySelectorAll('.progress-filter');
+        
+        // Authentication state observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                showApp();
+                loadUserProgress();
+                updateUserAvatar();
+            } else {
+                // User is signed out
+                showAuth();
+            }
+        });
+        
+        // Event Listeners
+        authTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                authTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                loginForm.classList.remove('active');
+                signupForm.classList.remove('active');
+                
+                if (tabId === 'login') {
+                    loginForm.classList.add('active');
+                } else {
+                    signupForm.classList.add('active');
+                }
+            });
+        });
+        
+        loginBtn.addEventListener('click', handleLogin);
+        signupBtn.addEventListener('click', handleSignup);
+        logoutBtn.addEventListener('click', handleLogout);
+        
+        // Navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = link.getAttribute('data-page');
+                
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                pages.forEach(page => page.classList.remove('active'));
+                document.getElementById(`${pageId}-page`).classList.add('active');
+                
+                // Load specific content for pages
+                if (pageId === 'subjects') {
+                    loadSubjectContent();
+                } else if (pageId === 'videos') {
+                    loadVideos();
+                } else if (pageId === 'notes') {
+                    loadNotes();
+                } else if (pageId === 'dashboard') {
+                    updateDashboard();
+                }
+            });
+        });
+        
+        // Subject selection
+        subjectSelect.addEventListener('change', loadSubjectContent);
+        
+        // Progress filters
+        progressFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                progressFilters.forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                updateDashboard(filter.getAttribute('data-filter'));
+            });
+        });
+        
+        // Video and Notes buttons
+        document.getElementById('add-video-btn')?.addEventListener('click', addVideo);
+        document.getElementById('add-notes-btn')?.addEventListener('click', addNotes);
+        
+        // Authentication Functions
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const messageDiv = document.getElementById('login-message');
+            
+            if (!email || !password) {
+                showMessage(messageDiv, 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            loginBtn.innerHTML = '<div class="loading"></div>';
+            loginBtn.disabled = true;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    showMessage(messageDiv, 'Login successful!', 'success');
+                    // User will be redirected via onAuthStateChanged
+                })
+                .catch((error) => {
+                    showMessage(messageDiv, error.message, 'error');
+                    loginBtn.innerHTML = 'Login';
+                    loginBtn.disabled = false;
+                });
+        }
+        
+        function handleSignup() {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const messageDiv = document.getElementById('signup-message');
+            
+            if (!name || !email || !password) {
+                showMessage(messageDiv, 'Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage(messageDiv, 'Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            signupBtn.innerHTML = '<div class="loading"></div>';
+            signupBtn.disabled = true;
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Update user profile with name
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    }).then(() => {
+                        // Create user document in Firestore
+                        return db.collection('users').doc(userCredential.user.uid).set({
+                            name: name,
+                            email: email,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    });
+                })
+                .then(() => {
+                    showMessage(messageDiv, 'Account created successfully!', 'success');
+                    // Initialize user progress
+                    initializeUserProgress();
+                })
+                .catch((error) => {
+                    showMessage(messageDiv, error.message, 'error');
+                    signupBtn.innerHTML = 'Sign Up';
+                    signupBtn.disabled = false;
+                });
+        }
+        
+        function handleLogout() {
+            auth.signOut().then(() => {
+                showAuth();
+            });
+        }
+        
+        function showMessage(element, message, type) {
+            element.textContent = message;
+            element.className = 'auth-message ' + type;
+            element.style.display = 'block';
+            
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
+        }
+        
+        function showAuth() {
+            authContainer.style.display = 'flex';
+            appContainer.classList.remove('active');
+            currentUser = null;
+        }
+        
+        function showApp() {
+            authContainer.style.display = 'none';
+            appContainer.classList.add('active');
+        }
+        
+        function updateUserAvatar() {
+            const userAvatar = document.getElementById('user-avatar');
+            if (currentUser && currentUser.displayName) {
+                const initials = currentUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase();
+                userAvatar.textContent = initials.substring(0, 2);
+            } else {
+                userAvatar.textContent = 'SK';
+            }
+        }
+        
+        // User Progress Functions
+        function initializeUserProgress() {
+            if (!currentUser) return;
+            
+            const progressRef = db.collection('userProgress').doc(currentUser.uid);
+            
+            progressRef.get().then((doc) => {
+                if (!doc.exists) {
+                    // Initialize progress data structure
+                    const initialProgress = {
+                        userId: currentUser.uid,
+                        subjects: {},
+                        totalActualHours: 0,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Initialize all subtopics as not completed
+                    for (const paperId in syllabusData) {
+                        initialProgress.subjects[paperId] = {
+                            completedTopics: 0,
+                            completedSubtopics: 0,
+                            totalTopics: syllabusData[paperId].topics.length,
+                            totalSubtopics: syllabusData[paperId].topics.reduce((sum, topic) => sum + topic.subtopics.length, 0),
+                            topics: {}
+                        };
+                        
+                        syllabusData[paperId].topics.forEach((topic, topicIndex) => {
+                            initialProgress.subjects[paperId].topics[topic.name] = {
+                                completed: false,
+                                subtopics: {}
+                            };
+                            
+                            topic.subtopics.forEach((subtopic, subtopicIndex) => {
+                                initialProgress.subjects[paperId].topics[topic.name].subtopics[subtopic.name] = {
+                                    completed: false,
+                                    actualTime: 0
+                                };
+                            });
+                        });
+                    }
+                    
+                    progressRef.set(initialProgress).then(() => {
+                        userProgress = initialProgress;
+                        updateDashboard();
+                    });
+                }
+            });
+        }
+        
+        function loadUserProgress() {
+            if (!currentUser) return;
+            
+            const progressRef = db.collection('userProgress').doc(currentUser.uid);
+            
+            progressRef.get().then((doc) => {
+                if (doc.exists) {
+                    userProgress = doc.data();
+                    updateDashboard();
+                } else {
+                    initializeUserProgress();
+                }
+            }).catch((error) => {
+                console.error("Error loading user progress:", error);
+            });
+        }
+        
+        function updateSubtopicsProgress(subjectId, topicName, subtopicName, completed, actualTime) {
+            if (!currentUser) return;
+            
+            const progressRef = db.collection('userProgress').doc(currentUser.uid);
+            const subtopicPath = `subjects.${subjectId}.topics.${topicName}.subtopics.${subtopicName}`;
+            
+            const updateData = {};
+            updateData[`${subtopicPath}.completed`] = completed;
+            updateData[`${subtopicPath}.actualTime`] = actualTime;
+            
+            // Update Firestore
+            progressRef.update(updateData).then(() => {
+                // Update local userProgress object
+                if (!userProgress.subjects[subjectId]) {
+                    userProgress.subjects[subjectId] = { topics: {} };
+                }
+                if (!userProgress.subjects[subjectId].topics[topicName]) {
+                    userProgress.subjects[subjectId].topics[topicName] = { subtopics: {} };
+                }
+                if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
+                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = {};
+                }
+                
+                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = completed;
+                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualTime = actualTime;
+                
+                // Update topic completion status
+                updateTopicCompletion(subjectId, topicName);
+                
+                // Update dashboard
+                updateDashboard();
+            }).catch((error) => {
+                console.error("Error updating progress:", error);
+            });
+        }
+        
+        function updateTopicCompletion(subjectId, topicName) {
+            if (!currentUser || !userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) return;
+            
+            const topic = userProgress.subjects[subjectId].topics[topicName];
+            const subtopics = Object.values(topic.subtopics);
+            const allCompleted = subtopics.length > 0 && subtopics.every(st => st.completed);
+            
+            const progressRef = db.collection('userProgress').doc(currentUser.uid);
+            const topicPath = `subjects.${subjectId}.topics.${topicName}`;
+            
+            progressRef.update({
+                [`${topicPath}.completed`]: allCompleted
+            }).then(() => {
+                userProgress.subjects[subjectId].topics[topicName].completed = allCompleted;
+            });
+        }
+        
+        // Dashboard Functions
+        function updateDashboard(filter = 'all') {
+            if (!userProgress || !userProgress.subjects) return;
+            
+            let totalActualHours = 0;
+            let totalPlannedHours = 680; // From your data
+            let totalTopics = 0;
+            let completedTopics = 0;
+            let totalSubtopics = 0;
+            let completedSubtopics = 0;
+            let completedSubjects = 0;
+            
+            // Calculate totals based on filter
+            for (const subjectId in userProgress.subjects) {
+                if (filter !== 'all' && filter !== subjectId) continue;
+                
+                const subject = userProgress.subjects[subjectId];
+                
+                // Count topics and subtopics
+                for (const topicName in subject.topics) {
+                    totalTopics++;
+                    
+                    const topic = subject.topics[topicName];
+                    if (topic.completed) completedTopics++;
+                    
+                    for (const subtopicName in topic.subtopics) {
+                        totalSubtopics++;
+                        const subtopic = topic.subtopics[subtopicName];
+                        if (subtopic.completed) {
+                            completedSubtopics++;
+                            totalActualHours += subtopic.actualTime || 0;
+                        }
+                    }
+                }
+                
+                // Check if subject is complete (all topics completed)
+                if (subject.completedTopics === subject.totalTopics) {
+                    completedSubjects++;
+                }
+            }
+            
+            // Update KPI cards
+            document.getElementById('actual-hours').textContent = totalActualHours;
+            document.getElementById('planned-hours').textContent = totalPlannedHours;
+            
+            const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
+            document.getElementById('overall-progress').textContent = `${overallProgress}%`;
+            
+            document.getElementById('subjects-completed').textContent = completedSubjects;
+            document.getElementById('topics-completed').textContent = completedTopics;
+            
+            // Update progress chart
+            updateProgressChart(filter, completedTopics, totalTopics, completedSubtopics, totalSubtopics);
+        }
+        
+        function updateProgressChart(filter, completedTopics, totalTopics, completedSubtopics, totalSubtopics) {
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+            
+            // Destroy previous chart if it exists
+            if (progressChart) {
+                progressChart.destroy();
+            }
+            
+            const subjectName = filter === 'all' ? 'All Subjects' : syllabusData[filter]?.name || 'Selected Subject';
+            
+            progressChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Remaining'],
+                    datasets: [{
+                        data: [completedTopics, totalTopics - completedTopics],
+                        backgroundColor: ['#2ecc71', '#ecf0f1'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `${subjectName} - Topics Progress`,
+                            font: {
+                                size: 16
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.raw;
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%',
+                }
+            });
+        }
+        
+        // Subjects Page Functions
+        function loadSubjectContent() {
+            const selectedSubject = subjectSelect.value;
+            let contentHTML = '';
+            
+            if (selectedSubject === 'all') {
+                // Show all subjects
+                for (const subjectId in syllabusData) {
+                    contentHTML += renderSubject(subjectId, syllabusData[subjectId]);
+                }
+            } else {
+                // Show selected subject
+                contentHTML = renderSubject(selectedSubject, syllabusData[selectedSubject]);
+            }
+            
+            subjectContent.innerHTML = contentHTML;
+            
+            // Add event listeners to topic headers
+            document.querySelectorAll('.topic-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const subtopicList = this.nextElementSibling;
+                    subtopicList.classList.toggle('expanded');
+                });
+            });
+            
+            // Add event listeners to completion checkboxes
+            document.querySelectorAll('.completion-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topicName = this.getAttribute('data-topic');
+                    const subtopicName = this.getAttribute('data-subtopic');
+                    const completed = this.checked;
+                    
+                    const timeInput = document.getElementById(`time-${subjectId}-${topicName}-${subtopicName}`);
+                    const actualTime = completed ? parseInt(timeInput.value) || 0 : 0;
+                    
+                    updateSubtopicsProgress(subjectId, topicName, subtopicName, completed, actualTime);
+                });
+            });
+            
+            // Add event listeners to time inputs
+            document.querySelectorAll('.time-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topicName = this.getAttribute('data-topic');
+                    const subtopicName = this.getAttribute('data-subtopic');
+                    
+                    const checkbox = document.getElementById(`checkbox-${subjectId}-${topicName}-${subtopicName}`);
+                    if (checkbox.checked) {
+                        const actualTime = parseInt(this.value) || 0;
+                        updateSubtopicsProgress(subjectId, topicName, subtopicName, true, actualTime);
+                    }
+                });
+            });
+        }
+        
+        function renderSubject(subjectId, subjectData) {
+            let html = `<div class="subject-content">
+                <h3>${subjectData.name}</h3>
+                <div class="topic-list">`;
+            
+            subjectData.topics.forEach(topic => {
+                // Check if topic is completed
+                let topicCompleted = false;
+                if (userProgress && userProgress.subjects[subjectId] && userProgress.subjects[subjectId].topics[topic.name]) {
+                    topicCompleted = userProgress.subjects[subjectId].topics[topic.name].completed || false;
+                }
+                
+                html += `<div class="topic-item">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            <i class="fas fa-chevron-right" style="margin-right: 8px; transition: transform 0.3s;"></i>
+                            ${topic.name}
+                            ${topicCompleted ? '<span class="status-complete" style="margin-left: 10px;"><i class="fas fa-check-circle"></i> Completed</span>' : ''}
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span class="topic-priority priority-${topic.priority}">Priority ${topic.priority}</span>
+                            <span class="topic-weightage">${topic.weightage}</span>
+                        </div>
+                    </div>
+                    <div class="subtopic-list">
+                        ${topic.subtopics.map(subtopic => {
+                            // Check if subtopic is completed
+                            let subtopicCompleted = false;
+                            let actualTime = 0;
+                            if (userProgress && userProgress.subjects[subjectId] && 
+                                userProgress.subjects[subjectId].topics[topic.name] &&
+                                userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name]) {
+                                subtopicCompleted = userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name].completed || false;
+                                actualTime = userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name].actualTime || 0;
+                            }
+                            
+                            return `<div class="subtopic-item">
+                                <div class="subtopic-info">
+                                    <div class="subtopic-name">${subtopic.name}</div>
+                                    <div class="subtopic-details">
+                                        <span>Planned: ${subtopic.time} hrs</span>
+                                        ${subtopicCompleted ? '<span class="status-complete"><i class="fas fa-check"></i> Completed</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="subtopic-actions">
+                                    <div class="time-info">
+                                        <div class="planned-time">${subtopic.time} hrs planned</div>
+                                        <div class="actual-time">
+                                            <input type="number" 
+                                                   id="time-${subjectId}-${topic.name}-${subtopic.name}"
+                                                   class="time-input"
+                                                   data-subject="${subjectId}"
+                                                   data-topic="${topic.name}"
+                                                   data-subtopic="${subtopic.name}"
+                                                   value="${actualTime}"
+                                                   min="0" 
+                                                   placeholder="Actual">
+                                            <span>hrs</span>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" 
+                                           id="checkbox-${subjectId}-${topic.name}-${subtopic.name}"
+                                           class="completion-checkbox"
+                                           data-subject="${subjectId}"
+                                           data-topic="${topic.name}"
+                                           data-subtopic="${subtopic.name}"
+                                           ${subtopicCompleted ? 'checked' : ''}>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            });
+            
+            html += `</div></div>`;
+            return html;
+        }
+        
+        // Video Functions
+        function loadVideos() {
+            if (!currentUser) return;
+            
+            const videosList = document.getElementById('videos-list');
+            videosList.innerHTML = '<p>Loading videos...</p>';
+            
+            db.collection('videos')
+                .where('addedBy', '==', currentUser.uid)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        videosList.innerHTML = '<p>No videos added yet. Add your first video!</p>';
+                        return;
+                    }
+                    
+                    let videosHTML = '';
+                    querySnapshot.forEach((doc) => {
+                        const video = doc.data();
+                        const subjectName = getSubjectName(video.subject);
+                        
+                        videosHTML += `<div class="resource-item">
+                            <div class="resource-info">
+                                <h4>${video.title}</h4>
+                                <div class="resource-subject">${subjectName}</div>
+                                <div class="resource-link">${video.link}</div>
+                            </div>
+                            <div class="resource-actions">
+                                <a href="${video.link}" target="_blank" class="resource-btn">
+                                    <i class="fas fa-play"></i>
+                                </a>
+                                <a href="#" class="resource-btn delete-video" data-id="${doc.id}">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>`;
+                    });
+                    
+                    videosList.innerHTML = videosHTML;
+                    
+                    // Add event listeners to delete buttons
+                    document.querySelectorAll('.delete-video').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const videoId = this.getAttribute('data-id');
+                            deleteVideo(videoId);
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading videos:", error);
+                    videosList.innerHTML = '<p>Error loading videos. Please try again.</p>';
+                });
+        }
+        
+        function addVideo() {
+            if (!currentUser) return;
+            
+            const title = document.getElementById('video-title').value;
+            const subject = document.getElementById('video-subject').value;
+            const link = document.getElementById('video-link').value;
+            const messageDiv = document.getElementById('video-message');
+            
+            if (!title || !link) {
+                showMessage(messageDiv, 'Please fill in title and link', 'error');
+                return;
+            }
+            
+            db.collection('videos').add({
+                title: title,
+                subject: subject,
+                link: link,
+                addedBy: currentUser.uid,
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                showMessage(messageDiv, 'Video added successfully!', 'success');
+                document.getElementById('video-title').value = '';
+                document.getElementById('video-link').value = '';
+                loadVideos();
+            })
+            .catch((error) => {
+                showMessage(messageDiv, 'Error adding video: ' + error.message, 'error');
+            });
+        }
+        
+        function deleteVideo(videoId) {
+            if (!currentUser) return;
+            
+            db.collection('videos').doc(videoId).delete()
+                .then(() => {
+                    loadVideos();
+                })
+                .catch((error) => {
+                    console.error("Error deleting video:", error);
+                });
+        }
+        
+        // Notes Functions
+        function loadNotes() {
+            if (!currentUser) return;
+            
+            const notesList = document.getElementById('notes-list');
+            notesList.innerHTML = '<p>Loading notes...</p>';
+            
+            db.collection('notes')
+                .where('addedBy', '==', currentUser.uid)
+                .get()
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        notesList.innerHTML = '<p>No notes added yet. Add your first notes!</p>';
+                        return;
+                    }
+                    
+                    let notesHTML = '';
+                    querySnapshot.forEach((doc) => {
+                        const note = doc.data();
+                        const subjectName = getSubjectName(note.subject);
+                        
+                        notesHTML += `<div class="resource-item">
+                            <div class="resource-info">
+                                <h4>${note.title}</h4>
+                                <div class="resource-subject">${subjectName}</div>
+                                <div class="resource-link">${note.link}</div>
+                            </div>
+                            <div class="resource-actions">
+                                <a href="${note.link}" target="_blank" class="resource-btn">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                                <a href="#" class="resource-btn delete-note" data-id="${doc.id}">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>`;
+                    });
+                    
+                    notesList.innerHTML = notesHTML;
+                    
+                    // Add event listeners to delete buttons
+                    document.querySelectorAll('.delete-note').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const noteId = this.getAttribute('data-id');
+                            deleteNote(noteId);
+                        });
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading notes:", error);
+                    notesList.innerHTML = '<p>Error loading notes. Please try again.</p>';
+                });
+        }
+        
+        function addNotes() {
+            if (!currentUser) return;
+            
+            const title = document.getElementById('notes-title').value;
+            const subject = document.getElementById('notes-subject').value;
+            const link = document.getElementById('notes-link').value;
+            const messageDiv = document.getElementById('notes-message');
+            
+            if (!title || !link) {
+                showMessage(messageDiv, 'Please fill in title and link', 'error');
+                return;
+            }
+            
+            db.collection('notes').add({
+                title: title,
+                subject: subject,
+                link: link,
+                addedBy: currentUser.uid,
+                addedAt: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .then(() => {
+                showMessage(messageDiv, 'Notes added successfully!', 'success');
+                document.getElementById('notes-title').value = '';
+                document.getElementById('notes-link').value = '';
+                loadNotes();
+            })
+            .catch((error) => {
+                showMessage(messageDiv, 'Error adding notes: ' + error.message, 'error');
+            });
+        }
+        
+        function deleteNote(noteId) {
+            if (!currentUser) return;
+            
+            db.collection('notes').doc(noteId).delete()
+                .then(() => {
+                    loadNotes();
+                })
+                .catch((error) => {
+                    console.error("Error deleting note:", error);
+                });
+        }
+        
+        // Helper Functions
+        function getSubjectName(subjectId) {
+            const subjectMap = {
+                'paper1': 'Paper 1: FR',
+                'paper2': 'Paper 2: AFM',
+                'paper3': 'Paper 3: Audit',
+                'paper4': 'Paper 4: DT',
+                'paper5': 'Paper 5: IDT',
+                'paper6': 'Paper 6: IBS',
+                'general': 'General'
+            };
+            
+            return subjectMap[subjectId] || subjectId;
+        }
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is already logged in
+            // This is handled by onAuthStateChanged
+            
+            // Set up video and notes forms
+            document.getElementById('add-video-btn')?.addEventListener('click', addVideo);
+            document.getElementById('add-notes-btn')?.addEventListener('click', addNotes);
+            
+            // Load initial content if user is already logged in
+            if (currentUser) {
+                loadUserProgress();
+            }
+        });
+    </script>
+</body>
+</html>
