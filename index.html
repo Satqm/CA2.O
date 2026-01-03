@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#2c3e50">
-    <meta name="description" content="CA Final Study Tracker - Smart planning and progress tracking">
-    <title>CA Final Study Tracker</title>
+    <meta name="description" content="CA Final Professional Offline Tracker - Advanced study planning and progress analytics">
+    <title>CA Final Pro Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1943,93 +1941,194 @@
                 text-align: center;
             }
         }
+         /* Additional styles for new features */
+        .data-management {
+            margin-top: 30px;
+            padding: 25px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .data-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .license-info {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .license-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--success);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .license-status.expired {
+            background: var(--accent);
+        }
+        
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .performance-good {
+            color: var(--success);
+        }
+        
+        .performance-bad {
+            color: var(--accent);
+        }
+        
+        .export-import-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .projection-message {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.1) 0%, rgba(243, 156, 18, 0.1) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid rgba(241, 196, 15, 0.2);
+            font-size: 16px;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .history-table th {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .achievement-cell {
+            font-weight: bold;
+        }
+        
+        .achievement-high {
+            color: var(--success);
+        }
+        
+        .achievement-medium {
+            color: var(--warning);
+        }
+        
+        .achievement-low {
+            color: var(--accent);
+        }
+        
+        .single-save-btn {
+            margin: 20px 0;
+            width: 200px;
+        }
+        
+        .topic-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .status-inprogress {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .status-completed {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+        
+        .status-not-started {
+            background: rgba(149, 165, 166, 0.1);
+            color: var(--gray);
+            border: 1px solid rgba(149, 165, 166, 0.2);
+        }
+
     </style>
 </head>
 <body>
-    <!-- Authentication Screen -->
-    <div class="auth-container" id="auth-container">
+    <!-- License Validation Screen -->
+    <div class="auth-container" id="license-container">
         <div class="auth-box">
             <div class="auth-header">
                 <div class="auth-logo">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h1>CA Final Tracker</h1>
-                <p>Smart study planning & progress tracking</p>
+                <h1>CA Final Pro Tracker</h1>
+                <p>Professional Offline Study Management</p>
             </div>
             
-            <div class="auth-tabs">
-                <div class="auth-tab active" data-tab="login">Login</div>
-                <div class="auth-tab" data-tab="signup">Sign Up</div>
-            </div>
-            
-            <div class="auth-form active" id="login-form">
-                <div class="form-group">
-                    <label for="login-email">Email Address</label>
-                    <input type="email" id="login-email" placeholder="Enter your email">
-                    <i class="fas fa-envelope"></i>
+            <div class="license-info">
+                <h3><i class="fas fa-key"></i> License Activation</h3>
+                <p>Enter your premium license key to access all features.</p>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="license-key">License Key (Format: CA-PREM-XXXX)</label>
+                    <input type="text" id="license-key" placeholder="Enter your license key">
                 </div>
-                <div class="form-group">
-                    <label for="login-password">Password</label>
-                    <input type="password" id="login-password" placeholder="Enter your password">
-                    <i class="fas fa-lock"></i>
-                </div>
-                <button class="btn" id="login-btn">Login to Dashboard</button>
-                <div id="login-message" class="auth-message"></div>
-            </div>
-            
-            <div class="auth-form" id="signup-form">
-                <div class="form-group">
-                    <label for="signup-name">Full Name</label>
-                    <input type="text" id="signup-name" placeholder="Enter your full name">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="form-group">
-                    <label for="signup-email">Email Address</label>
-                    <input type="email" id="signup-email" placeholder="Enter your email">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="form-group">
-                    <label for="signup-password">Password</label>
-                    <input type="password" id="signup-password" placeholder="Create a password (min. 6 characters)">
-                    <i class="fas fa-lock"></i>
-                </div>
-                <div class="form-group">
-                    <label for="master-password">Master Password*</label>
-                    <input type="password" id="master-password" placeholder="Enter master password">
-                    <i class="fas fa-key"></i>
-                </div>
-                
-                <div class="master-password-info">
-                    <h4>Don't have the master password?</h4>
-                    <p>Contact the administrator to get access:</p>
-                    <a href="https://wa.me/919142300129" target="_blank" class="whatsapp-contact">
-                        <i class="fab fa-whatsapp"></i>
-                        Connect via WhatsApp
-                    </a>
-                </div>
-                
-                <button class="btn btn-accent" id="signup-btn">Create Account</button>
-                <div id="signup-message" class="auth-message"></div>
+                <button class="btn btn-accent" id="activate-btn">
+                    <i class="fas fa-unlock"></i> Activate Premium
+                </button>
             </div>
             
             <div class="auth-social">
-                <p>Connect with Satyam</p>
+                <a href="https://www.youtube.com/watch?v=demo" target="_blank" class="btn" style="margin-bottom: 20px; background: #ff0000;">
+                    <i class="fab fa-youtube"></i> Watch Demo Video
+                </a>
+                
+                <p>Need help or want to purchase?</p>
                 <div class="social-icons">
-                    <a href="https://www.linkedin.com/in/satyam-kumar5286o" target="_blank" class="social-icon linkedin">
-                        <i class="fab fa-linkedin-in"></i>
-                    </a>
-                    <a href="https://youtube.com/@__satyamkumar?si=yTdGDrWa-VE2_R5m" target="_blank" class="social-icon youtube">
-                        <i class="fab fa-youtube"></i>
-                    </a>
-                    <a href="https://www.instagram.com/satyqm2.o?igsh=bmQ0aThzamRmMHli" target="_blank" class="social-icon instagram">
-                        <i class="fab fa-instagram"></i>
+                    <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-icon" style="background: var(--primary); color: white;">
+                        <i class="fas fa-user-tie"></i>
                     </a>
                     <a href="https://wa.me/919142300129" target="_blank" class="social-icon whatsapp">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                 </div>
+                
                 <div class="copyright" style="margin-top: 25px; font-size: 14px; color: var(--gray);">
-                    © 2026 CA Final Study Tracker. Designed by Satyam Kumar
+                    © 2026 CA Final Pro Tracker. Designed by Satyam Kumar
                 </div>
             </div>
         </div>
@@ -2043,15 +2142,21 @@
                     <div class="logo-icon">
                         <i class="fas fa-book-clock"></i>
                     </div>
-                    <h1>CA Final Tracker</h1>
+                    <h1>CA Final Pro Tracker</h1>
                 </div>
                 <div class="user-info">
                     <div class="user-avatar" id="user-avatar">SK</div>
+                    <div class="user-details" style="text-align: right;">
+                        <div id="user-name" style="font-weight: 600; color: var(--primary);">Satyam Kumar</div>
+                        <div id="user-status" class="license-status">Premium Member</div>
+                    </div>
                     <div class="user-menu">
                         <button class="user-menu-btn" id="user-menu-btn">
                             <i class="fas fa-ellipsis-v"></i>
                         </button>
                         <div class="user-dropdown" id="user-dropdown">
+                            <a href="#" id="export-btn"><i class="fas fa-download"></i> Export Data</a>
+                            <a href="#" id="import-btn"><i class="fas fa-upload"></i> Import Data</a>
                             <a href="#" id="settings-btn"><i class="fas fa-cog"></i> Settings</a>
                             <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                         </div>
@@ -2077,74 +2182,53 @@
                 <!-- Dashboard Page -->
                 <div class="page active" id="dashboard-page">
                     <div class="page-header">
-                        <h2 class="page-title"><i class="fas fa-tachometer-alt"></i> Study Dashboard</h2>
+                        <h2 class="page-title"><i class="fas fa-tachometer-alt"></i> Analytics Dashboard</h2>
                         <div class="page-actions">
-                            <button class="btn" id="update-target-btn">
-                                <i class="fas fa-calendar-alt"></i> Update Study Plan
+                            <button class="btn" id="reset-plan-btn">
+                                <i class="fas fa-redo"></i> Reset Plan
+                            </button>
+                            <button class="btn btn-accent" id="export-dashboard-btn">
+                                <i class="fas fa-file-export"></i> Export Report
                             </button>
                         </div>
                     </div>
                     
-                    <!-- Target Setup Card -->
-                    <div class="target-setup-card" id="target-setup-card">
-                        <div class="target-setup-header" id="target-toggle">
-                            <h3><i class="fas fa-bullseye"></i> Your Study Plan</h3>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="target-setup-content" id="target-content">
-                            <div class="target-form">
-                                <div class="form-group">
-                                    <label for="days-to-exam">Days until exam</label>
-                                    <input type="number" id="days-to-exam" min="1" max="365" value="90" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="daily-hours">Daily study hours</label>
-                                    <input type="number" id="daily-hours" min="1" max="24" value="6" step="0.5" class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="start-date">Start date</label>
-                                    <input type="date" id="start-date" class="form-control">
-                                </div>
-                            </div>
-                            <button class="btn" id="calculate-plan-btn">
-                                <i class="fas fa-calculator"></i> Calculate Plan
-                            </button>
-                            
-                            <div class="target-display" id="target-display" style="display: none;">
-                                <h4><i class="fas fa-chart-line"></i> Your Study Plan Summary</h4>
-                                <div class="target-values">
-                                    <div class="target-value">
-                                        <div class="value" id="total-days">0</div>
-                                        <div class="label">Total Days</div>
-                                    </div>
-                                    <div class="target-value">
-                                        <div class="value" id="total-hours">0</div>
-                                        <div class="label">Total Hours</div>
-                                    </div>
-                                    <div class="target-value">
-                                        <div class="value" id="daily-target">0</div>
-                                        <div class="label">Hours/Day</div>
-                                    </div>
-                                    <div class="target-value">
-                                        <div class="value" id="exam-date">-</div>
-                                        <div class="label">Exam Date</div>
-                                    </div>
-                                </div>
-                                <button class="btn btn-accent" id="save-plan-btn" style="margin-top: 20px;">
-                                    <i class="fas fa-save"></i> Save This Plan
-                                </button>
-                            </div>
-                        </div>
+                    <!-- Smart Projection -->
+                    <div class="projection-message" id="projection-message">
+                        <i class="fas fa-chart-line"></i>
+                        <span id="projection-text">Calculating your progress projection...</span>
                     </div>
                     
-                    <div class="progress-filters">
-                        <div class="progress-filter active" data-filter="all">All Subjects</div>
-                        <div class="progress-filter" data-filter="paper1">Paper 1: FR</div>
-                        <div class="progress-filter" data-filter="paper2">Paper 2: AFM</div>
-                        <div class="progress-filter" data-filter="paper3">Paper 3: Audit</div>
-                        <div class="progress-filter" data-filter="paper4">Paper 4: DT</div>
-                        <div class="progress-filter" data-filter="paper5">Paper 5: IDT</div>
-                        <div class="progress-filter" data-filter="paper6">Paper 6: IBS</div>
+                    <!-- Performance Indicators -->
+                    <div class="target-setup-card">
+                        <div class="target-setup-header">
+                            <h3><i class="fas fa-trophy"></i> Performance Analysis</h3>
+                        </div>
+                        <div class="target-setup-content expanded">
+                            <div class="target-values">
+                                <div class="target-value">
+                                    <div class="value" id="success-rate">0%</div>
+                                    <div class="label">Success Rate</div>
+                                </div>
+                                <div class="target-value">
+                                    <div class="value">
+                                        <span id="performance-indicator" class="performance-indicator">
+                                            <i class="fas fa-arrow-up performance-good"></i>
+                                            <span>On Track</span>
+                                        </span>
+                                    </div>
+                                    <div class="label">Performance</div>
+                                </div>
+                                <div class="target-value">
+                                    <div class="value" id="daily-efficiency">0%</div>
+                                    <div class="label">Daily Efficiency</div>
+                                </div>
+                                <div class="target-value">
+                                    <div class="value" id="streak-days">0</div>
+                                    <div class="label">Day Streak</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="kpi-cards">
@@ -2183,36 +2267,48 @@
                             <div class="kpi-value" id="topics-completed">0</div>
                             <div class="kpi-subtext">of <span id="total-topics">58</span> Topics</div>
                         </div>
-                        
-                        <div class="kpi-card">
-                            <div class="kpi-icon completion">
-                                <i class="fas fa-flag-checkered"></i>
-                            </div>
-                            <h3>Plan Completion</h3>
-                            <div class="kpi-value" id="plan-completion">0%</div>
-                            <div class="kpi-subtext">Target Completion Rate</div>
-                        </div>
                     </div>
                     
+                    <!-- Advanced Chart Section -->
                     <div class="chart-container">
                         <div class="chart-header">
-                            <h3 class="chart-title">Progress Analysis</h3>
+                            <h3 class="chart-title">Stock-Style Progress Analysis</h3>
                             <div class="chart-type-selector">
-                                <button class="chart-type-btn active" data-chart="subject">Subject View</button>
-                                <button class="chart-type-btn" data-chart="time">Time Analysis</button>
-                                <button class="chart-type-btn" data-chart="targets">Target Progress</button>
+                                <button class="chart-type-btn active" data-chart="daily">Daily View</button>
+                                <button class="chart-type-btn" data-chart="weekly">Weekly View</button>
+                                <button class="chart-type-btn" data-chart="monthly">Monthly View</button>
+                                <button class="chart-type-btn" data-chart="subject">Subject View</button>
                             </div>
                         </div>
                         <div class="chart-wrapper">
-                            <canvas id="progress-chart"></canvas>
+                            <canvas id="advanced-chart"></canvas>
                         </div>
+                    </div>
+                    
+                    <!-- Data Management -->
+                    <div class="export-import-section">
+                        <h3><i class="fas fa-database"></i> Data Management</h3>
+                        <p>Backup your study data or restore from previous backup</p>
+                        <div class="data-actions">
+                            <button class="btn" id="backup-all-btn">
+                                <i class="fas fa-file-export"></i> Backup All Data
+                            </button>
+                            <button class="btn btn-accent" id="restore-backup-btn">
+                                <i class="fas fa-file-import"></i> Restore Backup
+                            </button>
+                            <input type="file" id="backup-file" accept=".json" style="display: none;">
+                        </div>
+                        <div id="backup-message" class="auth-message" style="margin-top: 15px;"></div>
                     </div>
                 </div>
                 
                 <!-- Subjects Page -->
                 <div class="page" id="subjects-page">
                     <div class="page-header">
-                        <h2 class="page-title"><i class="fas fa-book"></i> Subjects & Topics</h2>
+                        <h2 class="page-title"><i class="fas fa-book"></i> Subjects & Progress</h2>
+                        <button class="btn btn-accent single-save-btn" id="save-all-progress-btn">
+                            <i class="fas fa-save"></i> Save All Progress
+                        </button>
                     </div>
                     
                     <div class="subject-selector">
@@ -2229,14 +2325,14 @@
                     </div>
                     
                     <div id="subject-content">
-                        <!-- Subject content will be loaded here dynamically -->
+                        <!-- Subject content loaded dynamically -->
                     </div>
                 </div>
                 
                 <!-- Planning Page -->
                 <div class="page" id="planning-page">
                     <div class="page-header">
-                        <h2 class="page-title"><i class="fas fa-calendar-check"></i> Daily Planning</h2>
+                        <h2 class="page-title"><i class="fas fa-calendar-check"></i> Planning & Targets</h2>
                         <div class="page-actions">
                             <div class="add-resource-toggle" id="planning-toggle">
                                 <i class="fas fa-plus"></i>
@@ -2247,7 +2343,7 @@
                     
                     <div class="planning-container">
                         <div class="planning-form" id="planning-form">
-                            <h3>Set Today's Target</h3>
+                            <h3>Set New Target</h3>
                             
                             <div class="form-group">
                                 <label for="target-type">Target Type</label>
@@ -2281,17 +2377,8 @@
                                 <label for="planning-topic">Topic (Select or Custom)</label>
                                 <select id="planning-topic" class="subject-dropdown">
                                     <option value="">Select Topic</option>
-                                    <!-- Topics will be loaded dynamically -->
                                 </select>
                                 <input type="text" id="custom-topic" placeholder="Or enter custom topic" style="margin-top: 10px; display: none;">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="planning-subtopic">Subtopic (Optional)</label>
-                                <select id="planning-subtopic" class="subject-dropdown">
-                                    <option value="">Select Subtopic</option>
-                                    <!-- Subtopics will be loaded dynamically -->
-                                </select>
                             </div>
                             
                             <div class="form-group">
@@ -2299,44 +2386,42 @@
                                 <input type="number" id="planned-hours-input" min="0.5" max="24" step="0.5" value="2" placeholder="Enter planned hours">
                             </div>
                             
-                            <div class="form-group">
-                                <label for="target-description">Description (Optional)</label>
-                                <textarea id="target-description" rows="3" placeholder="Add any additional notes..."></textarea>
-                            </div>
-                            
                             <button class="btn" id="save-target-btn">
                                 <i class="fas fa-save"></i> Save Target
                             </button>
-                            <div id="target-message" class="auth-message" style="margin-top: 20px;"></div>
-                            
-                            <div class="planning-stats">
-                                <div class="planning-stat">
-                                    <div class="value" id="today-targets">0</div>
-                                    <div class="label">Today's Targets</div>
-                                </div>
-                                <div class="planning-stat">
-                                    <div class="value" id="today-completed">0</div>
-                                    <div class="label">Completed Today</div>
-                                </div>
-                                <div class="planning-stat">
-                                    <div class="value" id="today-planned">0</div>
-                                    <div class="label">Planned Hours</div>
-                                </div>
-                                <div class="planning-stat">
-                                    <div class="value" id="today-actual">0</div>
-                                    <div class="label">Actual Hours</div>
-                                </div>
-                            </div>
                         </div>
                         
+                        <!-- Live Targets -->
                         <div class="target-list-container">
-                            <h3>Your Targets</h3>
-                            <div class="search-box">
-                                <input type="text" id="search-targets" placeholder="Search targets by topic or description...">
+                            <h3><i class="fas fa-bolt"></i> Live Targets</h3>
+                            <div id="live-targets-list" class="target-list">
+                                <!-- Live targets loaded here -->
                             </div>
-                            <div id="targets-list" class="target-list">
-                                <!-- Targets will be loaded here dynamically -->
-                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Historical Targets -->
+                    <div class="target-list-container" style="margin-top: 30px;">
+                        <h3><i class="fas fa-history"></i> Target History</h3>
+                        <div class="search-box">
+                            <input type="text" id="search-history" placeholder="Search historical targets...">
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="history-table" id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Target</th>
+                                        <th>Subject</th>
+                                        <th>Planned Hours</th>
+                                        <th>Actual Hours</th>
+                                        <th>Achievement %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-tbody">
+                                    <!-- Historical data loaded here -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -2345,114 +2430,35 @@
                 <div class="page" id="videos-page">
                     <div class="page-header">
                         <h2 class="page-title"><i class="fas fa-video"></i> Video Resources</h2>
-                        <div class="page-actions">
-                            <div class="add-resource-toggle" id="video-toggle">
-                                <i class="fas fa-plus"></i>
-                                <span>Add New Video</span>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="resources-container">
-                        <div class="add-resource-form" id="video-form">
-                            <h3>Add New Video</h3>
-                            <div class="form-group">
-                                <label for="video-title">Video Title</label>
-                                <input type="text" id="video-title" placeholder="Enter video title">
-                            </div>
-                            <div class="form-group">
-                                <label for="video-subject">Subject</label>
-                                <select id="video-subject" class="subject-dropdown">
-                                    <option value="paper1">Paper 1: FR</option>
-                                    <option value="paper2">Paper 2: AFM</option>
-                                    <option value="paper3">Paper 3: Audit</option>
-                                    <option value="paper4">Paper 4: DT</option>
-                                    <option value="paper5">Paper 5: IDT</option>
-                                    <option value="paper6">Paper 6: IBS</option>
-                                    <option value="general">General</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="video-link">Video URL (YouTube, Vimeo, etc.)</label>
-                                <input type="text" id="video-link" placeholder="Paste video link here">
-                            </div>
-                            <button class="btn" id="add-video-btn">Add Video</button>
-                            <div id="video-message" class="auth-message" style="margin-top: 20px;"></div>
-                        </div>
-                        
                         <div class="resource-list-container">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                                <h3>Video Library</h3>
-                            </div>
+                            <h3>Video Library</h3>
                             <div class="search-box">
-                                <input type="text" id="search-videos" placeholder="Search videos by title or subject...">
+                                <input type="text" id="search-videos" placeholder="Search videos...">
                             </div>
                             <div id="videos-list" class="resource-list">
-                                <!-- Videos will be loaded here dynamically -->
+                                <!-- Videos loaded here -->
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Resources Page (formerly Notes) -->
+                <!-- Resources Page -->
                 <div class="page" id="resources-page">
                     <div class="page-header">
                         <h2 class="page-title"><i class="fas fa-sticky-note"></i> Study Resources</h2>
-                        <div class="page-actions">
-                            <div class="add-resource-toggle" id="resources-toggle">
-                                <i class="fas fa-plus"></i>
-                                <span>Add New Resource</span>
-                            </div>
-                        </div>
                     </div>
                     
                     <div class="resources-container">
-                        <div class="add-resource-form" id="resources-form">
-                            <h3>Add New Resource</h3>
-                            <div class="form-group">
-                                <label for="resources-title">Resource Title</label>
-                                <input type="text" id="resources-title" placeholder="Enter resource title">
-                            </div>
-                            <div class="form-group">
-                                <label for="resources-subject">Subject</label>
-                                <select id="resources-subject" class="subject-dropdown">
-                                    <option value="paper1">Paper 1: FR</option>
-                                    <option value="paper2">Paper 2: AFM</option>
-                                    <option value="paper3">Paper 3: Audit</option>
-                                    <option value="paper4">Paper 4: DT</option>
-                                    <option value="paper5">Paper 5: IDT</option>
-                                    <option value="paper6">Paper 6: IBS</option>
-                                    <option value="general">General</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="resources-type">Resource Type</label>
-                                <select id="resources-type" class="subject-dropdown">
-                                    <option value="notes">Notes</option>
-                                    <option value="question_paper">Question Paper</option>
-                                    <option value="mcq">MCQs</option>
-                                    <option value="summary">Summary</option>
-                                    <option value="formulas">Formulas</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="resources-link">Resource Link (Google Drive, Dropbox, etc.)</label>
-                                <input type="text" id="resources-link" placeholder="Paste resource link here">
-                            </div>
-                            <button class="btn" id="add-resources-btn">Add Resource</button>
-                            <div id="resources-message" class="auth-message" style="margin-top: 20px;"></div>
-                        </div>
-                        
                         <div class="resource-list-container">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                                <h3>Resources Collection</h3>
-                            </div>
+                            <h3>Resources Collection</h3>
                             <div class="search-box">
-                                <input type="text" id="search-resources" placeholder="Search resources by title, subject or type...">
+                                <input type="text" id="search-resources" placeholder="Search resources...">
                             </div>
                             <div id="resources-list" class="resource-list">
-                                <!-- Resources will be loaded here dynamically -->
+                                <!-- Resources loaded here -->
                             </div>
                         </div>
                     </div>
@@ -2463,9 +2469,15 @@
         <footer>
             <div class="container">
                 <div class="footer-content">
-                    <h3>Connect with Satyam</h3>
+                    <h3>CA Final Pro Tracker</h3>
                     <div class="social-links">
-                        <a href="https://www.linkedin.com/in/satyam-kumar5286o" target="_blank" class="social-link">
+                        <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-link">
+                            <i class="fas fa-user-tie"></i>
+                        </a>
+                        <a href="https://wa.me/919142300129" target="_blank" class="social-link">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                           <a href="https://www.linkedin.com/in/satyam-kumar5286o" target="_blank" class="social-link">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
                         <a href="https://youtube.com/@__satyamkumar?si=yTdGDrWa-VE2_R5m" target="_blank" class="social-link">
@@ -2474,16 +2486,69 @@
                         <a href="https://www.instagram.com/satyqm2.o?igsh=bmQ0aThzamRmMHli" target="_blank" class="social-link">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="https://wa.me/919142300129" target="_blank" class="social-link">
-                            <i class="fab fa-whatsapp"></i>
-                        </a>
                     </div>
-                    <div class="copyright">© 2026 CA Final Study Tracker. All rights reserved.</div>
-                    <div class="app-designer">Designed by Satyam Kumar</div>
+                    <div class="copyright">Professional Offline Version • © 2026 Satyam Kumar</div>
                 </div>
             </div>
         </footer>
     </div>
+    
+    <!-- License Generator Modal (Admin Only) -->
+    <div class="modal" id="license-generator-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>License Key Generator</h3>
+                <button class="modal-close" id="license-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="license-name">User Name</label>
+                    <input type="text" id="license-name" placeholder="Enter user's full name">
+                </div>
+                <div class="form-group">
+                    <label for="license-days">Validity (Days)</label>
+                    <select id="license-days" class="subject-dropdown">
+                        <option value="30">30 Days</option>
+                        <option value="90">90 Days</option>
+                        <option value="180">180 Days</option>
+                        <option value="365">1 Year</option>
+                        <option value="9999">Lifetime</option>
+                    </select>
+                </div>
+                <button class="btn btn-accent" id="generate-license-btn">
+                    <i class="fas fa-key"></i> Generate License
+                </button>
+                <div id="generated-license" class="license-info" style="margin-top: 20px; display: none;">
+                    <h4>Generated License Key:</h4>
+                    <div id="license-output" style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; margin: 10px 0;"></div>
+                    <button class="btn" id="copy-license-btn">
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import Backup Modal -->
+    <div class="modal" id="import-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Backup Data</h3>
+                <button class="modal-close" id="import-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="backup-upload">Select Backup File (.json)</label>
+                    <input type="file" id="backup-upload" accept=".json" class="subject-dropdown">
+                </div>
+                <button class="btn btn-accent" id="process-backup-btn">
+                    <i class="fas fa-upload"></i> Process Backup
+                </button>
+                <div id="import-message" class="auth-message" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
     
     <!-- Settings Modal -->
     <div class="modal" id="settings-modal">
@@ -2546,23 +2611,135 @@
         </div>
     </div>
 
-    <script>
-        // Firebase Configuration - UPDATED
-        const firebaseConfig = {
-            apiKey: "AIzaSyASzauSWIaHVm1WS1uKjphRCw8i9DxsI1I",
-            authDomain: "ca-final-study.firebaseapp.com",
-            projectId: "ca-final-study",
-            storageBucket: "ca-final-study.firebasestorage.app",
-            messagingSenderId: "561758805334",
-            appId: "1:561758805334:web:00dfd6d0d8714246668af7"
-        };
+   <script>
+        // ====================
+        // LICENSE SYSTEM
+        // ====================
+        const MASTER_KEY = "S@tyamCA2026@Premium";
         
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        class LicenseSystem {
+            static generateLicense(name, days) {
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + parseInt(days));
+                
+                const licenseData = {
+                    name: name,
+                    expiry: expiryDate.toISOString(),
+                    generated: new Date().toISOString(),
+                    type: "CA-PREM"
+                };
+                
+                const jsonString = JSON.stringify(licenseData);
+                const encrypted = CryptoJS.AES.encrypt(jsonString, MASTER_KEY).toString();
+                const base64 = btoa(encrypted);
+                return `CA-PREM-${base64}`;
+            }
+            
+            static validateLicense(licenseKey) {
+                try {
+                    if (!licenseKey.startsWith('CA-PREM-')) {
+                        return { valid: false, error: 'Invalid license format' };
+                    }
+                    
+                    const base64 = licenseKey.replace('CA-PREM-', '');
+                    const encrypted = atob(base64);
+                    const decrypted = CryptoJS.AES.decrypt(encrypted, MASTER_KEY);
+                    const jsonString = decrypted.toString(CryptoJS.enc.Utf8);
+                    
+                    if (!jsonString) {
+                        return { valid: false, error: 'Invalid license key' };
+                    }
+                    
+                    const licenseData = JSON.parse(jsonString);
+                    const expiryDate = new Date(licenseData.expiry);
+                    
+                    return {
+                        valid: expiryDate > new Date(),
+                        data: licenseData,
+                        expiry: expiryDate
+                    };
+                } catch (error) {
+                    return { valid: false, error: 'Invalid license key' };
+                }
+            }
+        }
         
-        // CA Final Syllabus Data with weightage-based distribution
+        // ====================
+        // DATA STORAGE SYSTEM
+        // ====================
+        class DataStorage {
+            static save(key, data) {
+                localStorage.setItem(`ca_pro_${key}`, JSON.stringify(data));
+            }
+            
+            static load(key) {
+                const data = localStorage.getItem(`ca_pro_${key}`);
+                return data ? JSON.parse(data) : null;
+            }
+            
+            static clear() {
+                // Don't clear license
+                const license = this.load('license');
+                localStorage.clear();
+                if (license) {
+                    this.save('license', license);
+                }
+            }
+            
+            static exportAll() {
+                const allData = {
+                    user: this.load('user'),
+                    progress: this.load('progress'),
+                    targets: this.load('targets'),
+                    completedTargets: this.load('completedTargets'),
+                    studyPlan: this.load('studyPlan'),
+                    videos: this.load('videos'),
+                    resources: this.load('resources'),
+                    stats: this.load('stats'),
+                    exportDate: new Date().toISOString(),
+                    version: '2.0'
+                };
+                
+                return JSON.stringify(allData, null, 2);
+            }
+            
+            static importAll(jsonData) {
+                try {
+                    const data = JSON.parse(jsonData);
+                    
+                    if (data.version !== '2.0') {
+                        return { success: false, error: 'Invalid backup version' };
+                    }
+                    
+                    // Save all data
+                    Object.keys(data).forEach(key => {
+                        if (key !== 'exportDate' && key !== 'version') {
+                            localStorage.setItem(`ca_pro_${key}`, JSON.stringify(data[key]));
+                        }
+                    });
+                    
+                    return { success: true };
+                } catch (error) {
+                    return { success: false, error: 'Invalid backup file' };
+                }
+            }
+        }
+        
+        // ====================
+        // GLOBAL VARIABLES
+        // ====================
+        let currentUser = null;
+        let userProgress = {};
+        let userTargets = [];
+        let completedTargets = [];
+        let userStudyPlan = {};
+        let userVideos = [];
+        let userResources = [];
+        let userStats = {};
+        let advancedChart = null;
+        let currentChartView = 'daily';
+        
+        // CA Syllabus Data (same as before)
         const syllabusData = {
             paper1: {
                 name: "Paper 1: Financial Reporting (FR)",
@@ -2999,962 +3176,342 @@
             totalTopics += syllabusData[subjectId].topics.length;
         }
         
-        // Global variables
-        let currentUser = null;
-        let userProgress = {};
-        let userStudyPlan = {};
-        let userTargets = [];
-        let allVideos = [];
-        let allResources = [];
-        let progressChart = null;
-        let currentChartType = 'subject';
-        let currentFilter = 'all';
-        
-        // DOM Elements
-        const authContainer = document.getElementById('auth-container');
+        // ====================
+        // DOM ELEMENTS
+        // ====================
+        const licenseContainer = document.getElementById('license-container');
         const appContainer = document.getElementById('app-container');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const loginBtn = document.getElementById('login-btn');
-        const signupBtn = document.getElementById('signup-btn');
+        const activateBtn = document.getElementById('activate-btn');
+        const licenseKeyInput = document.getElementById('license-key');
         const logoutBtn = document.getElementById('logout-btn');
-        const authTabs = document.querySelectorAll('.auth-tab');
         const navLinks = document.querySelectorAll('.nav-link');
         const pages = document.querySelectorAll('.page');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userStatus = document.getElementById('user-status');
+        const saveAllProgressBtn = document.getElementById('save-all-progress-btn');
         const subjectSelect = document.getElementById('subject-select');
         const subjectContent = document.getElementById('subject-content');
-        const progressFilters = document.querySelectorAll('.progress-filter');
-        const homeBtn = document.getElementById('home-btn');
-        const userMenuBtn = document.getElementById('user-menu-btn');
-        const userDropdown = document.getElementById('user-dropdown');
-        const settingsBtn = document.getElementById('settings-btn');
-        const settingsModal = document.getElementById('settings-modal');
-        const settingsClose = document.getElementById('settings-close');
-        const toast = document.getElementById('toast');
-        const installPrompt = document.getElementById('install-prompt');
-        const installCancel = document.getElementById('install-cancel');
-        const installConfirm = document.getElementById('install-confirm');
-        const totalTopicsEl = document.getElementById('total-topics');
-        const targetToggle = document.getElementById('target-toggle');
-        const targetContent = document.getElementById('target-content');
-        const targetDisplay = document.getElementById('target-display');
-        const calculatePlanBtn = document.getElementById('calculate-plan-btn');
-        const savePlanBtn = document.getElementById('save-plan-btn');
-        const updateTargetBtn = document.getElementById('update-target-btn');
-        const videoToggle = document.getElementById('video-toggle');
-        const videoForm = document.getElementById('video-form');
-        const resourcesToggle = document.getElementById('resources-toggle');
-        const resourcesForm = document.getElementById('resources-form');
-        const planningToggle = document.getElementById('planning-toggle');
-        const planningForm = document.getElementById('planning-form');
-        const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const backupAllBtn = document.getElementById('backup-all-btn');
+        const restoreBackupBtn = document.getElementById('restore-backup-btn');
+        const backupFile = document.getElementById('backup-file');
+        const resetPlanBtn = document.getElementById('reset-plan-btn');
         
-        // Set total topics
-        totalTopicsEl.textContent = totalTopics;
+        // ====================
+        // INITIALIZATION
+        // ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLicense();
+            setupEventListeners();
+            loadDefaultVideos();
+            loadDefaultResources();
+        });
         
-        // Set default start date (today)
-        const today = new Date();
-        const formattedToday = today.toISOString().split('T')[0];
-        document.getElementById('start-date').value = formattedToday;
-        document.getElementById('target-date').value = formattedToday;
+        function checkLicense() {
+            const licenseData = DataStorage.load('license');
+            
+            if (!licenseData) {
+                // Show license screen
+                licenseContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+                return;
+            }
+            
+            const validation = LicenseSystem.validateLicense(licenseData.key);
+            
+            if (!validation.valid) {
+                // Invalid or expired license
+                licenseContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+                licenseKeyInput.value = licenseData.key;
+                showMessage('License expired or invalid. Please renew.', 'error');
+                return;
+            }
+            
+            // Valid license
+            currentUser = validation.data;
+            licenseContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Update UI
+            updateUserUI();
+            loadUserData();
+        }
         
-        // PWA - Service Worker Registration
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registered:', registration);
-                    })
-                    .catch(error => {
-                        console.log('ServiceWorker registration failed:', error);
-                    });
+        function updateUserUI() {
+            if (currentUser) {
+                const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                userAvatar.textContent = initials.substring(0, 2);
+                userName.textContent = currentUser.name;
+                
+                const expiryDate = new Date(currentUser.expiry);
+                if (expiryDate < new Date()) {
+                    userStatus.textContent = 'Expired';
+                    userStatus.classList.add('expired');
+                } else {
+                    userStatus.textContent = 'Premium Member';
+                }
+            }
+        }
+        
+        function setupEventListeners() {
+            // License activation
+            activateBtn.addEventListener('click', activateLicense);
+            licenseKeyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') activateLicense();
+            });
+            
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.getAttribute('data-page');
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    pages.forEach(page => page.classList.remove('active'));
+                    document.getElementById(`${pageId}-page`).classList.add('active');
+                    
+                    if (pageId === 'subjects') {
+                        loadSubjectContent();
+                    } else if (pageId === 'dashboard') {
+                        updateDashboard();
+                    } else if (pageId === 'planning') {
+                        loadPlanningPage();
+                    }
+                });
+            });
+            
+            // Data management
+            exportBtn.addEventListener('click', exportUserData);
+            importBtn.addEventListener('click', () => {
+                document.getElementById('import-modal').classList.add('active');
+            });
+            
+            backupAllBtn.addEventListener('click', backupAllData);
+            restoreBackupBtn.addEventListener('click', () => backupFile.click());
+            backupFile.addEventListener('change', restoreBackupData);
+            
+            // Subjects
+            subjectSelect.addEventListener('change', loadSubjectContent);
+            saveAllProgressBtn.addEventListener('click', saveAllProgress);
+            
+            // Planning
+            document.getElementById('planning-toggle')?.addEventListener('click', () => {
+                const form = document.getElementById('planning-form');
+                form.classList.toggle('expanded');
+            });
+            
+            document.getElementById('save-target-btn')?.addEventListener('click', saveTarget);
+            document.getElementById('reset-plan-btn')?.addEventListener('click', resetStudyPlan);
+            
+            // Logout
+            logoutBtn.addEventListener('click', logout);
+            
+            // Modal close buttons
+            document.getElementById('license-close')?.addEventListener('click', () => {
+                document.getElementById('license-generator-modal').classList.remove('active');
+            });
+            
+            document.getElementById('import-close')?.addEventListener('click', () => {
+                document.getElementById('import-modal').classList.remove('active');
+            });
+            
+            // Close modals on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
             });
         }
         
-        // PWA - Install Prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+        // ====================
+        // LICENSE FUNCTIONS
+        // ====================
+        function activateLicense() {
+            const licenseKey = licenseKeyInput.value.trim();
             
-            setTimeout(() => {
-                if (currentUser && !localStorage.getItem('installPromptDismissed')) {
-                    installPrompt.classList.add('show');
-                }
-            }, 3000);
-        });
-        
-        installCancel.addEventListener('click', () => {
-            installPrompt.classList.remove('show');
-            localStorage.setItem('installPromptDismissed', 'true');
-        });
-        
-        installConfirm.addEventListener('click', () => {
-            installPrompt.classList.remove('show');
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        showToast('App installed successfully!', 'success');
-                    }
-                    deferredPrompt = null;
-                });
+            if (!licenseKey) {
+                showMessage('Please enter a license key', 'error');
+                return;
             }
-        });
-        
-        // Authentication state observer
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                showApp();
-                loadUserData();
-                updateUserAvatar();
-                
-                installPrompt.classList.remove('show');
-            } else {
-                showAuth();
-            }
-        });
-        
-        // Event Listeners
-        authTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.getAttribute('data-tab');
-                
-                authTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                loginForm.classList.remove('active');
-                signupForm.classList.remove('active');
-                
-                if (tabId === 'login') {
-                    loginForm.classList.add('active');
-                } else {
-                    signupForm.classList.add('active');
-                }
-            });
-        });
-        
-        loginBtn.addEventListener('click', handleLogin);
-        signupBtn.addEventListener('click', handleSignup);
-        logoutBtn.addEventListener('click', handleLogout);
-        
-        // Navigation
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const pageId = link.getAttribute('data-page');
-                
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                
-                pages.forEach(page => page.classList.remove('active'));
-                document.getElementById(`${pageId}-page`).classList.add('active');
-                
-                if (pageId === 'subjects') {
-                    loadSubjectContent();
-                } else if (pageId === 'videos') {
-                    loadVideos();
-                } else if (pageId === 'resources') {
-                    loadResources();
-                } else if (pageId === 'planning') {
-                    loadPlanningPage();
-                } else if (pageId === 'dashboard') {
-                    updateDashboard();
-                }
-            });
-        });
-        
-        // Home button
-        homeBtn.addEventListener('click', () => {
-            navLinks.forEach(l => l.classList.remove('active'));
-            document.querySelector('[data-page="dashboard"]').classList.add('active');
             
-            pages.forEach(page => page.classList.remove('active'));
-            document.getElementById('dashboard-page').classList.add('active');
+            const validation = LicenseSystem.validateLicense(licenseKey);
+            
+            if (!validation.valid) {
+                showMessage(validation.error || 'Invalid license key', 'error');
+                return;
+            }
+            
+            // Save license
+            DataStorage.save('license', {
+                key: licenseKey,
+                activated: new Date().toISOString()
+            });
+            
+            // Set current user
+            currentUser = validation.data;
+            
+            // Show app
+            licenseContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Update UI
+            updateUserUI();
+            initializeUserData();
+            
+            showToast('License activated successfully!', 'success');
+        }
+        
+        // ====================
+        // DATA MANAGEMENT
+        // ====================
+        function loadUserData() {
+            userProgress = DataStorage.load('progress') || initializeProgress();
+            userTargets = DataStorage.load('targets') || [];
+            completedTargets = DataStorage.load('completedTargets') || [];
+            userStudyPlan = DataStorage.load('studyPlan') || initializeStudyPlan();
+            userStats = DataStorage.load('stats') || initializeStats();
+            
+            // Filter out expired targets
+            const today = new Date().toISOString().split('T')[0];
+            userTargets = userTargets.filter(target => {
+                const targetDate = target.date;
+                return targetDate >= today;
+            });
             
             updateDashboard();
-        });
-        
-        // User menu
-        userMenuBtn.addEventListener('click', () => {
-            userDropdown.classList.toggle('active');
-        });
-        
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
-                userDropdown.classList.remove('active');
-            }
-        });
-        
-        // Settings
-        settingsBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            userDropdown.classList.remove('active');
-            settingsModal.classList.add('active');
-            loadSettingsData();
-        });
-        
-        settingsClose.addEventListener('click', () => {
-            settingsModal.classList.remove('active');
-        });
-        
-        // Close modal when clicking outside
-        settingsModal.addEventListener('click', (e) => {
-            if (e.target === settingsModal) {
-                settingsModal.classList.remove('active');
-            }
-        });
-        
-        // Target setup toggle
-        targetToggle.addEventListener('click', () => {
-            targetContent.classList.toggle('expanded');
-            const icon = targetToggle.querySelector('i');
-            icon.classList.toggle('fa-chevron-down');
-            icon.classList.toggle('fa-chevron-up');
-        });
-        
-        // Update target button
-        updateTargetBtn.addEventListener('click', () => {
-            targetContent.classList.add('expanded');
-            const icon = targetToggle.querySelector('i');
-            icon.classList.remove('fa-chevron-down');
-            icon.classList.add('fa-chevron-up');
-        });
-        
-        // Calculate plan
-        calculatePlanBtn.addEventListener('click', calculateStudyPlan);
-        
-        // Save plan
-        savePlanBtn.addEventListener('click', saveStudyPlan);
-        
-        // Resource toggles
-        videoToggle.addEventListener('click', () => {
-            videoToggle.classList.toggle('expanded');
-            videoForm.classList.toggle('expanded');
-        });
-        
-        resourcesToggle.addEventListener('click', () => {
-            resourcesToggle.classList.toggle('expanded');
-            resourcesForm.classList.toggle('expanded');
-        });
-        
-        planningToggle.addEventListener('click', () => {
-            planningToggle.classList.toggle('expanded');
-            planningForm.classList.toggle('expanded');
-        });
-        
-        // Chart type selector
-        chartTypeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                chartTypeBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentChartType = btn.getAttribute('data-chart');
-                updateChart();
-            });
-        });
-        
-        // Subject selection
-        subjectSelect.addEventListener('change', loadSubjectContent);
-        
-        // Progress filters
-        progressFilters.forEach(filter => {
-            filter.addEventListener('click', () => {
-                progressFilters.forEach(f => f.classList.remove('active'));
-                filter.classList.add('active');
-                currentFilter = filter.getAttribute('data-filter');
-                updateDashboard();
-            });
-        });
-        
-        // Video and Resources buttons
-        document.getElementById('add-video-btn')?.addEventListener('click', addVideo);
-        document.getElementById('add-resources-btn')?.addEventListener('click', addResource);
-        document.getElementById('save-target-btn')?.addEventListener('click', saveTarget);
-        document.getElementById('delete-videos-btn')?.addEventListener('click', deleteSelectedVideos);
-        document.getElementById('delete-resources-btn')?.addEventListener('click', deleteSelectedResources);
-        
-        // Planning subject change
-        document.getElementById('planning-subject')?.addEventListener('change', loadPlanningTopics);
-        document.getElementById('planning-topic')?.addEventListener('change', function() {
-            loadPlanningSubtopics();
-            if (this.value === 'custom') {
-                document.getElementById('custom-topic').style.display = 'block';
-            } else {
-                document.getElementById('custom-topic').style.display = 'none';
-            }
-        });
-        
-        // Search functionality
-        document.getElementById('search-targets')?.addEventListener('input', filterTargets);
-        document.getElementById('search-videos')?.addEventListener('input', filterVideos);
-        document.getElementById('search-resources')?.addEventListener('input', filterResources);
-        
-        // Authentication Functions
-        function handleLogin() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const messageDiv = document.getElementById('login-message');
-            
-            if (!email || !password) {
-                showMessage(messageDiv, 'Please fill in all fields', 'error');
-                return;
-            }
-            
-            loginBtn.innerHTML = '<div class="loading"></div> Logging in...';
-            loginBtn.disabled = true;
-            
-            auth.signInWithEmailAndPassword(email, password)
-                .then(() => {
-                    showMessage(messageDiv, 'Login successful!', 'success');
-                })
-                .catch((error) => {
-                    showMessage(messageDiv, error.message, 'error');
-                    loginBtn.innerHTML = 'Login to Dashboard';
-                    loginBtn.disabled = false;
-                });
-        }
-        
-        function handleSignup() {
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const masterPassword = document.getElementById('master-password').value;
-            const messageDiv = document.getElementById('signup-message');
-            
-            if (!name || !email || !password || !masterPassword) {
-                showMessage(messageDiv, 'Please fill in all fields', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showMessage(messageDiv, 'Password must be at least 6 characters', 'error');
-                return;
-            }
-            
-            if (masterPassword !== 'R@S@tyam') {
-                showMessage(messageDiv, 'Invalid master password. Please contact admin.', 'error');
-                return;
-            }
-            
-            signupBtn.innerHTML = '<div class="loading"></div> Creating account...';
-            signupBtn.disabled = true;
-            
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    return userCredential.user.updateProfile({
-                        displayName: name
-                    }).then(() => {
-                        return db.collection('users').doc(userCredential.user.uid).set({
-                            name: name,
-                            email: email,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    });
-                })
-                .then(() => {
-                    showMessage(messageDiv, 'Account created successfully!', 'success');
-                    initializeUserData();
-                })
-                .catch((error) => {
-                    showMessage(messageDiv, error.message, 'error');
-                    signupBtn.innerHTML = 'Create Account';
-                    signupBtn.disabled = false;
-                });
-        }
-        
-        function handleLogout() {
-            auth.signOut().then(() => {
-                showToast('Logged out successfully', 'success');
-                showAuth();
-            });
-        }
-        
-        function showMessage(element, message, type) {
-            element.textContent = message;
-            element.className = 'auth-message ' + type;
-            element.style.display = 'block';
-            
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 5000);
-        }
-        
-        function showToast(message, type = 'success') {
-            const title = type === 'success' ? 'Success!' : 'Error!';
-            document.getElementById('toast-title').textContent = title;
-            document.getElementById('toast-message').textContent = message;
-            
-            toast.classList.remove('error');
-            if (type === 'error') {
-                toast.classList.add('error');
-                toast.querySelector('i').className = 'fas fa-exclamation-circle';
-            } else {
-                toast.querySelector('i').className = 'fas fa-check-circle';
-            }
-            
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
-        
-        function showAuth() {
-            authContainer.style.display = 'flex';
-            appContainer.classList.remove('active');
-            currentUser = null;
-        }
-        
-        function showApp() {
-            authContainer.style.display = 'none';
-            appContainer.classList.add('active');
-        }
-        
-        function updateUserAvatar() {
-            const userAvatar = document.getElementById('user-avatar');
-            if (currentUser && currentUser.displayName) {
-                const initials = currentUser.displayName.split(' ').map(n => n[0]).join('').toUpperCase();
-                userAvatar.textContent = initials.substring(0, 2);
-            } else {
-                userAvatar.textContent = 'SK';
-            }
-        }
-        
-        // User Data Functions
-        function loadUserData() {
-            if (!currentUser) return;
-            
-            // Load user progress
-            const progressRef = db.collection('userProgress').doc(currentUser.uid);
-            progressRef.get().then((doc) => {
-                if (doc.exists) {
-                    userProgress = doc.data();
-                } else {
-                    initializeUserProgress();
-                }
-            }).catch((error) => {
-                console.error("Error loading user progress:", error);
-            });
-            
-            // Load study plan
-            const planRef = db.collection('studyPlans').doc(currentUser.uid);
-            planRef.get().then((doc) => {
-                if (doc.exists) {
-                    userStudyPlan = doc.data();
-                    updatePlanDisplay();
-                    updateDashboard();
-                }
-            }).catch((error) => {
-                console.error("Error loading study plan:", error);
-            });
-            
-            // Load targets
-            loadTargets();
-            
-            // Load videos
-            loadVideos();
-            
-            // Load resources
-            loadResources();
         }
         
         function initializeUserData() {
-            if (!currentUser) return;
+            userProgress = initializeProgress();
+            userTargets = [];
+            completedTargets = [];
+            userStudyPlan = initializeStudyPlan();
+            userStats = initializeStats();
             
-            // Initialize study plan with default values
-            const defaultPlan = {
-                userId: currentUser.uid,
+            DataStorage.save('progress', userProgress);
+            DataStorage.save('targets', userTargets);
+            DataStorage.save('completedTargets', completedTargets);
+            DataStorage.save('studyPlan', userStudyPlan);
+            DataStorage.save('stats', userStats);
+            
+            updateDashboard();
+            showToast('Welcome! Your study data has been initialized.', 'success');
+        }
+        
+        function initializeProgress() {
+            const progress = { subjects: {} };
+            
+            for (const paperId in syllabusData) {
+                progress.subjects[paperId] = {
+                    completedTopics: 0,
+                    totalTopics: syllabusData[paperId].topics.length,
+                    topics: {}
+                };
+                
+                syllabusData[paperId].topics.forEach(topic => {
+                    progress.subjects[paperId].topics[topic.name] = {
+                        status: 'not-started',
+                        subtopics: {}
+                    };
+                    
+                    topic.subtopics.forEach(subtopic => {
+                        progress.subjects[paperId].topics[topic.name].subtopics[subtopic.name] = {
+                            actualHours: 0,
+                            completed: false
+                        };
+                    });
+                });
+            }
+            
+            return progress;
+        }
+        
+        function initializeStudyPlan() {
+            const today = new Date();
+            const examDate = new Date();
+            examDate.setDate(today.getDate() + 90);
+            
+            const plan = {
                 daysToExam: 90,
                 dailyHours: 6,
                 totalHours: 540,
-                startDate: formattedToday,
-                examDate: calculateExamDate(90, formattedToday).toISOString().split('T')[0],
+                startDate: today.toISOString().split('T')[0],
+                examDate: examDate.toISOString().split('T')[0],
                 subjectHours: {},
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                dailyTargets: {}
             };
             
-            // Calculate subject hours based on weightage
+            // Distribute hours based on weightage
             for (const subjectId in syllabusData) {
                 const subjectWeight = syllabusData[subjectId].weightage;
-                defaultPlan.subjectHours[subjectId] = Math.round((subjectWeight / 100) * 540);
+                plan.subjectHours[subjectId] = Math.round((subjectWeight / 100) * 540);
             }
             
-            db.collection('studyPlans').doc(currentUser.uid).set(defaultPlan)
-                .then(() => {
-                    userStudyPlan = defaultPlan;
-                    updatePlanDisplay();
-                    showToast('Welcome! Your study plan has been created.', 'success');
-                });
+            return plan;
         }
         
-        function initializeUserProgress() {
-            if (!currentUser) return;
-            
-            const progressRef = db.collection('userProgress').doc(currentUser.uid);
-            
-            progressRef.get().then((doc) => {
-                if (!doc.exists) {
-                    const initialProgress = {
-                        userId: currentUser.uid,
-                        subjects: {},
-                        totalActualHours: 0,
-                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                    };
-                    
-                    for (const paperId in syllabusData) {
-                        initialProgress.subjects[paperId] = {
-                            completedTopics: 0,
-                            completedSubtopics: 0,
-                            totalTopics: syllabusData[paperId].topics.length,
-                            totalSubtopics: syllabusData[paperId].topics.reduce((sum, topic) => sum + topic.subtopics.length, 0),
-                            topics: {}
-                        };
-                        
-                        syllabusData[paperId].topics.forEach((topic, topicIndex) => {
-                            initialProgress.subjects[paperId].topics[topic.name] = {
-                                completed: false,
-                                subtopics: {}
-                            };
-                            
-                            topic.subtopics.forEach((subtopic, subtopicIndex) => {
-                                initialProgress.subjects[paperId].topics[topic.name].subtopics[subtopic.name] = {
-                                    completed: false,
-                                    actualTime: 0
-                                };
-                            });
-                        });
-                    }
-                    
-                    progressRef.set(initialProgress).then(() => {
-                        userProgress = initialProgress;
-                        updateDashboard();
-                    });
-                }
-            });
-        }
-        
-        // Study Plan Functions
-        function calculateStudyPlan() {
-            const daysToExam = parseInt(document.getElementById('days-to-exam').value) || 90;
-            const dailyHours = parseFloat(document.getElementById('daily-hours').value) || 6;
-            const startDate = document.getElementById('start-date').value || formattedToday;
-            
-            const totalHours = Math.round(daysToExam * dailyHours);
-            const examDate = calculateExamDate(daysToExam, startDate);
-            
-            // Update display
-            document.getElementById('total-days').textContent = daysToExam;
-            document.getElementById('total-hours').textContent = totalHours;
-            document.getElementById('daily-target').textContent = dailyHours;
-            document.getElementById('exam-date').textContent = formatDate(examDate);
-            
-            // Calculate subject hours based on weightage
-            const subjectHours = {};
-            for (const subjectId in syllabusData) {
-                const subjectWeight = syllabusData[subjectId].weightage;
-                subjectHours[subjectId] = Math.round((subjectWeight / 100) * totalHours);
-            }
-            
-            // Store temporary plan for display
-            window.tempStudyPlan = {
-                daysToExam,
-                dailyHours,
-                totalHours,
-                startDate,
-                examDate,
-                subjectHours
+        function initializeStats() {
+            return {
+                totalStudyDays: 0,
+                currentStreak: 0,
+                bestStreak: 0,
+                totalHoursStudied: 0,
+                successRate: 0,
+                lastStudyDate: null
             };
-            
-            targetDisplay.style.display = 'block';
-            showToast('Study plan calculated successfully!', 'success');
         }
         
-        function saveStudyPlan() {
-            if (!currentUser || !window.tempStudyPlan) return;
+        function backupAllData() {
+            const backupData = DataStorage.exportAll();
+            const blob = new Blob([backupData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
             
-            const planRef = db.collection('studyPlans').doc(currentUser.uid);
-            const planData = {
-                ...window.tempStudyPlan,
-                userId: currentUser.uid,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ca_pro_tracker_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
             
-            planRef.set(planData, { merge: true })
-                .then(() => {
-                    userStudyPlan = planData;
-                    updatePlanDisplay();
-                    updateDashboard();
-                    showToast('Study plan saved successfully!', 'success');
-                    
-                    // Collapse the target setup section
-                    targetContent.classList.remove('expanded');
-                    const icon = targetToggle.querySelector('i');
-                    icon.classList.remove('fa-chevron-up');
-                    icon.classList.add('fa-chevron-down');
-                })
-                .catch((error) => {
-                    console.error("Error saving study plan:", error);
-                    showToast('Error saving study plan', 'error');
-                });
+            showToast('Backup created successfully!', 'success');
         }
         
-        function updatePlanDisplay() {
-            if (userStudyPlan && userStudyPlan.totalHours) {
-                document.getElementById('planned-hours').textContent = userStudyPlan.totalHours;
+        function restoreBackupData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const result = DataStorage.importAll(e.target.result);
                 
-                if (targetDisplay.style.display !== 'none') {
-                    document.getElementById('total-days').textContent = userStudyPlan.daysToExam || 90;
-                    document.getElementById('total-hours').textContent = userStudyPlan.totalHours;
-                    document.getElementById('daily-target').textContent = userStudyPlan.dailyHours || 6;
-                    document.getElementById('exam-date').textContent = formatDate(userStudyPlan.examDate);
-                }
-            } else {
-                document.getElementById('planned-hours').textContent = 680;
-            }
-        }
-        
-        function calculateExamDate(days, startDate = null) {
-            const start = startDate ? new Date(startDate) : new Date();
-            const examDate = new Date(start);
-            examDate.setDate(examDate.getDate() + days);
-            return examDate;
-        }
-        
-        function formatDate(date) {
-            if (!date) return '-';
-            const d = new Date(date);
-            return d.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-        }
-        
-        // Progress Tracking Functions
-        function updateSubtopicsProgress(subjectId, topicName, subtopicName, actualTime) {
-            if (!currentUser) return;
-            
-            const progressRef = db.collection('userProgress').doc(currentUser.uid);
-            const subtopicPath = `subjects.${subjectId}.topics.${topicName}.subtopics.${subtopicName}`;
-            
-            const updateData = {};
-            updateData[`${subtopicPath}.actualTime`] = actualTime;
-            
-            // Mark as completed if actualTime > 0
-            updateData[`${subtopicPath}.completed`] = actualTime > 0;
-            
-            progressRef.update(updateData).then(() => {
-                if (!userProgress.subjects[subjectId]) {
-                    userProgress.subjects[subjectId] = { topics: {} };
-                }
-                if (!userProgress.subjects[subjectId].topics[topicName]) {
-                    userProgress.subjects[subjectId].topics[topicName] = { subtopics: {} };
-                }
-                if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
-                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = {};
-                }
-                
-                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualTime = actualTime;
-                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = actualTime > 0;
-                
-                updateTopicCompletion(subjectId, topicName);
-                updateDashboard();
-                
-                showToast('Time saved successfully!', 'success');
-            }).catch((error) => {
-                console.error("Error updating progress:", error);
-                showToast('Error updating progress', 'error');
-            });
-        }
-        
-        function updateTopicCompletion(subjectId, topicName) {
-            if (!currentUser || !userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) return;
-            
-            const topic = userProgress.subjects[subjectId].topics[topicName];
-            const subtopics = Object.values(topic.subtopics);
-            const allCompleted = subtopics.length > 0 && subtopics.every(st => st.completed);
-            
-            const progressRef = db.collection('userProgress').doc(currentUser.uid);
-            const topicPath = `subjects.${subjectId}.topics.${topicName}`;
-            
-            progressRef.update({
-                [`${topicPath}.completed`]: allCompleted
-            }).then(() => {
-                userProgress.subjects[subjectId].topics[topicName].completed = allCompleted;
-            });
-        }
-        
-        // Dashboard Functions
-        function updateDashboard() {
-            if (!userProgress || !userProgress.subjects) return;
-            
-            let totalActualHours = 0;
-            let totalPlannedHours = userStudyPlan?.totalHours || 680;
-            let totalTopics = 0;
-            let completedTopics = 0;
-            let completedSubjects = 0;
-            
-            const subjectData = {};
-            
-            for (const subjectId in userProgress.subjects) {
-                if (currentFilter !== 'all' && currentFilter !== subjectId) continue;
-                
-                const subject = userProgress.subjects[subjectId];
-                subjectData[subjectId] = {
-                    name: syllabusData[subjectId]?.name || subjectId,
-                    plannedHours: userStudyPlan?.subjectHours?.[subjectId] || 0,
-                    actualHours: 0,
-                    topicsCompleted: 0,
-                    totalTopics: subject.totalTopics
-                };
-                
-                for (const topicName in subject.topics) {
-                    totalTopics++;
-                    const topic = subject.topics[topicName];
-                    if (topic.completed) {
-                        completedTopics++;
-                        subjectData[subjectId].topicsCompleted++;
-                    }
-                    
-                    for (const subtopicName in topic.subtopics) {
-                        const subtopic = topic.subtopics[subtopicName];
-                        if (subtopic.completed) {
-                            totalActualHours += subtopic.actualTime || 0;
-                            subjectData[subjectId].actualHours += subtopic.actualTime || 0;
-                        }
-                    }
-                }
-                
-                if (subject.completedTopics === subject.totalTopics) {
-                    completedSubjects++;
-                }
-            }
-            
-            // Update KPI cards
-            document.getElementById('actual-hours').textContent = totalActualHours;
-            document.getElementById('planned-hours').textContent = totalPlannedHours;
-            
-            const overallProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
-            document.getElementById('overall-progress').textContent = `${overallProgress}%`;
-            
-            document.getElementById('subjects-completed').textContent = completedSubjects;
-            document.getElementById('topics-completed').textContent = completedTopics;
-            
-            // Calculate plan completion rate from targets
-            calculatePlanCompletionRate();
-            
-            // Update chart
-            updateChart(subjectData);
-        }
-        
-        function calculatePlanCompletionRate() {
-            if (!userTargets || userTargets.length === 0) {
-                document.getElementById('plan-completion').textContent = '0%';
-                return;
-            }
-            
-            const completedTargets = userTargets.filter(target => target.completed).length;
-            const completionRate = Math.round((completedTargets / userTargets.length) * 100);
-            document.getElementById('plan-completion').textContent = `${completionRate}%`;
-        }
-        
-        function updateChart(subjectData) {
-            const ctx = document.getElementById('progress-chart').getContext('2d');
-            
-            if (progressChart) {
-                progressChart.destroy();
-            }
-            
-            let chartData, chartOptions;
-            
-            if (currentChartType === 'subject') {
-                const subjects = Object.keys(subjectData);
-                const plannedHours = subjects.map(subjectId => subjectData[subjectId].plannedHours);
-                const actualHours = subjects.map(subjectId => subjectData[subjectId].actualHours);
-                const subjectNames = subjects.map(subjectId => {
-                    const name = subjectData[subjectId].name;
-                    return name.length > 20 ? name.substring(0, 20) + '...' : name;
-                });
-                
-                chartData = {
-                    labels: subjectNames,
-                    datasets: [
-                        {
-                            label: 'Planned Hours',
-                            data: plannedHours,
-                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                            borderColor: 'rgba(52, 152, 219, 1)',
-                            borderWidth: 2,
-                            borderRadius: 8
-                        },
-                        {
-                            label: 'Actual Hours',
-                            data: actualHours,
-                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
-                            borderColor: 'rgba(46, 204, 113, 1)',
-                            borderWidth: 2,
-                            borderRadius: 8
-                        }
-                    ]
-                };
-                
-                chartOptions = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    label += context.raw + ' hours';
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Hours'
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
-                        }
-                    }
-                };
-            } else if (currentChartType === 'time') {
-                const labels = ['Planned', 'Actual', 'Remaining'];
-                const totalPlanned = userStudyPlan?.totalHours || 680;
-                const totalActual = Object.values(subjectData).reduce((sum, subject) => sum + subject.actualHours, 0);
-                const remaining = Math.max(0, totalPlanned - totalActual);
-                
-                chartData = {
-                    labels: labels,
-                    datasets: [{
-                        data: [totalPlanned, totalActual, remaining],
-                        backgroundColor: [
-                            'rgba(52, 152, 219, 0.7)',
-                            'rgba(46, 204, 113, 0.7)',
-                            'rgba(231, 76, 60, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(52, 152, 219, 1)',
-                            'rgba(46, 204, 113, 1)',
-                            'rgba(231, 76, 60, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                };
-                
-                chartOptions = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw} hours`;
-                                }
-                            }
-                        }
-                    }
-                };
-            } else if (currentChartType === 'targets') {
-                if (!userTargets || userTargets.length === 0) {
-                    chartData = {
-                        labels: ['No Targets'],
-                        datasets: [{
-                            data: [100],
-                            backgroundColor: ['rgba(149, 165, 166, 0.7)'],
-                            borderColor: ['rgba(149, 165, 166, 1)'],
-                            borderWidth: 2
-                        }]
-                    };
+                if (result.success) {
+                    loadUserData();
+                    showToast('Backup restored successfully!', 'success');
                 } else {
-                    const completed = userTargets.filter(t => t.completed).length;
-                    const pending = userTargets.length - completed;
-                    
-                    chartData = {
-                        labels: ['Completed', 'Pending'],
-                        datasets: [{
-                            data: [completed, pending],
-                            backgroundColor: [
-                                'rgba(46, 204, 113, 0.7)',
-                                'rgba(231, 76, 60, 0.7)'
-                            ],
-                            borderColor: [
-                                'rgba(46, 204, 113, 1)',
-                                'rgba(231, 76, 60, 1)'
-                            ],
-                            borderWidth: 2
-                        }]
-                    };
+                    showToast(result.error, 'error');
                 }
-                
-                chartOptions = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw} targets`;
-                                }
-                            }
-                        }
-                    }
-                };
-            }
+            };
+            reader.readAsText(file);
             
-            progressChart = new Chart(ctx, {
-                type: currentChartType === 'subject' ? 'bar' : 'doughnut',
-                data: chartData,
-                options: chartOptions
-            });
+            // Reset file input
+            event.target.value = '';
         }
         
-        // Subjects Page Functions
+        function exportUserData() {
+            backupAllData();
+        }
+        
+        // ====================
+        // SUBJECTS & PROGRESS
+        // ====================
         function loadSubjectContent() {
             const selectedSubject = subjectSelect.value;
             let contentHTML = '';
@@ -3977,50 +3534,36 @@
                 });
             });
             
-            // Add event listeners to save time buttons
-            document.querySelectorAll('.save-time-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+            // Add event listeners to status icons
+            document.querySelectorAll('.topic-status').forEach(status => {
+                status.addEventListener('click', function() {
                     const subjectId = this.getAttribute('data-subject');
                     const topicName = this.getAttribute('data-topic');
-                    const subtopicName = this.getAttribute('data-subtopic');
-                    const input = document.getElementById(`time-input-${subjectId}-${topicName}-${subtopicName}`);
-                    const actualTime = parseInt(input.value) || 0;
-                    
-                    updateSubtopicsProgress(subjectId, topicName, subtopicName, actualTime);
-                });
-            });
-            
-            // Add event listeners to completion checkboxes
-            document.querySelectorAll('.completion-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const subjectId = this.getAttribute('data-subject');
-                    const topicName = this.getAttribute('data-topic');
-                    const subtopicName = this.getAttribute('data-subtopic');
-                    const completed = this.checked;
-                    
-                    const input = document.getElementById(`time-input-${subjectId}-${topicName}-${subtopicName}`);
-                    const actualTime = completed ? parseInt(input.value) || 1 : 0;
-                    
-                    updateSubtopicsProgress(subjectId, topicName, subtopicName, actualTime);
+                    toggleTopicStatus(subjectId, topicName);
                 });
             });
         }
         
         function renderSubject(subjectId, subjectData) {
-            const plannedHours = userStudyPlan?.subjectHours?.[subjectId] || 
-                Math.round((subjectData.weightage / 100) * (userStudyPlan?.totalHours || 680));
+            const plannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+            const progress = userProgress?.subjects?.[subjectId] || { completedTopics: 0, totalTopics: subjectData.topics.length };
             
             let html = `<div class="subject-content">
                 <div class="subject-header">
                     <h3>${subjectData.name}</h3>
-                    <div class="subject-hours">${plannedHours} hrs planned</div>
+                    <div class="subject-hours">${plannedHours} hrs planned • ${progress.completedTopics}/${progress.totalTopics} topics</div>
                 </div>
                 <div class="topic-list">`;
             
             subjectData.topics.forEach(topic => {
-                let topicCompleted = false;
-                if (userProgress && userProgress.subjects[subjectId] && userProgress.subjects[subjectId].topics[topic.name]) {
-                    topicCompleted = userProgress.subjects[subjectId].topics[topic.name].completed || false;
+                const topicProgress = userProgress?.subjects?.[subjectId]?.topics?.[topic.name] || { status: 'not-started' };
+                
+                // Calculate topic hours
+                let topicHours = 0;
+                if (topicProgress.subtopics) {
+                    Object.values(topicProgress.subtopics).forEach(subtopic => {
+                        topicHours += subtopic.actualHours || 0;
+                    });
                 }
                 
                 html += `<div class="topic-item">
@@ -4028,7 +3571,14 @@
                         <div class="topic-title">
                             <i class="fas fa-chevron-right"></i>
                             ${topic.name}
-                            ${topicCompleted ? '<span class="status-complete"><i class="fas fa-check-circle"></i> Completed</span>' : ''}
+                            <span class="topic-status status-${topicProgress.status}" 
+                                  data-subject="${subjectId}"
+                                  data-topic="${topic.name}"
+                                  title="Click to toggle status">
+                                <i class="fas fa-${topicProgress.status === 'completed' ? 'check-circle' : topicProgress.status === 'in-progress' ? 'spinner' : 'circle'}"></i>
+                                ${topicProgress.status === 'completed' ? 'Completed' : topicProgress.status === 'in-progress' ? 'In Progress' : 'Not Started'}
+                            </span>
+                            ${topicHours > 0 ? `<span style="margin-left: 10px; color: var(--secondary);">(${topicHours} hrs)</span>` : ''}
                         </div>
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <span class="topic-priority priority-${topic.priority}">Priority ${topic.priority}</span>
@@ -4037,48 +3587,29 @@
                     </div>
                     <div class="subtopic-list">
                         ${topic.subtopics.map(subtopic => {
-                            let subtopicCompleted = false;
-                            let actualTime = 0;
-                            if (userProgress && userProgress.subjects[subjectId] && 
-                                userProgress.subjects[subjectId].topics[topic.name] &&
-                                userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name]) {
-                                subtopicCompleted = userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name].completed || false;
-                                actualTime = userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name].actualTime || 0;
-                            }
+                            const subtopicProgress = topicProgress.subtopics?.[subtopic.name] || { actualHours: 0, completed: false };
                             
                             return `<div class="subtopic-item">
                                 <div class="subtopic-info">
                                     <div class="subtopic-name">${subtopic.name}</div>
                                     <div class="subtopic-details">
                                         <span>Weight: ${subtopic.weight}%</span>
-                                        ${subtopicCompleted ? '<span class="status-complete"><i class="fas fa-check"></i> Completed</span>' : ''}
+                                        ${subtopicProgress.completed ? '<span class="status-completed"><i class="fas fa-check"></i> Completed</span>' : ''}
                                     </div>
                                 </div>
                                 <div class="subtopic-actions">
                                     <div class="time-info">
                                         <div class="actual-time-input">
                                             <input type="number" 
-                                                   id="time-input-${subjectId}-${topic.name}-${subtopic.name}"
-                                                   value="${actualTime}"
+                                                   id="time-${subjectId}-${topic.name}-${subtopic.name}"
+                                                   value="${subtopicProgress.actualHours || 0}"
                                                    min="0" 
+                                                   step="0.5"
                                                    placeholder="Hours"
                                                    style="width: 100px;">
                                             <span>hrs</span>
-                                            <button class="save-time-btn" 
-                                                    data-subject="${subjectId}"
-                                                    data-topic="${topic.name}"
-                                                    data-subtopic="${subtopic.name}">
-                                                Save
-                                            </button>
                                         </div>
                                     </div>
-                                    <input type="checkbox" 
-                                           id="checkbox-${subjectId}-${topic.name}-${subtopic.name}"
-                                           class="completion-checkbox"
-                                           data-subject="${subjectId}"
-                                           data-topic="${topic.name}"
-                                           data-subtopic="${subtopic.name}"
-                                           ${subtopicCompleted ? 'checked' : ''}>
                                 </div>
                             </div>`;
                         }).join('')}
@@ -4090,794 +3621,674 @@
             return html;
         }
         
-        // Planning Page Functions
-        function loadPlanningPage() {
-            // Load topics for dropdown
-            loadPlanningTopics();
+        function toggleTopicStatus(subjectId, topicName) {
+            if (!userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) return;
             
-            // Load targets
-            loadTargets();
-        }
-        
-        function loadPlanningTopics() {
-            const subjectSelect = document.getElementById('planning-subject');
-            const topicSelect = document.getElementById('planning-topic');
+            const topic = userProgress.subjects[subjectId].topics[topicName];
+            const currentStatus = topic.status;
             
-            if (!subjectSelect || !topicSelect) return;
+            // Cycle through statuses: not-started -> in-progress -> completed -> not-started
+            const nextStatus = currentStatus === 'not-started' ? 'in-progress' : 
+                             currentStatus === 'in-progress' ? 'completed' : 'not-started';
             
-            const subjectId = subjectSelect.value;
+            topic.status = nextStatus;
             
-            // Clear current options
-            topicSelect.innerHTML = '<option value="">Select Topic</option>';
-            
-            if (subjectId && syllabusData[subjectId]) {
-                syllabusData[subjectId].topics.forEach(topic => {
-                    const option = document.createElement('option');
-                    option.value = topic.name;
-                    option.textContent = topic.name;
-                    topicSelect.appendChild(option);
+            // If marking as completed, check all subtopics
+            if (nextStatus === 'completed') {
+                Object.keys(topic.subtopics).forEach(subtopicName => {
+                    topic.subtopics[subtopicName].completed = true;
                 });
             }
             
-            // Add custom option
-            const customOption = document.createElement('option');
-            customOption.value = 'custom';
-            customOption.textContent = 'Custom Topic';
-            topicSelect.appendChild(customOption);
+            DataStorage.save('progress', userProgress);
+            loadSubjectContent();
+            updateDashboard();
             
-            // Clear subtopics
-            const subtopicSelect = document.getElementById('planning-subtopic');
-            subtopicSelect.innerHTML = '<option value="">Select Subtopic</option>';
+            showToast(`Topic marked as ${nextStatus}`, 'success');
         }
         
-        function loadPlanningSubtopics() {
-            const subjectSelect = document.getElementById('planning-subject');
-            const topicSelect = document.getElementById('planning-topic');
-            const subtopicSelect = document.getElementById('planning-subtopic');
+        function saveAllProgress() {
+            // Collect all time inputs
+            const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
             
-            if (!subjectSelect || !topicSelect || !subtopicSelect) return;
-            
-            const subjectId = subjectSelect.value;
-            const topicName = topicSelect.value;
-            
-            // Clear current options
-            subtopicSelect.innerHTML = '<option value="">Select Subtopic</option>';
-            
-            if (subjectId && topicName && topicName !== 'custom' && syllabusData[subjectId]) {
-                const topic = syllabusData[subjectId].topics.find(t => t.name === topicName);
-                if (topic && topic.subtopics) {
-                    topic.subtopics.forEach(subtopic => {
-                        const option = document.createElement('option');
-                        option.value = subtopic.name;
-                        option.textContent = subtopic.name;
-                        subtopicSelect.appendChild(option);
-                    });
-                }
-            }
-        }
-        
-        function loadTargets() {
-            if (!currentUser) return;
-            
-            const targetsList = document.getElementById('targets-list');
-            targetsList.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-check"></i><h3>Loading targets...</h3></div>';
-            
-            db.collection('targets')
-                .where('userId', '==', currentUser.uid)
-                .get()
-                .then((querySnapshot) => {
-                    userTargets = [];
-                    
-                    if (querySnapshot.empty) {
-                        targetsList.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-plus"></i><h3>No targets set</h3><p>Add your first target to get started!</p></div>';
-                        updatePlanningStats([]);
-                        calculatePlanCompletionRate();
-                        return;
+            timeInputs.forEach(input => {
+                const id = input.id.replace('time-', '');
+                const [subjectId, topicName, subtopicName] = id.split('-');
+                
+                const hours = parseFloat(input.value) || 0;
+                
+                if (hours > 0) {
+                    // Update progress
+                    if (!userProgress.subjects[subjectId]) {
+                        userProgress.subjects[subjectId] = { topics: {} };
+                    }
+                    if (!userProgress.subjects[subjectId].topics[topicName]) {
+                        userProgress.subjects[subjectId].topics[topicName] = { subtopics: {} };
+                    }
+                    if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
+                        userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = {};
                     }
                     
-                    let targetsHTML = '';
-                    const today = new Date().toISOString().split('T')[0];
-                    const todayTargets = [];
+                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours = hours;
+                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = true;
                     
-                    querySnapshot.forEach((doc) => {
-                        const target = doc.data();
-                        target.id = doc.id;
-                        userTargets.push(target);
-                        
-                        const targetDate = target.targetDate ? new Date(target.targetDate.seconds * 1000).toISOString().split('T')[0] : '';
-                        const isToday = targetDate === today;
-                        
-                        if (isToday) {
-                            todayTargets.push(target);
-                        }
-                        
-                        const subjectName = getSubjectName(target.subject);
-                        const targetTypeName = getTargetTypeName(target.targetType);
-                        
-                        targetsHTML += `
-                        <div class="target-item" data-id="${doc.id}">
-                            <div class="target-header">
-                                <div class="target-title">${target.topic}</div>
-                                <span class="target-subject">${subjectName}</span>
-                            </div>
-                            <div class="target-details">
-                                <div><strong>Type:</strong> ${targetTypeName}</div>
-                                <div><strong>Date:</strong> ${formatDate(target.targetDate ? new Date(target.targetDate.seconds * 1000) : new Date())}</div>
-                                ${target.subtopic ? `<div><strong>Subtopic:</strong> ${target.subtopic}</div>` : ''}
-                            </div>
-                            <div class="target-time">
-                                <div class="target-planned">
-                                    <strong>Planned:</strong> ${target.plannedHours} hrs
-                                </div>
-                                <div class="target-actual">
-                                    <strong>Actual:</strong>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="number" 
-                                               class="actual-hours-input"
-                                               value="${target.actualHours || 0}"
-                                               min="0"
-                                               max="24"
-                                               step="0.5"
-                                               data-id="${doc.id}"
-                                               style="width: 80px; padding: 8px; border: 2px solid #e9ecef; border-radius: 6px;">
-                                        <span>hrs</span>
-                                        <button class="save-hours-btn" data-id="${doc.id}" style="padding: 8px 15px; background: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                                            Save
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="target-progress">
-                                <div class="progress-bar" style="height: 10px; background: #e9ecef; border-radius: 5px; margin: 15px 0; overflow: hidden;">
-                                    <div class="progress-fill" style="height: 100%; background: var(${target.completed ? '--success' : '--secondary'}); width: ${Math.min(100, ((target.actualHours || 0) / target.plannedHours) * 100)}%;"></div>
-                                </div>
-                                <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--gray);">
-                                    <span>${target.completed ? '✓ Completed' : 'In Progress'}</span>
-                                    <span>${target.actualHours || 0}/${target.plannedHours} hrs</span>
-                                </div>
-                            </div>
-                            ${target.description ? `<div class="target-description" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: var(--gray);">${target.description}</div>` : ''}
-                            <div class="target-actions" style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button class="mark-complete-btn" data-id="${doc.id}" style="padding: 8px 16px; background: ${target.completed ? '#27ae60' : 'var(--success)'}; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">
-                                    <i class="fas fa-check"></i> ${target.completed ? 'Completed' : 'Mark Complete'}
+                    // Auto-mark topic as in-progress if hours added
+                    if (userProgress.subjects[subjectId].topics[topicName].status === 'not-started') {
+                        userProgress.subjects[subjectId].topics[topicName].status = 'in-progress';
+                    }
+                }
+            });
+            
+            // Save to storage
+            DataStorage.save('progress', userProgress);
+            updateDashboard();
+            
+            showToast('All progress saved successfully!', 'success');
+        }
+        
+        // ====================
+        // PLANNING & TARGETS
+        // ====================
+        function loadPlanningPage() {
+            loadLiveTargets();
+            loadTargetHistory();
+            
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('target-date').value = today;
+        }
+        
+        function loadLiveTargets() {
+            const liveTargetsList = document.getElementById('live-targets-list');
+            
+            if (!userTargets || userTargets.length === 0) {
+                liveTargetsList.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-plus"></i><h3>No active targets</h3><p>Add your first target to get started!</p></div>';
+                return;
+            }
+            
+            let html = '';
+            const today = new Date().toISOString().split('T')[0];
+            
+            userTargets.forEach((target, index) => {
+                const isToday = target.date === today;
+                const achievement = target.plannedHours > 0 ? 
+                    Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
+                
+                html += `<div class="target-item">
+                    <div class="target-header">
+                        <div class="target-title">${target.topic}</div>
+                        <span class="target-subject">${getSubjectName(target.subject)}</span>
+                    </div>
+                    <div class="target-details">
+                        <div><strong>Type:</strong> ${target.type}</div>
+                        <div><strong>Date:</strong> ${formatDate(target.date)}</div>
+                        ${isToday ? '<span style="color: var(--success); font-weight: 600;"><i class="fas fa-bolt"></i> Today</span>' : ''}
+                    </div>
+                    <div class="target-time">
+                        <div class="target-planned">
+                            <strong>Planned:</strong> ${target.plannedHours} hrs
+                        </div>
+                        <div class="target-actual">
+                            <strong>Actual:</strong>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="number" 
+                                       class="actual-hours-input"
+                                       value="${target.actualHours || 0}"
+                                       min="0"
+                                       max="24"
+                                       step="0.5"
+                                       data-index="${index}"
+                                       style="width: 80px;">
+                                <span>hrs</span>
+                                <button class="save-target-hours" data-index="${index}" style="padding: 8px 15px; background: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                    Save
                                 </button>
-                                <button class="delete-target-btn" data-id="${doc.id}" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; flex: 1;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="target-progress">
+                        <div class="progress-bar" style="height: 10px; background: #e9ecef; border-radius: 5px; margin: 15px 0; overflow: hidden;">
+                            <div class="progress-fill" style="height: 100%; background: ${achievement >= 100 ? 'var(--success)' : 'var(--secondary)'}; width: ${Math.min(100, achievement)}%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--gray);">
+                            <span>Achievement: ${achievement}%</span>
+                            <div class="target-actions">
+                                <button class="complete-target-btn" data-index="${index}" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                                <button class="delete-target-btn" data-index="${index}" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
                             </div>
-                        </div>`;
-                    });
-                    
-                    targetsList.innerHTML = targetsHTML;
-                    updatePlanningStats(todayTargets);
-                    calculatePlanCompletionRate();
-                    
-                    // Add event listeners
-                    addTargetEventListeners();
-                    
-                })
-                .catch((error) => {
-                    console.error("Error loading targets:", error);
-                    targetsList.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Error loading targets</h3><p>${error.message}</p></div>`;
-                });
-        }
-        
-        function getTargetTypeName(type) {
-            const typeMap = {
-                'daily': 'Daily Target',
-                'weekly': 'Weekly Target',
-                'monthly': 'Monthly Target'
-            };
-            return typeMap[type] || type;
-        }
-        
-        function addTargetEventListeners() {
-            // Save hours buttons
-            document.querySelectorAll('.save-hours-btn').forEach(btn => {
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            liveTargetsList.innerHTML = html;
+            
+            // Add event listeners
+            document.querySelectorAll('.save-target-hours').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-id');
-                    const input = document.querySelector(`.actual-hours-input[data-id="${targetId}"]`);
-                    const actualHours = parseFloat(input.value) || 0;
-                    updateTargetActualHours(targetId, actualHours);
+                    const index = this.getAttribute('data-index');
+                    const input = document.querySelector(`.actual-hours-input[data-index="${index}"]`);
+                    const hours = parseFloat(input.value) || 0;
+                    updateTargetHours(index, hours);
                 });
             });
             
-            // Mark complete buttons
-            document.querySelectorAll('.mark-complete-btn').forEach(btn => {
+            document.querySelectorAll('.complete-target-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-id');
-                    markTargetComplete(targetId);
+                    const index = this.getAttribute('data-index');
+                    completeTarget(index);
                 });
             });
             
-            // Delete buttons
             document.querySelectorAll('.delete-target-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const targetId = this.getAttribute('data-id');
-                    deleteTarget(targetId);
-                });
-            });
-            
-            // Actual hours input change
-            document.querySelectorAll('.actual-hours-input').forEach(input => {
-                input.addEventListener('change', function() {
-                    const targetId = this.getAttribute('data-id');
-                    const actualHours = parseFloat(this.value) || 0;
-                    updateTargetActualHours(targetId, actualHours);
+                    const index = this.getAttribute('data-index');
+                    deleteTarget(index);
                 });
             });
         }
         
-        function updateTargetActualHours(targetId, actualHours) {
-            if (!currentUser) return;
+        function loadTargetHistory() {
+            const historyTbody = document.getElementById('history-tbody');
             
-            const target = userTargets.find(t => t.id === targetId);
-            if (!target) return;
-            
-            // Calculate completion percentage
-            const plannedHours = target.plannedHours || 1;
-            const percentage = Math.min(100, (actualHours / plannedHours) * 100);
-            const completed = percentage >= 100;
-            
-            db.collection('targets').doc(targetId).update({
-                actualHours: actualHours,
-                completed: completed,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                // Update local data
-                target.actualHours = actualHours;
-                target.completed = completed;
-                
-                // Update UI immediately
-                const targetElement = document.querySelector(`.target-item[data-id="${targetId}"]`);
-                if (targetElement) {
-                    // Update progress bar
-                    const progressFill = targetElement.querySelector('.progress-fill');
-                    if (progressFill) {
-                        progressFill.style.width = `${percentage}%`;
-                        progressFill.style.backgroundColor = completed ? 'var(--success)' : 'var(--secondary)';
-                    }
-                    
-                    // Update status text
-                    const statusSpan = targetElement.querySelector('.target-progress span:first-child');
-                    if (statusSpan) {
-                        statusSpan.textContent = completed ? '✓ Completed' : 'In Progress';
-                    }
-                    
-                    // Update hours text
-                    const hoursSpan = targetElement.querySelector('.target-progress span:last-child');
-                    if (hoursSpan) {
-                        hoursSpan.textContent = `${actualHours}/${plannedHours} hrs`;
-                    }
-                    
-                    // Update button
-                    const completeBtn = targetElement.querySelector('.mark-complete-btn');
-                    if (completeBtn) {
-                        completeBtn.innerHTML = `<i class="fas fa-check"></i> ${completed ? 'Completed' : 'Mark Complete'}`;
-                        completeBtn.style.backgroundColor = completed ? '#27ae60' : 'var(--success)';
-                    }
-                }
-                
-                showToast('Hours updated successfully!', 'success');
-                
-                // Update dashboard stats
-                updateDashboard();
-                
-                // Update planning stats
-                const today = new Date().toISOString().split('T')[0];
-                const todayTargets = userTargets.filter(t => {
-                    const targetDate = t.targetDate ? new Date(t.targetDate.seconds * 1000).toISOString().split('T')[0] : '';
-                    return targetDate === today;
-                });
-                updatePlanningStats(todayTargets);
-            })
-            .catch((error) => {
-                console.error("Error updating target:", error);
-                showToast('Error updating target: ' + error.message, 'error');
-            });
-        }
-        
-        function markTargetComplete(targetId) {
-            const target = userTargets.find(t => t.id === targetId);
-            if (!target) return;
-            
-            if (target.completed) {
-                // If already completed, unmark it
-                updateTargetActualHours(targetId, 0);
-            } else {
-                // Mark as complete by setting actual hours to planned hours
-                updateTargetActualHours(targetId, target.plannedHours);
+            if (!completedTargets || completedTargets.length === 0) {
+                historyTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--gray);">No historical targets found</td></tr>';
+                return;
             }
-        }
-        
-        function deleteTarget(targetId) {
-            if (!confirm('Are you sure you want to delete this target?')) return;
             
-            db.collection('targets').doc(targetId).delete()
-                .then(() => {
-                    // Remove from local data
-                    userTargets = userTargets.filter(t => t.id !== targetId);
-                    
-                    // Remove from DOM
-                    const targetElement = document.querySelector(`.target-item[data-id="${targetId}"]`);
-                    if (targetElement) {
-                        targetElement.remove();
-                    }
-                    
-                    showToast('Target deleted successfully!', 'success');
-                    
-                    // Update stats
-                    const today = new Date().toISOString().split('T')[0];
-                    const todayTargets = userTargets.filter(t => {
-                        const targetDate = t.targetDate ? new Date(t.targetDate.seconds * 1000).toISOString().split('T')[0] : '';
-                        return targetDate === today;
-                    });
-                    updatePlanningStats(todayTargets);
-                    calculatePlanCompletionRate();
-                })
-                .catch((error) => {
-                    console.error("Error deleting target:", error);
-                    showToast('Error deleting target: ' + error.message, 'error');
-                });
-        }
-        
-        function updatePlanningStats(todayTargets) {
-            const totalTargets = todayTargets.length;
-            const completedTargets = todayTargets.filter(t => t.completed).length;
-            const totalPlannedHours = todayTargets.reduce((sum, t) => sum + (t.plannedHours || 0), 0);
-            const totalActualHours = todayTargets.reduce((sum, t) => sum + (t.actualHours || 0), 0);
+            let html = '';
             
-            document.getElementById('today-targets').textContent = totalTargets;
-            document.getElementById('today-completed').textContent = completedTargets;
-            document.getElementById('today-planned').textContent = totalPlannedHours;
-            document.getElementById('today-actual').textContent = totalActualHours;
+            completedTargets.forEach(target => {
+                const achievement = target.plannedHours > 0 ? 
+                    Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
+                
+                let achievementClass = 'achievement-high';
+                if (achievement < 50) achievementClass = 'achievement-low';
+                else if (achievement < 80) achievementClass = 'achievement-medium';
+                
+                html += `<tr>
+                    <td>${formatDate(target.date)}</td>
+                    <td>${target.topic}</td>
+                    <td>${getSubjectName(target.subject)}</td>
+                    <td>${target.plannedHours}</td>
+                    <td>${target.actualHours || 0}</td>
+                    <td class="achievement-cell ${achievementClass}">${achievement}%</td>
+                </tr>`;
+            });
+            
+            historyTbody.innerHTML = html;
         }
         
         function saveTarget() {
-            if (!currentUser) return;
-            
-            const targetType = document.getElementById('target-type').value;
-            const targetDate = document.getElementById('target-date').value;
+            const type = document.getElementById('target-type').value;
+            const date = document.getElementById('target-date').value;
             const subject = document.getElementById('planning-subject').value;
-            const topicSelect = document.getElementById('planning-topic').value;
-            const customTopic = document.getElementById('custom-topic').value;
-            const subtopic = document.getElementById('planning-subtopic').value;
+            const topic = document.getElementById('planning-topic').value;
             const plannedHours = parseFloat(document.getElementById('planned-hours-input').value) || 2;
-            const description = document.getElementById('target-description').value;
-            const messageDiv = document.getElementById('target-message');
             
-            if (!subject || (!topicSelect && !customTopic)) {
-                showMessage(messageDiv, 'Please select subject and topic', 'error');
+            if (!subject || !topic) {
+                showMessage('Please select subject and topic', 'error');
                 return;
             }
             
-            const topic = topicSelect === 'custom' ? customTopic : topicSelect;
-            
-            // Create the target date as Firestore timestamp
-            const targetDateObj = new Date(targetDate);
-            
-            const targetData = {
-                userId: currentUser.uid,
-                targetType: targetType,
-                targetDate: firebase.firestore.Timestamp.fromDate(targetDateObj),
+            const target = {
+                type: type,
+                date: date,
                 subject: subject,
                 topic: topic,
-                subtopic: subtopic || '',
                 plannedHours: plannedHours,
                 actualHours: 0,
-                completed: false,
-                description: description,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                created: new Date().toISOString()
             };
             
-            const saveBtn = document.getElementById('save-target-btn');
-            saveBtn.innerHTML = '<div class="loading"></div> Saving...';
-            saveBtn.disabled = true;
+            userTargets.push(target);
+            DataStorage.save('targets', userTargets);
             
-            db.collection('targets').add(targetData)
-                .then(() => {
-                    showMessage(messageDiv, 'Target saved successfully!', 'success');
-                    
-                    // Reset form
-                    document.getElementById('target-date').value = formattedToday;
-                    document.getElementById('planning-subject').value = '';
-                    document.getElementById('planning-topic').value = '';
-                    document.getElementById('custom-topic').value = '';
-                    document.getElementById('planning-subtopic').value = '';
-                    document.getElementById('planned-hours-input').value = 2;
-                    document.getElementById('target-description').value = '';
-                    
-                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Target';
-                    saveBtn.disabled = false;
-                    
-                    // Reload targets
-                    loadTargets();
-                    showToast('Target saved successfully!', 'success');
-                    
-                    // Collapse form
-                    planningToggle.classList.remove('expanded');
-                    planningForm.classList.remove('expanded');
-                })
-                .catch((error) => {
-                    console.error("Error saving target:", error);
-                    showMessage(messageDiv, 'Error saving target: ' + error.message, 'error');
-                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Target';
-                    saveBtn.disabled = false;
-                });
+            // Clear form
+            document.getElementById('planning-subject').value = '';
+            document.getElementById('planning-topic').value = '';
+            document.getElementById('planned-hours-input').value = 2;
+            
+            // Hide form
+            document.getElementById('planning-form').classList.remove('expanded');
+            
+            // Reload targets
+            loadLiveTargets();
+            
+            showToast('Target saved successfully!', 'success');
         }
         
-        function filterTargets() {
-            const searchTerm = document.getElementById('search-targets').value.toLowerCase();
-            const targetItems = document.querySelectorAll('.target-item');
-            
-            targetItems.forEach(item => {
-                const title = item.querySelector('.target-title').textContent.toLowerCase();
-                const description = item.querySelector('.target-description')?.textContent.toLowerCase() || '';
-                const subject = item.querySelector('.target-subject').textContent.toLowerCase();
+        function updateTargetHours(index, hours) {
+            if (index >= 0 && index < userTargets.length) {
+                userTargets[index].actualHours = hours;
+                DataStorage.save('targets', userTargets);
+                loadLiveTargets();
+                updateDashboard();
+                showToast('Hours updated!', 'success');
+            }
+        }
+        
+        function completeTarget(index) {
+            if (index >= 0 && index < userTargets.length) {
+                const target = userTargets[index];
+                target.completed = true;
+                target.completedDate = new Date().toISOString();
                 
-                if (title.includes(searchTerm) || description.includes(searchTerm) || subject.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
+                // Move to completed targets
+                completedTargets.push(target);
+                userTargets.splice(index, 1);
+                
+                DataStorage.save('targets', userTargets);
+                DataStorage.save('completedTargets', completedTargets);
+                
+                loadLiveTargets();
+                loadTargetHistory();
+                updateDashboard();
+                
+                showToast('Target marked as completed!', 'success');
+            }
+        }
+        
+        function deleteTarget(index) {
+            if (confirm('Are you sure you want to delete this target?')) {
+                if (index >= 0 && index < userTargets.length) {
+                    userTargets.splice(index, 1);
+                    DataStorage.save('targets', userTargets);
+                    loadLiveTargets();
+                    showToast('Target deleted!', 'success');
+                }
+            }
+        }
+        
+        // ====================
+        // DASHBOARD & ANALYTICS
+        // ====================
+        function updateDashboard() {
+            calculateKPIs();
+            updateSmartProjection();
+            updateAdvancedChart();
+        }
+        
+        function calculateKPIs() {
+            // Calculate total actual hours
+            let totalActualHours = 0;
+            let totalPlannedHours = userStudyPlan?.totalHours || 540;
+            let completedTopics = 0;
+            let completedSubjects = 0;
+            
+            if (userProgress.subjects) {
+                for (const subjectId in userProgress.subjects) {
+                    const subject = userProgress.subjects[subjectId];
+                    
+                    // Check if subject is completed
+                    let subjectCompleted = true;
+                    for (const topicName in subject.topics) {
+                        const topic = subject.topics[topicName];
+                        if (topic.status === 'completed') {
+                            completedTopics++;
+                        } else {
+                            subjectCompleted = false;
+                        }
+                        
+                        // Add hours from subtopics
+                        if (topic.subtopics) {
+                            Object.values(topic.subtopics).forEach(subtopic => {
+                                totalActualHours += subtopic.actualHours || 0;
+                            });
+                        }
+                    }
+                    
+                    if (subjectCompleted) {
+                        completedSubjects++;
+                    }
+                }
+            }
+            
+            // Calculate success rate from completed targets
+            let successRate = 0;
+            if (completedTargets.length > 0) {
+                const successfulTargets = completedTargets.filter(t => {
+                    const achievement = t.plannedHours > 0 ? 
+                        (t.actualHours || 0) / t.plannedHours : 0;
+                    return achievement >= 0.8; // 80% or more considered successful
+                }).length;
+                
+                successRate = Math.round((successfulTargets / completedTargets.length) * 100);
+            }
+            
+            // Calculate daily efficiency
+            const today = new Date().toISOString().split('T')[0];
+            const todayTargets = userTargets.filter(t => t.date === today);
+            let dailyEfficiency = 0;
+            
+            if (todayTargets.length > 0) {
+                const totalPlannedToday = todayTargets.reduce((sum, t) => sum + t.plannedHours, 0);
+                const totalActualToday = todayTargets.reduce((sum, t) => sum + (t.actualHours || 0), 0);
+                dailyEfficiency = totalPlannedToday > 0 ? 
+                    Math.round((totalActualToday / totalPlannedToday) * 100) : 0;
+            }
+            
+            // Calculate performance indicator
+            const dailyTarget = userStudyPlan?.dailyHours || 6;
+            const performance = totalActualHours / (dailyTarget * userStats.totalStudyDays || 1);
+            
+            // Update UI
+            document.getElementById('actual-hours').textContent = totalActualHours;
+            document.getElementById('planned-hours').textContent = totalPlannedHours;
+            document.getElementById('overall-progress').textContent = `${Math.round((completedTopics / totalTopics) * 100)}%`;
+            document.getElementById('subjects-completed').textContent = completedSubjects;
+            document.getElementById('topics-completed').textContent = completedTopics;
+            document.getElementById('success-rate').textContent = `${successRate}%`;
+            document.getElementById('daily-efficiency').textContent = `${dailyEfficiency}%`;
+            
+            const performanceIndicator = document.getElementById('performance-indicator');
+            if (performance >= 1) {
+                performanceIndicator.innerHTML = '<i class="fas fa-arrow-up performance-good"></i> <span>Overperforming</span>';
+            } else if (performance >= 0.8) {
+                performanceIndicator.innerHTML = '<i class="fas fa-check performance-good"></i> <span>On Track</span>';
+            } else {
+                performanceIndicator.innerHTML = '<i class="fas fa-arrow-down performance-bad"></i> <span>Underperforming</span>';
+            }
+            
+            // Update streak
+            updateStreak();
+        }
+        
+        function updateStreak() {
+            const today = new Date().toISOString().split('T')[0];
+            const lastStudy = userStats.lastStudyDate;
+            
+            if (!lastStudy) {
+                userStats.currentStreak = 0;
+            } else {
+                const lastDate = new Date(lastStudy);
+                const todayDate = new Date(today);
+                const diffTime = Math.abs(todayDate - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    userStats.currentStreak++;
+                } else if (diffDays > 1) {
+                    userStats.currentStreak = 1;
+                }
+            }
+            
+            userStats.lastStudyDate = today;
+            userStats.bestStreak = Math.max(userStats.bestStreak, userStats.currentStreak);
+            userStats.totalStudyDays++;
+            
+            DataStorage.save('stats', userStats);
+            document.getElementById('streak-days').textContent = userStats.currentStreak;
+        }
+        
+        function updateSmartProjection() {
+            const totalPlannedHours = userStudyPlan?.totalHours || 540;
+            let totalActualHours = 0;
+            
+            // Calculate actual hours from progress
+            if (userProgress.subjects) {
+                for (const subjectId in userProgress.subjects) {
+                    const subject = userProgress.subjects[subjectId];
+                    for (const topicName in subject.topics) {
+                        const topic = subject.topics[topicName];
+                        if (topic.subtopics) {
+                            Object.values(topic.subtopics).forEach(subtopic => {
+                                totalActualHours += subtopic.actualHours || 0;
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Calculate remaining hours and days
+            const remainingHours = Math.max(0, totalPlannedHours - totalActualHours);
+            const dailyAverage = userStats.totalStudyDays > 0 ? 
+                totalActualHours / userStats.totalStudyDays : userStudyPlan?.dailyHours || 6;
+            
+            const remainingDays = dailyAverage > 0 ? Math.ceil(remainingHours / dailyAverage) : 999;
+            
+            const projectionText = document.getElementById('projection-text');
+            
+            if (remainingDays <= 0) {
+                projectionText.innerHTML = `🎉 <strong>Congratulations!</strong> You've completed your study plan!`;
+            } else if (dailyAverage >= (userStudyPlan?.dailyHours || 6)) {
+                projectionText.innerHTML = `📈 <strong>Great progress!</strong> At this rate, you'll complete in <strong>${remainingDays} days</strong>. Keep it up!`;
+            } else {
+                projectionText.innerHTML = `📊 <strong>Current pace:</strong> At this rate, you'll complete in <strong>${remainingDays} days</strong>. Consider increasing daily hours.`;
+            }
+        }
+        
+        function updateAdvancedChart() {
+            const ctx = document.getElementById('advanced-chart').getContext('2d');
+            
+            if (advancedChart) {
+                advancedChart.destroy();
+            }
+            
+            // Generate chart data based on current view
+            let labels = [];
+            let plannedData = [];
+            let actualData = [];
+            
+            const today = new Date();
+            
+            switch (currentChartView) {
+                case 'daily':
+                    // Last 7 days
+                    for (let i = 6; i >= 0; i--) {
+                        const date = new Date();
+                        date.setDate(today.getDate() - i);
+                        labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                        
+                        const dateStr = date.toISOString().split('T')[0];
+                        const dayTargets = userTargets.filter(t => t.date === dateStr);
+                        const dayCompleted = completedTargets.filter(t => t.date === dateStr);
+                        
+                        const planned = dayTargets.reduce((sum, t) => sum + t.plannedHours, 0) +
+                                      dayCompleted.reduce((sum, t) => sum + t.plannedHours, 0);
+                        const actual = dayTargets.reduce((sum, t) => sum + (t.actualHours || 0), 0) +
+                                     dayCompleted.reduce((sum, t) => sum + (t.actualHours || 0), 0);
+                        
+                        plannedData.push(planned);
+                        actualData.push(actual);
+                    }
+                    break;
+                    
+                case 'weekly':
+                    // Last 4 weeks
+                    for (let i = 3; i >= 0; i--) {
+                        const weekStart = new Date();
+                        weekStart.setDate(today.getDate() - (i * 7));
+                        labels.push(`Week ${Math.ceil((today.getDate() - (i * 7)) / 7)}`);
+                        
+                        // Simplified - in real app, filter by week
+                        plannedData.push(Math.random() * 30 + 20);
+                        actualData.push(Math.random() * 30 + 15);
+                    }
+                    break;
+                    
+                case 'monthly':
+                    // Last 6 months
+                    for (let i = 5; i >= 0; i--) {
+                        const month = new Date();
+                        month.setMonth(today.getMonth() - i);
+                        labels.push(month.toLocaleDateString('en-US', { month: 'short' }));
+                        
+                        plannedData.push(Math.random() * 120 + 80);
+                        actualData.push(Math.random() * 120 + 60);
+                    }
+                    break;
+                    
+                case 'subject':
+                    // By subject
+                    for (const subjectId in syllabusData) {
+                        labels.push(syllabusData[subjectId].name.substring(0, 15) + '...');
+                        plannedData.push(userStudyPlan?.subjectHours?.[subjectId] || 0);
+                        
+                        let subjectActual = 0;
+                        if (userProgress.subjects[subjectId]) {
+                            for (const topicName in userProgress.subjects[subjectId].topics) {
+                                const topic = userProgress.subjects[subjectId].topics[topicName];
+                                if (topic.subtopics) {
+                                    Object.values(topic.subtopics).forEach(subtopic => {
+                                        subjectActual += subtopic.actualHours || 0;
+                                    });
+                                }
+                            }
+                        }
+                        actualData.push(subjectActual);
+                    }
+                    break;
+            }
+            
+            // Create dataset with conditional coloring
+            const dataset = {
+                label: 'Actual Hours',
+                data: actualData,
+                backgroundColor: actualData.map((actual, index) => {
+                    const planned = plannedData[index];
+                    return actual >= planned ? 'rgba(46, 204, 113, 0.7)' : 'rgba(231, 76, 60, 0.7)';
+                }),
+                borderColor: actualData.map((actual, index) => {
+                    const planned = plannedData[index];
+                    return actual >= planned ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)';
+                }),
+                borderWidth: 2,
+                borderRadius: 8
+            };
+            
+            advancedChart = new Chart(ctx, {
+                type: currentChartView === 'subject' ? 'bar' : 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Planned Hours',
+                            data: plannedData,
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: true
+                        },
+                        dataset
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} hours`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            }
+                        }
+                    }
                 }
             });
         }
         
-        // Video Functions
-        function loadVideos() {
-            if (!currentUser) return;
-            
-            const videosList = document.getElementById('videos-list');
-            videosList.innerHTML = '<div class="empty-state"><i class="fas fa-video"></i><h3>Loading videos...</h3></div>';
-            
-            db.collection('videos')
-                .orderBy('addedAt', 'desc')
-                .get()
-                .then((querySnapshot) => {
-                    allVideos = [];
-                    
-                    if (querySnapshot.empty) {
-                        videosList.innerHTML = '<div class="empty-state"><i class="fas fa-video"></i><h3>No videos found</h3><p>Add your first video to get started!</p></div>';
-                        return;
-                    }
-                    
-                    let videosHTML = '';
-                    querySnapshot.forEach((doc) => {
-                        const video = doc.data();
-                        video.id = doc.id;
-                        allVideos.push(video);
-                        
-                        const subjectName = getSubjectName(video.subject);
-                        const authorName = video.authorName || 'Anonymous';
-                        
-                        videosHTML += `<div class="resource-item">
-                            <div class="resource-info">
-                                <span class="resource-subject">${subjectName}</span>
-                                <h4>${video.title}</h4>
-                                <div class="resource-author">
-                                    <i class="fas fa-user"></i>
-                                    ${authorName}
-                                </div>
-                            </div>
-                            <div class="resource-actions">
-                                <a href="${video.link}" target="_blank" class="resource-btn" title="Play Video">
-                                    <i class="fas fa-play"></i>
-                                </a>
-                            </div>
-                        </div>`;
-                    });
-                    
-                    videosList.innerHTML = videosHTML;
-                })
-                .catch((error) => {
-                    console.error("Error loading videos:", error);
-                    videosList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Error loading videos</h3></div>';
-                });
-        }
-        
-        function addVideo() {
-            if (!currentUser) return;
-            
-            const title = document.getElementById('video-title').value;
-            const subject = document.getElementById('video-subject').value;
-            const link = document.getElementById('video-link').value;
-            const messageDiv = document.getElementById('video-message');
-            
-            if (!title || !link) {
-                showMessage(messageDiv, 'Please fill in title and link', 'error');
-                return;
+        // ====================
+        // RESET & SETTINGS
+        // ====================
+        function resetStudyPlan() {
+            if (confirm('Are you sure you want to reset your study plan? This will redistribute hours based on professional ratios.')) {
+                userStudyPlan = initializeStudyPlan();
+                DataStorage.save('studyPlan', userStudyPlan);
+                updateDashboard();
+                showToast('Study plan reset successfully!', 'success');
             }
-            
-            const videoBtn = document.getElementById('add-video-btn');
-            videoBtn.innerHTML = '<div class="loading"></div> Adding...';
-            videoBtn.disabled = true;
-            
-            db.collection('videos').add({
-                title: title,
-                subject: subject,
-                link: link,
-                addedBy: currentUser.uid,
-                authorName: currentUser.displayName || 'Anonymous',
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                showMessage(messageDiv, 'Video added successfully!', 'success');
-                document.getElementById('video-title').value = '';
-                document.getElementById('video-link').value = '';
-                videoBtn.innerHTML = 'Add Video';
-                videoBtn.disabled = false;
-                loadVideos();
-                showToast('Video added successfully!', 'success');
-                
-                videoToggle.classList.remove('expanded');
-                videoForm.classList.remove('expanded');
-            })
-            .catch((error) => {
-                showMessage(messageDiv, 'Error adding video: ' + error.message, 'error');
-                videoBtn.innerHTML = 'Add Video';
-                videoBtn.disabled = false;
-            });
         }
         
-        function filterVideos() {
-            const searchTerm = document.getElementById('search-videos').value.toLowerCase();
-            const resourceItems = document.querySelectorAll('#videos-list .resource-item');
-            
-            resourceItems.forEach(item => {
-                const title = item.querySelector('h4').textContent.toLowerCase();
-                const subject = item.querySelector('.resource-subject').textContent.toLowerCase();
-                const author = item.querySelector('.resource-author').textContent.toLowerCase();
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear current session but keep license
+                const licenseData = DataStorage.load('license');
+                localStorage.clear();
                 
-                if (title.includes(searchTerm) || subject.includes(searchTerm) || author.includes(searchTerm)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
+                if (licenseData) {
+                    DataStorage.save('license', licenseData);
                 }
-            });
-        }
-        
-        // Resources Functions
-        function loadResources() {
-            if (!currentUser) return;
-            
-            const resourcesList = document.getElementById('resources-list');
-            resourcesList.innerHTML = '<div class="empty-state"><i class="fas fa-sticky-note"></i><h3>Loading resources...</h3></div>';
-            
-            db.collection('resources')
-                .orderBy('addedAt', 'desc')
-                .get()
-                .then((querySnapshot) => {
-                    allResources = [];
-                    
-                    if (querySnapshot.empty) {
-                        resourcesList.innerHTML = '<div class="empty-state"><i class="fas fa-sticky-note"></i><h3>No resources found</h3><p>Add your first resource to get started!</p></div>';
-                        return;
-                    }
-                    
-                    let resourcesHTML = '';
-                    querySnapshot.forEach((doc) => {
-                        const resource = doc.data();
-                        resource.id = doc.id;
-                        allResources.push(resource);
-                        
-                        const subjectName = getSubjectName(resource.subject);
-                        const authorName = resource.authorName || 'Anonymous';
-                        
-                        resourcesHTML += `<div class="resource-item">
-                            <div class="resource-info">
-                                <span class="resource-subject">${subjectName}</span>
-                                <h4>${resource.title}</h4>
-                                <div class="resource-details">
-                                    <span style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${resource.type}</span>
-                                </div>
-                                <div class="resource-author">
-                                    <i class="fas fa-user"></i>
-                                    ${authorName}
-                                </div>
-                            </div>
-                            <div class="resource-actions">
-                                <a href="${resource.link}" target="_blank" class="resource-btn" title="Open Resource">
-                                    <i class="fas fa-external-link-alt"></i>
-                                </a>
-                            </div>
-                        </div>`;
-                    });
-                    
-                    resourcesList.innerHTML = resourcesHTML;
-                })
-                .catch((error) => {
-                    console.error("Error loading resources:", error);
-                    resourcesList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><h3>Error loading resources</h3></div>';
-                });
-        }
-        
-        function addResource() {
-            if (!currentUser) return;
-            
-            const title = document.getElementById('resources-title').value;
-            const subject = document.getElementById('resources-subject').value;
-            const type = document.getElementById('resources-type').value;
-            const link = document.getElementById('resources-link').value;
-            const messageDiv = document.getElementById('resources-message');
-            
-            if (!title || !link) {
-                showMessage(messageDiv, 'Please fill in title and link', 'error');
-                return;
+                
+                window.location.reload();
             }
-            
-            const resourceBtn = document.getElementById('add-resources-btn');
-            resourceBtn.innerHTML = '<div class="loading"></div> Adding...';
-            resourceBtn.disabled = true;
-            
-            db.collection('resources').add({
-                title: title,
-                subject: subject,
-                type: type,
-                link: link,
-                addedBy: currentUser.uid,
-                authorName: currentUser.displayName || 'Anonymous',
-                addedAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                showMessage(messageDiv, 'Resource added successfully!', 'success');
-                document.getElementById('resources-title').value = '';
-                document.getElementById('resources-link').value = '';
-                resourceBtn.innerHTML = 'Add Resource';
-                resourceBtn.disabled = false;
-                loadResources();
-                showToast('Resource added successfully!', 'success');
-                
-                resourcesToggle.classList.remove('expanded');
-                resourcesForm.classList.remove('expanded');
-            })
-            .catch((error) => {
-                showMessage(messageDiv, 'Error adding resource: ' + error.message, 'error');
-                resourceBtn.innerHTML = 'Add Resource';
-                resourceBtn.disabled = false;
-            });
         }
         
-        function filterResources() {
-            const searchTerm = document.getElementById('search-resources').value.toLowerCase();
-            const resourceItems = document.querySelectorAll('#resources-list .resource-item');
-            
-            resourceItems.forEach(item => {
-                const title = item.querySelector('h4').textContent.toLowerCase();
-                const subject = item.querySelector('.resource-subject').textContent.toLowerCase();
-                const type = item.querySelector('.resource-details span').textContent.toLowerCase();
-                const author = item.querySelector('.resource-author').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || subject.includes(searchTerm) || type.includes(searchTerm) || author.includes(searchTerm)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
+        // ====================
+        // DEFAULT CONTENT
+        // ====================
+        function loadDefaultVideos() {
+            userVideos = DataStorage.load('videos') || [
+                {
+                    title: "Financial Reporting - Complete Guide",
+                    subject: "paper1",
+                    link: "https://youtube.com/playlist?list=example1",
+                    author: "CA Expert"
+                },
+                {
+                    title: "Advanced Financial Management Tips",
+                    subject: "paper2",
+                    link: "https://youtube.com/playlist?list=example2",
+                    author: "Finance Guru"
+                },
+                {
+                    title: "Auditing Standards Explained",
+                    subject: "paper3",
+                    link: "https://youtube.com/playlist?list=example3",
+                    author: "Audit Professional"
                 }
-            });
+            ];
+            DataStorage.save('videos', userVideos);
         }
         
-        // Settings Functions
-        function loadSettingsData() {
-            if (!currentUser) return;
-            
-            // Load user's videos for deletion
-            db.collection('videos').where('addedBy', '==', currentUser.uid).get()
-                .then((querySnapshot) => {
-                    const videosCheckboxes = document.getElementById('my-videos-checkboxes');
-                    videosCheckboxes.innerHTML = '';
-                    
-                    if (querySnapshot.empty) {
-                        videosCheckboxes.innerHTML = '<p style="color: var(--gray); text-align: center;">No videos found</p>';
-                        return;
-                    }
-                    
-                    querySnapshot.forEach((doc) => {
-                        const video = doc.data();
-                        const checkboxId = `video-${doc.id}`;
-                        
-                        videosCheckboxes.innerHTML += `
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${checkboxId}" value="${doc.id}">
-                                <label for="${checkboxId}">${video.title} (${getSubjectName(video.subject)})</label>
-                            </div>
-                        `;
-                    });
-                });
-            
-            // Load user's resources for deletion
-            db.collection('resources').where('addedBy', '==', currentUser.uid).get()
-                .then((querySnapshot) => {
-                    const resourcesCheckboxes = document.getElementById('my-resources-checkboxes');
-                    resourcesCheckboxes.innerHTML = '';
-                    
-                    if (querySnapshot.empty) {
-                        resourcesCheckboxes.innerHTML = '<p style="color: var(--gray); text-align: center;">No resources found</p>';
-                        return;
-                    }
-                    
-                    querySnapshot.forEach((doc) => {
-                        const resource = doc.data();
-                        const checkboxId = `resource-${doc.id}`;
-                        
-                        resourcesCheckboxes.innerHTML += `
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="${checkboxId}" value="${doc.id}">
-                                <label for="${checkboxId}">${resource.title} (${getSubjectName(resource.subject)})</label>
-                            </div>
-                        `;
-                    });
-                });
+        function loadDefaultResources() {
+            userResources = DataStorage.load('resources') || [
+                {
+                    title: "FR Formula Sheet",
+                    subject: "paper1",
+                    type: "formulas",
+                    link: "#",
+                    author: "Satyam Kumar"
+                },
+                {
+                    title: "DT Important Sections",
+                    subject: "paper4",
+                    type: "notes",
+                    link: "#",
+                    author: "Satyam Kumar"
+                },
+                {
+                    title: "Past Year Questions",
+                    subject: "paper6",
+                    type: "question_paper",
+                    link: "#",
+                    author: "CA Institute"
+                }
+            ];
+            DataStorage.save('resources', userResources);
         }
         
-        function deleteSelectedVideos() {
-            const password = document.getElementById('video-password').value;
-            if (password !== 'R@dha') {
-                alert('Incorrect password!');
-                return;
-            }
-            
-            const checkboxes = document.querySelectorAll('#my-videos-checkboxes input[type="checkbox"]:checked');
-            if (checkboxes.length === 0) {
-                alert('Please select videos to delete.');
-                return;
-            }
-            
-            if (!confirm(`Are you sure you want to delete ${checkboxes.length} video(s)?`)) {
-                return;
-            }
-            
-            const deletePromises = Array.from(checkboxes).map(checkbox => {
-                return db.collection('videos').doc(checkbox.value).delete();
-            });
-            
-            Promise.all(deletePromises)
-                .then(() => {
-                    showToast(`${checkboxes.length} video(s) deleted successfully!`, 'success');
-                    loadSettingsData();
-                    loadVideos();
-                    document.getElementById('video-password').value = '';
-                })
-                .catch((error) => {
-                    console.error("Error deleting videos:", error);
-                    showToast('Error deleting videos', 'error');
-                });
-        }
-        
-        function deleteSelectedResources() {
-            const password = document.getElementById('resources-password').value;
-            if (password !== 'R@dha') {
-                alert('Incorrect password!');
-                return;
-            }
-            
-            const checkboxes = document.querySelectorAll('#my-resources-checkboxes input[type="checkbox"]:checked');
-            if (checkboxes.length === 0) {
-                alert('Please select resources to delete.');
-                return;
-            }
-            
-            if (!confirm(`Are you sure you want to delete ${checkboxes.length} resource(s)?`)) {
-                return;
-            }
-            
-            const deletePromises = Array.from(checkboxes).map(checkbox => {
-                return db.collection('resources').doc(checkbox.value).delete();
-            });
-            
-            Promise.all(deletePromises)
-                .then(() => {
-                    showToast(`${checkboxes.length} resource(s) deleted successfully!`, 'success');
-                    loadSettingsData();
-                    loadResources();
-                    document.getElementById('resources-password').value = '';
-                })
-                .catch((error) => {
-                    console.error("Error deleting resources:", error);
-                    showToast('Error deleting resources', 'error');
-                });
-        }
-        
-        // Helper Functions
+        // ====================
+        // HELPER FUNCTIONS
+        // ====================
         function getSubjectName(subjectId) {
             const subjectMap = {
                 'paper1': 'Paper 1: FR',
@@ -4888,38 +4299,69 @@
                 'paper6': 'Paper 6: IBS',
                 'general': 'General'
             };
-            
             return subjectMap[subjectId] || subjectId;
         }
         
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add event listeners for planning page
-            const planningTopicSelect = document.getElementById('planning-topic');
-            const customTopicInput = document.getElementById('custom-topic');
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        function showToast(message, type = 'success') {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <div>
+                    <h4>${type === 'success' ? 'Success!' : 'Error!'}</h4>
+                    <p>${message}</p>
+                </div>
+            `;
             
-            if (planningTopicSelect && customTopicInput) {
-                planningTopicSelect.addEventListener('change', function() {
-                    if (this.value === 'custom') {
-                        customTopicInput.style.display = 'block';
-                    } else {
-                        customTopicInput.style.display = 'none';
-                    }
-                });
-            }
+            document.body.appendChild(toast);
             
-            // Set up textarea styling
-            const targetDescription = document.getElementById('target-description');
-            if (targetDescription) {
-                targetDescription.style.width = '100%';
-                targetDescription.style.padding = '14px';
-                targetDescription.style.border = '2px solid #e1e5e9';
-                targetDescription.style.borderRadius = '12px';
-                targetDescription.style.fontSize = '16px';
-                targetDescription.style.transition = 'all 0.3s';
-                targetDescription.style.resize = 'vertical';
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('backup-message');
+            if (messageDiv) {
+                messageDiv.textContent = message;
+                messageDiv.className = `auth-message ${type}`;
+                messageDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
             }
-        });
+        }
+        
+        // ====================
+        // NOTIFICATIONS
+        // ====================
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+        // Request permission on page load
+        if ('Notification' in window) {
+            requestNotificationPermission();
+        }
     </script>
+
 </body>
     </html>
