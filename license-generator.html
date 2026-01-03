@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CA Pro Tracker - License Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -38,10 +39,12 @@
         .header h1 {
             color: #2c3e50;
             margin-bottom: 10px;
+            font-size: 28px;
         }
         
         .header p {
             color: #7f8c8d;
+            font-size: 16px;
         }
         
         .form-group {
@@ -53,6 +56,7 @@
             margin-bottom: 10px;
             font-weight: 600;
             color: #2c3e50;
+            font-size: 15px;
         }
         
         input, select {
@@ -81,6 +85,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         .btn:hover {
@@ -106,14 +114,35 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        .license-details {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .license-details h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .license-details p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
         .license-key {
             background: white;
             padding: 15px;
             border-radius: 8px;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
             margin: 15px 0;
             word-break: break-all;
             border: 2px dashed #3498db;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #2c3e50;
         }
         
         .copy-btn {
@@ -125,9 +154,18 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
         }
         
         .copy-btn:hover {
+            background: #27ae60;
+        }
+        
+        .copy-btn.copied {
             background: #27ae60;
         }
         
@@ -141,6 +179,15 @@
             font-size: 14px;
         }
         
+        .security-notice ul {
+            margin-top: 10px;
+            margin-left: 20px;
+        }
+        
+        .security-notice li {
+            margin-bottom: 5px;
+        }
+        
         .admin-info {
             margin-top: 30px;
             text-align: center;
@@ -149,64 +196,341 @@
             border-top: 1px solid #eee;
             padding-top: 20px;
         }
-    </style>
- <script>
-    const MASTER_KEY = "S@tyamCA2026@Premium";
-    
-    document.getElementById('generate-btn').addEventListener('click', generateLicense);
-    document.getElementById('copy-btn').addEventListener('click', copyLicense);
-    
-    function generateLicense() {
-        const name = document.getElementById('customer-name').value.trim();
-        const days = document.getElementById('license-type').value;
         
-        if (!name) {
-            alert('Please enter customer name');
-            return;
+        .test-license {
+            margin-top: 20px;
+            padding: 15px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            color: #155724;
+            font-size: 14px;
         }
         
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + parseInt(days));
+        .test-license h4 {
+            margin-bottom: 10px;
+            color: #155724;
+        }
         
-        // IMPORTANT: Use the EXACT SAME structure as main app expects
-        const licenseData = {
-            name: name,
-            expiry: expiryDate.toISOString(),
-            generated: new Date().toISOString(),
-            type: "CA-PREM"
-            // REMOVED: "duration" field - main app doesn't expect it!
-        };
+        .test-license button {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="generator-container">
+        <div class="header">
+            <h1><i class="fas fa-key"></i> CA Pro Tracker License Generator</h1>
+            <p>Admin Panel - For Authorized Use Only</p>
+        </div>
         
-        const jsonString = JSON.stringify(licenseData);
-        const encrypted = CryptoJS.AES.encrypt(jsonString, MASTER_KEY).toString();
-        const base64 = btoa(encrypted);
-        const licenseKey = `CA-PREM-${base64}`;
+        <div class="form-group">
+            <label for="customer-name"><i class="fas fa-user"></i> Customer Name</label>
+            <input type="text" id="customer-name" placeholder="Enter customer's full name" value="Satyam Kumar">
+        </div>
         
-        document.getElementById('license-output').textContent = licenseKey;
-        document.getElementById('result-container').classList.add('show');
+        <div class="form-group">
+            <label for="license-type"><i class="fas fa-calendar-alt"></i> License Duration</label>
+            <select id="license-type">
+                <option value="7">7 Days (Trial)</option>
+                <option value="30">30 Days (Monthly)</option>
+                <option value="90">90 Days (Quarterly)</option>
+                <option value="180">180 Days (Half Year)</option>
+                <option value="365" selected>365 Days (Annual)</option>
+                <option value="9999">Lifetime</option>
+            </select>
+        </div>
         
-        // Optional: Show expiry date
-        alert(`License generated successfully!\nExpiry: ${expiryDate.toLocaleDateString()}\nKey: ${licenseKey.substring(0, 20)}...`);
-    }
-    
-    function copyLicense() {
-        const licenseText = document.getElementById('license-output').textContent;
+        <button class="btn" id="generate-btn">
+            <i class="fas fa-key"></i> Generate License Key
+        </button>
         
-        navigator.clipboard.writeText(licenseText)
-            .then(() => {
-                const btn = document.getElementById('copy-btn');
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                btn.style.background = '#27ae60';
+        <div class="result-container" id="result-container">
+            <h3><i class="fas fa-certificate"></i> Generated License Details</h3>
+            
+            <div class="license-details" id="license-details">
+                <h4>License Information</h4>
+                <p><strong>Customer:</strong> <span id="customer-detail">-</span></p>
+                <p><strong>Expiry Date:</strong> <span id="expiry-detail">-</span></p>
+                <p><strong>Duration:</strong> <span id="duration-detail">-</span> days</p>
+            </div>
+            
+            <div class="license-key" id="license-output">Your license key will appear here...</div>
+            
+            <button class="copy-btn" id="copy-btn">
+                <i class="fas fa-copy"></i> Copy License Key
+            </button>
+            
+            <div class="security-notice">
+                <strong><i class="fas fa-shield-alt"></i> Security Instructions:</strong> 
+                <ul>
+                    <li>Share this key only with the authorized customer</li>
+                    <li>Format must be: CA-PREM-XXXXXXX</li>
+                    <li>Key contains encrypted customer data</li>
+                    <li>Store this information securely</li>
+                    <li>Key expires automatically on the expiry date</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="test-license">
+            <h4><i class="fas fa-vial"></i> Test License</h4>
+            <p>For testing: Use "Test User" with 30 days duration</p>
+            <button id="test-btn">
+                <i class="fas fa-bolt"></i> Generate Test License
+            </button>
+        </div>
+        
+        <div class="admin-info">
+            <p><i class="fas fa-copyright"></i> 2026 Satyam Kumar • CA Final Pro Tracker</p>
+            <p style="margin-top: 5px;"><i class="fas fa-phone"></i> Contact: +91 91423 00129</p>
+            <p style="margin-top: 5px;"><i class="fas fa-globe"></i> Website: satqm.github.io/Portfolio-/</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script>
+        const MASTER_KEY = "S@tyamCA2026@Premium";
+        
+        // DOM Elements
+        const generateBtn = document.getElementById('generate-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const testBtn = document.getElementById('test-btn');
+        const customerNameInput = document.getElementById('customer-name');
+        const licenseTypeSelect = document.getElementById('license-type');
+        const resultContainer = document.getElementById('result-container');
+        const licenseOutput = document.getElementById('license-output');
+        const customerDetail = document.getElementById('customer-detail');
+        const expiryDetail = document.getElementById('expiry-detail');
+        const durationDetail = document.getElementById('duration-detail');
+        
+        // Event Listeners
+        generateBtn.addEventListener('click', generateLicense);
+        copyBtn.addEventListener('click', copyLicense);
+        testBtn.addEventListener('click', generateTestLicense);
+        
+        function generateLicense() {
+            const name = customerNameInput.value.trim();
+            const days = licenseTypeSelect.value;
+            
+            if (!name) {
+                alert('❌ Please enter customer name');
+                customerNameInput.focus();
+                return;
+            }
+            
+            if (days <= 0) {
+                alert('❌ Please select valid license duration');
+                return;
+            }
+            
+            const expiryDate = new Date();
+            expiryDate.setDate(expiryDate.getDate() + parseInt(days));
+            
+            // CRITICAL: Use EXACT structure that main app expects
+            const licenseData = {
+                name: name,
+                expiry: expiryDate.toISOString(),
+                generated: new Date().toISOString(),
+                type: "CA-PREM"
+                // NO "duration" field - main app doesn't expect it!
+            };
+            
+            console.log("License Data:", licenseData);
+            
+            try {
+                // Encrypt the data
+                const jsonString = JSON.stringify(licenseData);
+                const encrypted = CryptoJS.AES.encrypt(jsonString, MASTER_KEY).toString();
+                const base64 = btoa(encrypted);
+                const licenseKey = `CA-PREM-${base64}`;
                 
+                // Update UI
+                licenseOutput.textContent = licenseKey;
+                customerDetail.textContent = name;
+                expiryDetail.textContent = formatDate(expiryDate);
+                durationDetail.textContent = days === "9999" ? "Lifetime" : days;
+                
+                // Show result
+                resultContainer.classList.add('show');
+                
+                // Scroll to result
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+                
+                // Success message
+                showMessage(`✅ License generated successfully! Key copied to clipboard.`, 'success');
+                
+                // Auto-copy to clipboard
                 setTimeout(() => {
-                    btn.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
-                    btn.style.background = '';
-                }, 2000);
-            })
-            .catch(err => {
-                alert('Failed to copy: ' + err);
+                    copyToClipboard(licenseKey);
+                }, 500);
+                
+            } catch (error) {
+                console.error("License generation error:", error);
+                alert(`❌ Error generating license: ${error.message}`);
+            }
+        }
+        
+        function generateTestLicense() {
+            // Set test values
+            customerNameInput.value = "Test User";
+            licenseTypeSelect.value = "30";
+            
+            // Generate license
+            generateLicense();
+        }
+        
+        function copyLicense() {
+            const licenseText = licenseOutput.textContent;
+            
+            if (licenseText.includes("Your license key")) {
+                alert("❌ Please generate a license first");
+                return;
+            }
+            
+            copyToClipboard(licenseText);
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    // Visual feedback
+                    const btn = copyBtn;
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    btn.classList.add('copied');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                    
+                    // Log success
+                    console.log("✅ License copied to clipboard:", text.substring(0, 30) + "...");
+                })
+                .catch(err => {
+                    console.error("Copy failed:", err);
+                    
+                    // Fallback method
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                    
+                    // Show feedback
+                    const btn = copyBtn;
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    btn.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                });
+        }
+        
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
             });
-    }
- </script>
+        }
+        
+        function showMessage(message, type = 'info') {
+            // Create message element
+            const messageEl = document.createElement('div');
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+                color: ${type === 'success' ? '#155724' : '#721c24'};
+                border: 1px solid ${type === 'success' ? '#c3e6cb' : '#f5c6cb'};
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            messageEl.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(messageEl);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                messageEl.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => messageEl.remove(), 300);
+            }, 3000);
+        }
+        
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Auto-generate a default license on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Optional: Auto-generate for testing
+            // generateTestLicense();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+G to generate
+            if (e.ctrlKey && e.key === 'g') {
+                e.preventDefault();
+                generateLicense();
+            }
+            // Ctrl+T for test license
+            if (e.ctrlKey && e.key === 't') {
+                e.preventDefault();
+                generateTestLicense();
+            }
+            // Ctrl+C to copy
+            if (e.ctrlKey && e.key === 'c') {
+                if (resultContainer.classList.contains('show')) {
+                    e.preventDefault();
+                    copyLicense();
+                }
+            }
+        });
+        
+        // Add keyboard shortcut hint
+        console.log(`
+        🚀 CA Pro Tracker License Generator
+        =================================
+        • Ctrl+G → Generate License
+        • Ctrl+T → Generate Test License  
+        • Ctrl+C → Copy License Key
+        
+        Master Key: ${MASTER_KEY}
+        Format: CA-PREM-{Base64EncryptedData}
+        `);
+    </script>
 </body>
 </html>
