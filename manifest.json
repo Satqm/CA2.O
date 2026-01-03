@@ -1,21 +1,82 @@
 {
-  "name": "CA Final Study Tracker",
+  "name": "CA Final Tracker",
   "short_name": "CA Tracker",
-  "description": "Track your CA Final exam progress, manage study resources, and ace your exams",
+  "description": "Smart offline CA Final study planning and progress tracking",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#2c3e50",
-  "icons": [
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "screenshots": [
     {
-      "src": "icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "https://img.icons8.com/color/480/000000/study.png",
+      "sizes": "480x480",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open Study Dashboard",
+      "url": "/#dashboard",
+      "icons": [
+        {
+          "src": "https://img.icons8.com/color/96/000000/dashboard.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
-      "src": "icon-512x512.png",
+      "name": "AI Assistant",
+      "short_name": "AI Assistant",
+      "description": "Ask AI about CA Final",
+      "url": "/#ai",
+      "icons": [
+        {
+          "src": "https://img.icons8.com/color/96/000000/robot.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://img.icons8.com/color/72/000000/book-and-pencil.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://img.icons8.com/color/96/000000/book-and-pencil.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://img.icons8.com/color/144/000000/book-and-pencil.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://img.icons8.com/color/192/000000/book-and-pencil.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://img.icons8.com/color/512/000000/book-and-pencil.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
