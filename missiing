@@ -1,0 +1,1076 @@
+  <!-- Dashboard Page -->
+                <div class="page active" id="dashboard-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-tachometer-alt"></i> Study Dashboard</h2>
+                        <div class="page-actions">
+                            <button class="btn" id="update-target-btn">
+                                <i class="fas fa-calendar-alt"></i> Update Study Plan
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Target Setup Card -->
+                    <div class="target-setup-card" id="target-setup-card">
+                        <div class="target-setup-header" id="target-toggle">
+                            <h3><i class="fas fa-bullseye"></i> Your Study Plan</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="target-setup-content" id="target-content">
+                            <div class="target-form">
+                                <div class="form-group">
+                                    <label for="days-to-exam">Days until exam</label>
+                                    <input type="number" id="days-to-exam" min="1" max="365" value="90" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="daily-hours">Daily study hours</label>
+                                    <input type="number" id="daily-hours" min="1" max="24" value="6" step="0.5" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="start-date">Start date</label>
+                                    <input type="date" id="start-date" class="form-control">
+                                </div>
+                            </div>
+                            <button class="btn" id="calculate-plan-btn">
+                                <i class="fas fa-calculator"></i> Calculate Plan
+                            </button>
+                            
+                            <div class="target-display" id="target-display" style="display: none;">
+                                <h4><i class="fas fa-chart-line"></i> Your Study Plan Summary</h4>
+                                <div class="target-values">
+                                    <div class="target-value">
+                                        <div class="value" id="total-days">0</div>
+                                        <div class="label">Total Days</div>
+                                    </div>
+                                    <div class="target-value">
+                                        <div class="value" id="total-hours">0</div>
+                                        <div class="label">Total Hours</div>
+                                    </div>
+                                    <div class="target-value">
+                                        <div class="value" id="daily-target">0</div>
+                                        <div class="label">Hours/Day</div>
+                                    </div>
+                                    <div class="target-value">
+                                        <div class="value" id="exam-date">-</div>
+                                        <div class="label">Exam Date</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-accent" id="save-plan-btn" style="margin-top: 20px;">
+                                    <i class="fas fa-save"></i> Save This Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-filters">
+                        <div class="progress-filter active" data-filter="all">All Subjects</div>
+                        <div class="progress-filter" data-filter="paper1">Paper 1: FR</div>
+                        <div class="progress-filter" data-filter="paper2">Paper 2: AFM</div>
+                        <div class="progress-filter" data-filter="paper3">Paper 3: Audit</div>
+                        <div class="progress-filter" data-filter="paper4">Paper 4: DT</div>
+                        <div class="progress-filter" data-filter="paper5">Paper 5: IDT</div>
+                        <div class="progress-filter" data-filter="paper6">Paper 6: IBS</div>
+                    </div>
+                    
+                    <div class="kpi-cards">
+                        <div class="kpi-card">
+                            <div class="kpi-icon time">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>Study Time</h3>
+                            <div class="kpi-value" id="actual-hours">0</div>
+                            <div class="kpi-subtext">of <span id="planned-hours">0</span> planned hours</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon progress">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3>Overall Progress</h3>
+                            <div class="kpi-value" id="overall-progress">0%</div>
+                            <div class="kpi-subtext">Course Completion</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon subjects">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h3>Subjects</h3>
+                            <div class="kpi-value" id="subjects-completed">0</div>
+                            <div class="kpi-subtext">of 6 Subjects</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon topics">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3>Topics Completed</h3>
+                            <div class="kpi-value" id="topics-completed">0</div>
+                            <div class="kpi-subtext">of <span id="total-topics">58</span> Topics</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon completion">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                            <h3>Plan Completion</h3>
+                            <div class="kpi-value" id="plan-completion">0%</div>
+                            <div class="kpi-subtext">Target Completion Rate</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Progress Analysis</h3>
+                            <div class="chart-type-selector">
+                                <button class="chart-type-btn active" data-chart="subject">Subject View</button>
+                                <button class="chart-type-btn" data-chart="time">Time Analysis</button>
+                                <button class="chart-type-btn" data-chart="targets">Target Progress</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="progress-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Subjects Page -->
+                <div class="page" id="subjects-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-book"></i> Subjects & Topics</h2>
+                    </div>
+                    
+                    <div class="subject-selector">
+                        <label for="subject-select">Select Subject:</label>
+                        <select id="subject-select" class="subject-dropdown">
+                            <option value="all">All Subjects</option>
+                            <option value="paper1">Paper 1: Financial Reporting (FR)</option>
+                            <option value="paper2">Paper 2: Advanced Financial Management (AFM)</option>
+                            <option value="paper3">Paper 3: Auditing and Assurance (Audit)</option>
+                            <option value="paper4">Paper 4: Direct Tax (DT)</option>
+                            <option value="paper5">Paper 5: Indirect Tax (IDT)</option>
+                            <option value="paper6">Paper 6: Integrated Business Solutions (IBS)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="subject-content">
+                        <!-- Subject content will be loaded here dynamically -->
+                    </div>
+                </div>
+
+ <!-- Planning Page -->
+                <div class="page" id="planning-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-calendar-check"></i> Daily Planning</h2>
+                        <div class="page-actions">
+                            <div class="add-resource-toggle" id="planning-toggle">
+                                <i class="fas fa-plus"></i>
+                                <span>Add Today's Target</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="planning-container">
+                        <div class="planning-form" id="planning-form">
+                            <h3>Set Today's Target</h3>
+                            
+                            <div class="form-group">
+                                <label for="target-type">Target Type</label>
+                                <select id="target-type" class="subject-dropdown">
+                                    <option value="daily">Daily Target</option>
+                                    <option value="weekly">Weekly Target</option>
+                                    <option value="monthly">Monthly Target</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="target-date">Target Date</label>
+                                <input type="date" id="target-date" class="subject-dropdown">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planning-subject">Subject</label>
+                                <select id="planning-subject" class="subject-dropdown">
+                                    <option value="">Select Subject</option>
+                                    <option value="paper1">Paper 1: FR</option>
+                                    <option value="paper2">Paper 2: AFM</option>
+                                    <option value="paper3">Paper 3: Audit</option>
+                                    <option value="paper4">Paper 4: DT</option>
+                                    <option value="paper5">Paper 5: IDT</option>
+                                    <option value="paper6">Paper 6: IBS</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planning-topic">Topic (Select or Custom)</label>
+                                <select id="planning-topic" class="subject-dropdown">
+                                    <option value="">Select Topic</option>
+                                    <!-- Topics will be loaded dynamically -->
+                                </select>
+                                <input type="text" id="custom-topic" placeholder="Or enter custom topic" style="margin-top: 10px; display: none;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planning-subtopic">Subtopic (Optional)</label>
+                                <select id="planning-subtopic" class="subject-dropdown">
+                                    <option value="">Select Subtopic</option>
+                                    <!-- Subtopics will be loaded dynamically -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planned-hours-input">Planned Hours</label>
+                                <input type="number" id="planned-hours-input" min="0.5" max="24" step="0.5" value="2" placeholder="Enter planned hours">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="target-description">Description (Optional)</label>
+                                <textarea id="target-description" rows="3" placeholder="Add any additional notes..."></textarea>
+                            </div>
+                            
+                            <button class="btn" id="save-target-btn">
+                                <i class="fas fa-save"></i> Save Target
+                            </button>
+                            <div id="target-message" class="auth-message" style="margin-top: 20px;"></div>
+                            
+                            <div class="planning-stats">
+                                <div class="planning-stat">
+                                    <div class="value" id="today-targets">0</div>
+                                    <div class="label">Today's Targets</div>
+                                </div>
+                                <div class="planning-stat">
+                                    <div class="value" id="today-completed">0</div>
+                                    <div class="label">Completed Today</div>
+                                </div>
+                                <div class="planning-stat">
+                                    <div class="value" id="today-planned">0</div>
+                                    <div class="label">Planned Hours</div>
+                                </div>
+                                <div class="planning-stat">
+                                    <div class="value" id="today-actual">0</div>
+                                    <div class="label">Actual Hours</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="target-list-container">
+                            <h3>Your Targets</h3>
+                            <div class="search-box">
+                                <input type="text" id="search-targets" placeholder="Search targets by topic or description...">
+                            </div>
+                            <div id="targets-list" class="target-list">
+                                <!-- Targets will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+  <div class="resources-container">
+                        <div class="add-resource-form" id="video-form">
+                            <h3>Add New Video</h3>
+                            <div class="form-group">
+                                <label for="video-title">Video Title</label>
+                                <input type="text" id="video-title" placeholder="Enter video title">
+                            </div>
+                            <div class="form-group">
+                                <label for="video-subject">Subject</label>
+                                <select id="video-subject" class="subject-dropdown">
+                                    <option value="paper1">Paper 1: FR</option>
+                                    <option value="paper2">Paper 2: AFM</option>
+                                    <option value="paper3">Paper 3: Audit</option>
+                                    <option value="paper4">Paper 4: DT</option>
+                                    <option value="paper5">Paper 5: IDT</option>
+                                    <option value="paper6">Paper 6: IBS</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="video-link">Video URL (YouTube, Vimeo, etc.)</label>
+                                <input type="text" id="video-link" placeholder="Paste video link here">
+                            </div>
+                            <button class="btn" id="add-video-btn">Add Video</button>
+                            <div id="video-message" class="auth-message" style="margin-top: 20px;"></div>
+                        </div>
+                        
+                        <div class="resource-list-container">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                                <h3>Video Library</h3>
+                            </div>
+                            <div class="search-box">
+                                <input type="text" id="search-videos" placeholder="Search videos by title or subject...">
+                            </div>
+                            <div id="videos-list" class="resource-list">
+                                <!-- Videos will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resources Page (formerly Notes) -->
+                <div class="page" id="resources-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-sticky-note"></i> Study Resources</h2>
+                        <div class="page-actions">
+                            <div class="add-resource-toggle" id="resources-toggle">
+                                <i class="fas fa-plus"></i>
+                                <span>Add New Resource</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="resources-container">
+                        <div class="add-resource-form" id="resources-form">
+                            <h3>Add New Resource</h3>
+                            <div class="form-group">
+                                <label for="resources-title">Resource Title</label>
+                                <input type="text" id="resources-title" placeholder="Enter resource title">
+                            </div>
+                            <div class="form-group">
+                                <label for="resources-subject">Subject</label>
+                                <select id="resources-subject" class="subject-dropdown">
+                                    <option value="paper1">Paper 1: FR</option>
+                                    <option value="paper2">Paper 2: AFM</option>
+                                    <option value="paper3">Paper 3: Audit</option>
+                                    <option value="paper4">Paper 4: DT</option>
+                                    <option value="paper5">Paper 5: IDT</option>
+                                    <option value="paper6">Paper 6: IBS</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="resources-type">Resource Type</label>
+                                <select id="resources-type" class="subject-dropdown">
+                                    <option value="notes">Notes</option>
+                                    <option value="question_paper">Question Paper</option>
+                                    <option value="mcq">MCQs</option>
+                                    <option value="summary">Summary</option>
+                                    <option value="formulas">Formulas</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="resources-link">Resource Link (Google Drive, Dropbox, etc.)</label>
+                                <input type="text" id="resources-link" placeholder="Paste resource link here">
+                            </div>
+                            <button class="btn" id="add-resources-btn">Add Resource</button>
+                            <div id="resources-message" class="auth-message" style="margin-top: 20px;"></div>
+                        </div>
+                        
+                        <div class="resource-list-container">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                                <h3>Resources Collection</h3>
+                            </div>
+                            <div class="search-box">
+                                <input type="text" id="search-resources" placeholder="Search resources by title, subject or type...">
+                            </div>
+                            <div id="resources-list" class="resource-list">
+                                <!-- Resources will be loaded here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+  <!-- Settings Modal -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="modal-close" id="settings-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-section">
+                    <h4>Delete My Videos</h4>
+                    <div id="my-videos-checkboxes" class="resource-checkboxes">
+                        <!-- Video checkboxes will be loaded here -->
+                    </div>
+                    <div class="password-input">
+                        <input type="password" id="video-password" placeholder="Enter password to delete">
+                    </div>
+                    <button class="btn btn-accent" id="delete-videos-btn" style="margin-top: 20px;">
+                        <i class="fas fa-trash"></i> Delete Selected Videos
+                    </button>
+                </div>
+                
+                <div class="delete-section">
+                    <h4>Delete My Resources</h4>
+                    <div id="my-resources-checkboxes" class="resource-checkboxes">
+                        <!-- Resources checkboxes will be loaded here -->
+                    </div>
+                    <div class="password-input">
+                        <input type="password" id="resources-password" placeholder="Enter password to delete">
+                    </div>
+                    <button class="btn btn-accent" id="delete-resources-btn" style="margin-top: 20px;">
+                        <i class="fas fa-trash"></i> Delete Selected Resources
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const loginBtn = document.getElementById('login-btn');
+        const signupBtn = document.getElementById('signup-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const subjectSelect = document.getElementById('subject-select');
+        const subjectContent = document.getElementById('subject-content');
+        const progressFilters = document.querySelectorAll('.progress-filter');
+        const homeBtn = document.getElementById('home-btn');
+        const userMenuBtn = document.getElementById('user-menu-btn');
+        const userDropdown = document.getElementById('user-dropdown');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsClose = document.getElementById('settings-close');
+        const toast = document.getElementById('toast');
+        const installPrompt = document.getElementById('install-prompt');
+        const installCancel = document.getElementById('install-cancel');
+        const installConfirm = document.getElementById('install-confirm');
+        const totalTopicsEl = document.getElementById('total-topics');
+        const targetToggle = document.getElementById('target-toggle');
+        const targetContent = document.getElementById('target-content');
+        const targetDisplay = document.getElementById('target-display');
+        const calculatePlanBtn = document.getElementById('calculate-plan-btn');
+        const savePlanBtn = document.getElementById('save-plan-btn');
+        const updateTargetBtn = document.getElementById('update-target-btn');
+        const videoToggle = document.getElementById('video-toggle');
+        const videoForm = document.getElementById('video-form');
+        const resourcesToggle = document.getElementById('resources-toggle');
+        const resourcesForm = document.getElementById('resources-form');
+        const planningToggle = document.getElementById('planning-toggle');
+        const planningForm = document.getElementById('planning-form');
+        const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+
+
+        // PWA - Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            setTimeout(() => {
+                if (currentUser && !localStorage.getItem('installPromptDismissed')) {
+                    installPrompt.classList.add('show');
+                }
+            }, 3000);
+        });
+        
+        installCancel.addEventListener('click', () => {
+            installPrompt.classList.remove('show');
+            localStorage.setItem('installPromptDismissed', 'true');
+        });
+        
+        installConfirm.addEventListener('click', () => {
+            installPrompt.classList.remove('show');
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showToast('App installed successfully!', 'success');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        });
+
+  // Target setup toggle
+        targetToggle.addEventListener('click', () => {
+            targetContent.classList.toggle('expanded');
+            const icon = targetToggle.querySelector('i');
+            icon.classList.toggle('fa-chevron-down');
+            icon.classList.toggle('fa-chevron-up');
+        });
+        
+        // Update target button
+        updateTargetBtn.addEventListener('click', () => {
+            targetContent.classList.add('expanded');
+            const icon = targetToggle.querySelector('i');
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        });
+        
+        // Calculate plan
+        calculatePlanBtn.addEventListener('click', calculateStudyPlan);
+        
+        // Save plan
+        savePlanBtn.addEventListener('click', saveStudyPlan);
+        
+        // Resource toggles
+        videoToggle.addEventListener('click', () => {
+            videoToggle.classList.toggle('expanded');
+            videoForm.classList.toggle('expanded');
+        });
+        
+        resourcesToggle.addEventListener('click', () => {
+            resourcesToggle.classList.toggle('expanded');
+            resourcesForm.classList.toggle('expanded');
+        });
+        
+        planningToggle.addEventListener('click', () => {
+            planningToggle.classList.toggle('expanded');
+            planningForm.classList.toggle('expanded');
+        });
+
+ // Initialize study plan with default values
+            const defaultPlan = {
+                userId: currentUser.uid,
+                daysToExam: 90,
+                dailyHours: 6,
+                totalHours: 540,
+                startDate: formattedToday,
+                examDate: calculateExamDate(90, formattedToday).toISOString().split('T')[0],
+                subjectHours: {},
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            // Calculate subject hours based on weightage
+            for (const subjectId in syllabusData) {
+                const subjectWeight = syllabusData[subjectId].weightage;
+                defaultPlan.subjectHours[subjectId] = Math.round((subjectWeight / 100) * 540);
+            }
+            
+            db.collection('studyPlans').doc(currentUser.uid).set(defaultPlan)
+                .then(() => {
+                    userStudyPlan = defaultPlan;
+                    updatePlanDisplay();
+                    showToast('Welcome! Your study plan has been created.', 'success');
+                });
+        }
+        
+        function initializeUserProgress() {
+            if (!currentUser) return;
+            
+            const progressRef = db.collection('userProgress').doc(currentUser.uid);
+            
+            progressRef.get().then((doc) => {
+                if (!doc.exists) {
+                    const initialProgress = {
+                        userId: currentUser.uid,
+                        subjects: {},
+                        totalActualHours: 0,
+                        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    for (const paperId in syllabusData) {
+                        initialProgress.subjects[paperId] = {
+                            completedTopics: 0,
+                            completedSubtopics: 0,
+                            totalTopics: syllabusData[paperId].topics.length,
+                            totalSubtopics: syllabusData[paperId].topics.reduce((sum, topic) => sum + topic.subtopics.length, 0),
+                            topics: {}
+                        };
+                        
+                        syllabusData[paperId].topics.forEach((topic, topicIndex) => {
+                            initialProgress.subjects[paperId].topics[topic.name] = {
+                                completed: false,
+                                subtopics: {}
+                            };
+                            
+                            topic.subtopics.forEach((subtopic, subtopicIndex) => {
+                                initialProgress.subjects[paperId].topics[topic.name].subtopics[subtopic.name] = {
+                                    completed: false,
+                                    actualTime: 0
+                                };
+                            });
+                        });
+                    }
+                    
+                    progressRef.set(initialProgress).then(() => {
+                        userProgress = initialProgress;
+                        updateDashboard();
+                    });
+                }
+            });
+        }
+        
+        // Study Plan Functions
+        function calculateStudyPlan() {
+            const daysToExam = parseInt(document.getElementById('days-to-exam').value) || 90;
+            const dailyHours = parseFloat(document.getElementById('daily-hours').value) || 6;
+            const startDate = document.getElementById('start-date').value || formattedToday;
+            
+            const totalHours = Math.round(daysToExam * dailyHours);
+            const examDate = calculateExamDate(daysToExam, startDate);
+            
+            // Update display
+            document.getElementById('total-days').textContent = daysToExam;
+            document.getElementById('total-hours').textContent = totalHours;
+            document.getElementById('daily-target').textContent = dailyHours;
+            document.getElementById('exam-date').textContent = formatDate(examDate);
+            
+            // Calculate subject hours based on weightage
+            const subjectHours = {};
+            for (const subjectId in syllabusData) {
+                const subjectWeight = syllabusData[subjectId].weightage;
+                subjectHours[subjectId] = Math.round((subjectWeight / 100) * totalHours);
+            }    function saveStudyPlan() {
+            if (!currentUser || !window.tempStudyPlan) return;
+            
+            const planRef = db.collection('studyPlans').doc(currentUser.uid);
+            const planData = {
+                ...window.tempStudyPlan,
+                userId: currentUser.uid,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+        
+        function updatePlanDisplay() {
+            if (userStudyPlan && userStudyPlan.totalHours) {
+                document.getElementById('planned-hours').textContent = userStudyPlan.totalHours;
+                
+                if (targetDisplay.style.display !== 'none') {
+                    document.getElementById('total-days').textContent = userStudyPlan.daysToExam || 90;
+                    document.getElementById('total-hours').textContent = userStudyPlan.totalHours;
+                    document.getElementById('daily-target').textContent = userStudyPlan.dailyHours || 6;
+                    document.getElementById('exam-date').textContent = formatDate(userStudyPlan.examDate);
+                }
+            } else {
+                document.getElementById('planned-hours').textContent = 680;
+            }
+        }
+        
+
+ function updateChart(subjectData) {
+            const ctx = document.getElementById('progress-chart').getContext('2d');
+            
+            if (progressChart) {
+                progressChart.destroy();
+            }
+            
+            let chartData, chartOptions;
+            
+            if (currentChartType === 'subject') {
+                const subjects = Object.keys(subjectData);
+                const plannedHours = subjects.map(subjectId => subjectData[subjectId].plannedHours);
+                const actualHours = subjects.map(subjectId => subjectData[subjectId].actualHours);
+                const subjectNames = subjects.map(subjectId => {
+                    const name = subjectData[subjectId].name;
+                    return name.length > 20 ? name.substring(0, 20) + '...' : name;
+                });
+                
+                chartData = {
+                    labels: subjectNames,
+                    datasets: [
+                        {
+                            label: 'Planned Hours',
+                            data: plannedHours,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8
+                        },
+                        {
+                            label: 'Actual Hours',
+                            data: actualHours,
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }
+                    ]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.raw + ' hours';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                };
+            } else if (currentChartType === 'time') {
+                const labels = ['Planned', 'Actual', 'Remaining'];
+                const totalPlanned = userStudyPlan?.totalHours || 680;
+                const totalActual = Object.values(subjectData).reduce((sum, subject) => sum + subject.actualHours, 0);
+                const remaining = Math.max(0, totalPlanned - totalActual);
+                
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        data: [totalPlanned, totalActual, remaining],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(231, 76, 60, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(52, 152, 219, 1)',
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(231, 76, 60, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                };
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw} hours`;
+                                }
+                            }
+                        }
+                    }
+                };
+            } else if (currentChartType === 'targets') {
+                if (!userTargets || userTargets.length === 0) {
+                    chartData = {
+                        labels: ['No Targets'],
+                        datasets: [{
+                            data: [100],
+                            backgroundColor: ['rgba(149, 165, 166, 0.7)'],
+                            borderColor: ['rgba(149, 165, 166, 1)'],
+                            borderWidth: 2
+                        }]
+                    };
+                } else {
+                    const completed = userTargets.filter(t => t.completed).length;
+                    const pending = userTargets.length - completed;
+                    
+                    chartData = {
+                        labels: ['Completed', 'Pending'],
+                        datasets: [{
+                            data: [completed, pending],
+                            backgroundColor: [
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(231, 76, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(46, 204, 113, 1)',
+                                'rgba(231, 76, 60, 1)'
+                            ],
+                            borderWidth: 2
+                        }]
+                    };
+                }
+                
+                chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw} targets`;
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+            
+            progressChart = new Chart(ctx, {
+                type: currentChartType === 'subject' ? 'bar' : 'doughnut',
+                data: chartData,
+                options: chartOptions
+            });
+        }
+        
+        // Subjects Page Functions
+        function loadSubjectContent() {
+            const selectedSubject = subjectSelect.value;
+            let contentHTML = '';
+            
+            if (selectedSubject === 'all') {
+                for (const subjectId in syllabusData) {
+                    contentHTML += renderSubject(subjectId, syllabusData[subjectId]);
+                }
+            } else {
+                contentHTML = renderSubject(selectedSubject, syllabusData[selectedSubject]);
+            }
+            
+            subjectContent.innerHTML = contentHTML;
+            
+            // Add event listeners to topic headers
+            document.querySelectorAll('.topic-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const topicItem = this.parentElement;
+                    topicItem.classList.toggle('expanded');
+                });
+            });
+            
+            // Add event listeners to save time buttons
+            document.querySelectorAll('.save-time-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topicName = this.getAttribute('data-topic');
+                    const subtopicName = this.getAttribute('data-subtopic');
+                    const input = document.getElementById(`time-input-${subjectId}-${topicName}-${subtopicName}`);
+                    const actualTime = parseInt(input.value) || 0;
+                    
+                    updateSubtopicsProgress(subjectId, topicName, subtopicName, actualTime);
+                });
+            });
+            
+            // Add event listeners to completion checkboxes
+            document.querySelectorAll('.completion-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topicName = this.getAttribute('data-topic');
+                    const subtopicName = this.getAttribute('data-subtopic');
+                    const completed = this.checked;
+                    
+                    const input = document.getElementById(`time-input-${subjectId}-${topicName}-${subtopicName}`);
+                    const actualTime = completed ? parseInt(input.value) || 1 : 0;
+                    
+                    updateSubtopicsProgress(subjectId, topicName, subtopicName, actualTime);
+                });
+            });
+        }
+        
+        function renderSubject(subjectId, subjectData) {
+            const plannedHours = userStudyPlan?.subjectHours?.[subjectId] || 
+                Math.round((subjectData.weightage / 100) * (userStudyPlan?.totalHours || 680));
+            
+            let html = `<div class="subject-content">
+                <div class="subject-header">
+                    <h3>${subjectData.name}</h3>
+                    <div class="subject-hours">${plannedHours} hrs planned</div>
+                </div>
+                <div class="topic-list">`;
+            
+            subjectData.topics.forEach(topic => {
+                let topicCompleted = false;
+                if (userProgress && userProgress.subjects[subjectId] && userProgress.subjects[subjectId].topics[topic.name]) {
+                    topicCompleted = userProgress.subjects[subjectId].topics[topic.name].completed || false;
+                }
+                
+                html += `<div class="topic-item">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            <i class="fas fa-chevron-right"></i>
+                            ${topic.name}
+                            ${topicCompleted ? '<span class="status-complete"><i class="fas fa-check-circle"></i> Completed</span>' : ''}
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="topic-priority priority-${topic.priority}">Priority ${topic.priority}</span>
+                            <span class="topic-weightage">${topic.weightage}%</span>
+                        </div>
+                    </div>
+                    <div class="subtopic-list">
+                        ${topic.subtopics.map(subtopic => {
+                            let subtopicCompleted = false;
+                            let actualTime = 0;
+                            if (userProgress && userProgress.subjects[subjectId] && 
+                                userProgress.subjects[subjectId].topics[topic.name] &&
+                                userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name]) {
+                                subtopicCompleted = userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name].completed || false;
+                                actualTime = userProgress.subjects[subjectId].topics[topic.name].subtopics[subtopic.name].actualTime || 0;
+                            }
+                            
+                            return `<div class="subtopic-item">
+                                <div class="subtopic-info">
+                                    <div class="subtopic-name">${subtopic.name}</div>
+                                    <div class="subtopic-details">
+                                        <span>Weight: ${subtopic.weight}%</span>
+                                        ${subtopicCompleted ? '<span class="status-complete"><i class="fas fa-check"></i> Completed</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="subtopic-actions">
+                                    <div class="time-info">
+                                        <div class="actual-time-input">
+                                            <input type="number" 
+                                                   id="time-input-${subjectId}-${topic.name}-${subtopic.name}"
+                                                   value="${actualTime}"
+                                                   min="0" 
+                                                   placeholder="Hours"
+                                                   style="width: 100px;">
+                                            <span>hrs</span>
+                                            <button class="save-time-btn" 
+                                                    data-subject="${subjectId}"
+                                                    data-topic="${topic.name}"
+                                                    data-subtopic="${subtopic.name}">
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="checkbox" 
+                                           id="checkbox-${subjectId}-${topic.name}-${subtopic.name}"
+                                           class="completion-checkbox"
+                                           data-subject="${subjectId}"
+                                           data-topic="${topic.name}"
+                                           data-subtopic="${subtopic.name}"
+                                           ${subtopicCompleted ? 'checked' : ''}>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            });
+            
+            html += `</div></div>`;
+            return html;
+        }
+        
+
+  // Load user's resources for deletion
+            db.collection('resources').where('addedBy', '==', currentUser.uid).get()
+                .then((querySnapshot) => {
+                    const resourcesCheckboxes = document.getElementById('my-resources-checkboxes');
+                    resourcesCheckboxes.innerHTML = '';
+                    
+                    if (querySnapshot.empty) {
+                        resourcesCheckboxes.innerHTML = '<p style="color: var(--gray); text-align: center;">No resources found</p>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const resource = doc.data();
+                        const checkboxId = `resource-${doc.id}`;
+                        
+                        resourcesCheckboxes.innerHTML += `
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="${checkboxId}" value="${doc.id}">
+                                <label for="${checkboxId}">${resource.title} (${getSubjectName(resource.subject)})</label>
+                            </div>
+                        `;
+                    });
+                });
+        }
+        
+        function deleteSelectedVideos() {
+            const password = document.getElementById('video-password').value;
+            if (password !== 'R@dha') {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const checkboxes = document.querySelectorAll('#my-videos-checkboxes input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select videos to delete.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} video(s)?`)) {
+                return;
+            }
+            
+            const deletePromises = Array.from(checkboxes).map(checkbox => {
+                return db.collection('videos').doc(checkbox.value).delete();
+            });
+            
+            Promise.all(deletePromises)
+                .then(() => {
+                    showToast(`${checkboxes.length} video(s) deleted successfully!`, 'success');
+                    loadSettingsData();
+                    loadVideos();
+                    document.getElementById('video-password').value = '';
+                })
+                .catch((error) => {
+                    console.error("Error deleting videos:", error);
+                    showToast('Error deleting videos', 'error');
+                });
+        }
+        
+        function deleteSelectedResources() {
+            const password = document.getElementById('resources-password').value;
+            if (password !== 'R@dha') {
+                alert('Incorrect password!');
+                return;
+            }
+            
+            const checkboxes = document.querySelectorAll('#my-resources-checkboxes input[type="checkbox"]:checked');
+            if (checkboxes.length === 0) {
+                alert('Please select resources to delete.');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete ${checkboxes.length} resource(s)?`)) {
+                return;
+            }
+            
+            const deletePromises = Array.from(checkboxes).map(checkbox => {
+                return db.collection('resources').doc(checkbox.value).delete();
+            });
+            
+            Promise.all(deletePromises)
+                .then(() => {
+                    showToast(`${checkboxes.length} resource(s) deleted successfully!`, 'success');
+                    loadSettingsData();
+                    loadResources();
+                    document.getElementById('resources-password').value = '';
+                })
+                .catch((error) => {
+                    console.error("Error deleting resources:", error);
+                    showToast('Error deleting resources', 'error');
+                });
+        }
+        
+        // Helper Functions
+        function getSubjectName(subjectId) {
+            const subjectMap = {
+                'paper1': 'Paper 1: FR',
+                'paper2': 'Paper 2: AFM',
+                'paper3': 'Paper 3: Audit',
+                'paper4': 'Paper 4: DT',
+                'paper5': 'Paper 5: IDT',
+                'paper6': 'Paper 6: IBS',
+                'general': 'General'
+            };
+            
+            return subjectMap[subjectId] || subjectId;
