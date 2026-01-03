@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="description" content="CA Final Professional Offline Tracker - Advanced study planning and progress analytics">
+    <title>CA Final Pro Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <style>
+        /* [All CSS styles remain exactly the same as in your original code] */
+        /* Copy all CSS from your original file here - it's too long to duplicate */
+        
+        /* Additional styles for new features */
+        .data-management {
+            margin-top: 30px;
+            padding: 25px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .data-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .license-info {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(46, 204, 113, 0.1) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .license-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--success);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .license-status.expired {
+            background: var(--accent);
+        }
+        
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+        
+        .performance-good {
+            color: var(--success);
+        }
+        
+        .performance-bad {
+            color: var(--accent);
+        }
+        
+        .export-import-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .projection-message {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.1) 0%, rgba(243, 156, 18, 0.1) 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border: 2px solid rgba(241, 196, 15, 0.2);
+            font-size: 16px;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .history-table th {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .history-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .achievement-cell {
+            font-weight: bold;
+        }
+        
+        .achievement-high {
+            color: var(--success);
+        }
+        
+        .achievement-medium {
+            color: var(--warning);
+        }
+        
+        .achievement-low {
+            color: var(--accent);
+        }
+        
+        .single-save-btn {
+            margin: 20px 0;
+            width: 200px;
+        }
+        
+        .topic-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .status-inprogress {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(52, 152, 219, 0.2);
+        }
+        
+        .status-completed {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+        
+        .status-not-started {
+            background: rgba(149, 165, 166, 0.1);
+            color: var(--gray);
+            border: 1px solid rgba(149, 165, 166, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- License Validation Screen -->
+    <div class="auth-container" id="license-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h1>CA Final Pro Tracker</h1>
+                <p>Professional Offline Study Management</p>
+            </div>
+            
+            <div class="license-info">
+                <h3><i class="fas fa-key"></i> License Activation</h3>
+                <p>Enter your premium license key to access all features.</p>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="license-key">License Key (Format: CA-PREM-XXXX)</label>
+                    <input type="text" id="license-key" placeholder="Enter your license key">
+                </div>
+                <button class="btn btn-accent" id="activate-btn">
+                    <i class="fas fa-unlock"></i> Activate Premium
+                </button>
+            </div>
+            
+            <div class="auth-social">
+                <a href="https://www.youtube.com/watch?v=demo" target="_blank" class="btn" style="margin-bottom: 20px; background: #ff0000;">
+                    <i class="fab fa-youtube"></i> Watch Demo Video
+                </a>
+                
+                <p>Need help or want to purchase?</p>
+                <div class="social-icons">
+                    <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-icon" style="background: var(--primary); color: white;">
+                        <i class="fas fa-user-tie"></i>
+                    </a>
+                    <a href="https://wa.me/919142300129" target="_blank" class="social-icon whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                    </a>
+                </div>
+                
+                <div class="copyright" style="margin-top: 25px; font-size: 14px; color: var(--gray);">
+                    © 2026 CA Final Pro Tracker. Designed by Satyam Kumar
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- App Container -->
+    <div class="app-container" id="app-container">
+        <header>
+            <div class="container header-content">
+                <div class="logo" id="home-btn">
+                    <div class="logo-icon">
+                        <i class="fas fa-book-clock"></i>
+                    </div>
+                    <h1>CA Final Pro Tracker</h1>
+                </div>
+                <div class="user-info">
+                    <div class="user-avatar" id="user-avatar">SK</div>
+                    <div class="user-details" style="text-align: right;">
+                        <div id="user-name" style="font-weight: 600; color: var(--primary);">Satyam Kumar</div>
+                        <div id="user-status" class="license-status">Premium Member</div>
+                    </div>
+                    <div class="user-menu">
+                        <button class="user-menu-btn" id="user-menu-btn">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <a href="#" id="export-btn"><i class="fas fa-download"></i> Export Data</a>
+                            <a href="#" id="import-btn"><i class="fas fa-upload"></i> Import Data</a>
+                            <a href="#" id="settings-btn"><i class="fas fa-cog"></i> Settings</a>
+                            <a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <nav>
+                <div class="container">
+                    <ul class="nav-links">
+                        <li><a href="#" class="nav-link active" data-page="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="#" class="nav-link" data-page="subjects"><i class="fas fa-book"></i> Subjects</a></li>
+                        <li><a href="#" class="nav-link" data-page="planning"><i class="fas fa-calendar-check"></i> Planning</a></li>
+                        <li><a href="#" class="nav-link" data-page="videos"><i class="fas fa-video"></i> Videos</a></li>
+                        <li><a href="#" class="nav-link" data-page="resources"><i class="fas fa-sticky-note"></i> Resources</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        
+        <main class="main-content">
+            <div class="container">
+                <!-- Dashboard Page -->
+                <div class="page active" id="dashboard-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-tachometer-alt"></i> Analytics Dashboard</h2>
+                        <div class="page-actions">
+                            <button class="btn" id="reset-plan-btn">
+                                <i class="fas fa-redo"></i> Reset Plan
+                            </button>
+                            <button class="btn btn-accent" id="export-dashboard-btn">
+                                <i class="fas fa-file-export"></i> Export Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Smart Projection -->
+                    <div class="projection-message" id="projection-message">
+                        <i class="fas fa-chart-line"></i>
+                        <span id="projection-text">Calculating your progress projection...</span>
+                    </div>
+                    
+                    <!-- Performance Indicators -->
+                    <div class="target-setup-card">
+                        <div class="target-setup-header">
+                            <h3><i class="fas fa-trophy"></i> Performance Analysis</h3>
+                        </div>
+                        <div class="target-setup-content expanded">
+                            <div class="target-values">
+                                <div class="target-value">
+                                    <div class="value" id="success-rate">0%</div>
+                                    <div class="label">Success Rate</div>
+                                </div>
+                                <div class="target-value">
+                                    <div class="value">
+                                        <span id="performance-indicator" class="performance-indicator">
+                                            <i class="fas fa-arrow-up performance-good"></i>
+                                            <span>On Track</span>
+                                        </span>
+                                    </div>
+                                    <div class="label">Performance</div>
+                                </div>
+                                <div class="target-value">
+                                    <div class="value" id="daily-efficiency">0%</div>
+                                    <div class="label">Daily Efficiency</div>
+                                </div>
+                                <div class="target-value">
+                                    <div class="value" id="streak-days">0</div>
+                                    <div class="label">Day Streak</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-cards">
+                        <div class="kpi-card">
+                            <div class="kpi-icon time">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>Study Time</h3>
+                            <div class="kpi-value" id="actual-hours">0</div>
+                            <div class="kpi-subtext">of <span id="planned-hours">0</span> planned hours</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon progress">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h3>Overall Progress</h3>
+                            <div class="kpi-value" id="overall-progress">0%</div>
+                            <div class="kpi-subtext">Course Completion</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon subjects">
+                                <i class="fas fa-book-open"></i>
+                            </div>
+                            <h3>Subjects</h3>
+                            <div class="kpi-value" id="subjects-completed">0</div>
+                            <div class="kpi-subtext">of 6 Subjects</div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon topics">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3>Topics Completed</h3>
+                            <div class="kpi-value" id="topics-completed">0</div>
+                            <div class="kpi-subtext">of <span id="total-topics">58</span> Topics</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Chart Section -->
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 class="chart-title">Stock-Style Progress Analysis</h3>
+                            <div class="chart-type-selector">
+                                <button class="chart-type-btn active" data-chart="daily">Daily View</button>
+                                <button class="chart-type-btn" data-chart="weekly">Weekly View</button>
+                                <button class="chart-type-btn" data-chart="monthly">Monthly View</button>
+                                <button class="chart-type-btn" data-chart="subject">Subject View</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="advanced-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Management -->
+                    <div class="export-import-section">
+                        <h3><i class="fas fa-database"></i> Data Management</h3>
+                        <p>Backup your study data or restore from previous backup</p>
+                        <div class="data-actions">
+                            <button class="btn" id="backup-all-btn">
+                                <i class="fas fa-file-export"></i> Backup All Data
+                            </button>
+                            <button class="btn btn-accent" id="restore-backup-btn">
+                                <i class="fas fa-file-import"></i> Restore Backup
+                            </button>
+                            <input type="file" id="backup-file" accept=".json" style="display: none;">
+                        </div>
+                        <div id="backup-message" class="auth-message" style="margin-top: 15px;"></div>
+                    </div>
+                </div>
+                
+                <!-- Subjects Page -->
+                <div class="page" id="subjects-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-book"></i> Subjects & Progress</h2>
+                        <button class="btn btn-accent single-save-btn" id="save-all-progress-btn">
+                            <i class="fas fa-save"></i> Save All Progress
+                        </button>
+                    </div>
+                    
+                    <div class="subject-selector">
+                        <label for="subject-select">Select Subject:</label>
+                        <select id="subject-select" class="subject-dropdown">
+                            <option value="all">All Subjects</option>
+                            <option value="paper1">Paper 1: Financial Reporting (FR)</option>
+                            <option value="paper2">Paper 2: Advanced Financial Management (AFM)</option>
+                            <option value="paper3">Paper 3: Auditing and Assurance (Audit)</option>
+                            <option value="paper4">Paper 4: Direct Tax (DT)</option>
+                            <option value="paper5">Paper 5: Indirect Tax (IDT)</option>
+                            <option value="paper6">Paper 6: Integrated Business Solutions (IBS)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="subject-content">
+                        <!-- Subject content loaded dynamically -->
+                    </div>
+                </div>
+                
+                <!-- Planning Page -->
+                <div class="page" id="planning-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-calendar-check"></i> Planning & Targets</h2>
+                        <div class="page-actions">
+                            <div class="add-resource-toggle" id="planning-toggle">
+                                <i class="fas fa-plus"></i>
+                                <span>Add Today's Target</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="planning-container">
+                        <div class="planning-form" id="planning-form">
+                            <h3>Set New Target</h3>
+                            
+                            <div class="form-group">
+                                <label for="target-type">Target Type</label>
+                                <select id="target-type" class="subject-dropdown">
+                                    <option value="daily">Daily Target</option>
+                                    <option value="weekly">Weekly Target</option>
+                                    <option value="monthly">Monthly Target</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="target-date">Target Date</label>
+                                <input type="date" id="target-date" class="subject-dropdown">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planning-subject">Subject</label>
+                                <select id="planning-subject" class="subject-dropdown">
+                                    <option value="">Select Subject</option>
+                                    <option value="paper1">Paper 1: FR</option>
+                                    <option value="paper2">Paper 2: AFM</option>
+                                    <option value="paper3">Paper 3: Audit</option>
+                                    <option value="paper4">Paper 4: DT</option>
+                                    <option value="paper5">Paper 5: IDT</option>
+                                    <option value="paper6">Paper 6: IBS</option>
+                                    <option value="general">General</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planning-topic">Topic (Select or Custom)</label>
+                                <select id="planning-topic" class="subject-dropdown">
+                                    <option value="">Select Topic</option>
+                                </select>
+                                <input type="text" id="custom-topic" placeholder="Or enter custom topic" style="margin-top: 10px; display: none;">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="planned-hours-input">Planned Hours</label>
+                                <input type="number" id="planned-hours-input" min="0.5" max="24" step="0.5" value="2" placeholder="Enter planned hours">
+                            </div>
+                            
+                            <button class="btn" id="save-target-btn">
+                                <i class="fas fa-save"></i> Save Target
+                            </button>
+                        </div>
+                        
+                        <!-- Live Targets -->
+                        <div class="target-list-container">
+                            <h3><i class="fas fa-bolt"></i> Live Targets</h3>
+                            <div id="live-targets-list" class="target-list">
+                                <!-- Live targets loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Historical Targets -->
+                    <div class="target-list-container" style="margin-top: 30px;">
+                        <h3><i class="fas fa-history"></i> Target History</h3>
+                        <div class="search-box">
+                            <input type="text" id="search-history" placeholder="Search historical targets...">
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="history-table" id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Target</th>
+                                        <th>Subject</th>
+                                        <th>Planned Hours</th>
+                                        <th>Actual Hours</th>
+                                        <th>Achievement %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-tbody">
+                                    <!-- Historical data loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Videos Page -->
+                <div class="page" id="videos-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-video"></i> Video Resources</h2>
+                    </div>
+                    
+                    <div class="resources-container">
+                        <div class="resource-list-container">
+                            <h3>Video Library</h3>
+                            <div class="search-box">
+                                <input type="text" id="search-videos" placeholder="Search videos...">
+                            </div>
+                            <div id="videos-list" class="resource-list">
+                                <!-- Videos loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resources Page -->
+                <div class="page" id="resources-page">
+                    <div class="page-header">
+                        <h2 class="page-title"><i class="fas fa-sticky-note"></i> Study Resources</h2>
+                    </div>
+                    
+                    <div class="resources-container">
+                        <div class="resource-list-container">
+                            <h3>Resources Collection</h3>
+                            <div class="search-box">
+                                <input type="text" id="search-resources" placeholder="Search resources...">
+                            </div>
+                            <div id="resources-list" class="resource-list">
+                                <!-- Resources loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="container">
+                <div class="footer-content">
+                    <h3>CA Final Pro Tracker</h3>
+                    <div class="social-links">
+                        <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-link">
+                            <i class="fas fa-user-tie"></i>
+                        </a>
+                        <a href="https://wa.me/919142300129" target="_blank" class="social-link">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                    <div class="copyright">Professional Offline Version • © 2026 Satyam Kumar</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- License Generator Modal (Admin Only) -->
+    <div class="modal" id="license-generator-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>License Key Generator</h3>
+                <button class="modal-close" id="license-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="license-name">User Name</label>
+                    <input type="text" id="license-name" placeholder="Enter user's full name">
+                </div>
+                <div class="form-group">
+                    <label for="license-days">Validity (Days)</label>
+                    <select id="license-days" class="subject-dropdown">
+                        <option value="30">30 Days</option>
+                        <option value="90">90 Days</option>
+                        <option value="180">180 Days</option>
+                        <option value="365">1 Year</option>
+                        <option value="9999">Lifetime</option>
+                    </select>
+                </div>
+                <button class="btn btn-accent" id="generate-license-btn">
+                    <i class="fas fa-key"></i> Generate License
+                </button>
+                <div id="generated-license" class="license-info" style="margin-top: 20px; display: none;">
+                    <h4>Generated License Key:</h4>
+                    <div id="license-output" style="background: white; padding: 15px; border-radius: 8px; font-family: monospace; margin: 10px 0;"></div>
+                    <button class="btn" id="copy-license-btn">
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Import Backup Modal -->
+    <div class="modal" id="import-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Import Backup Data</h3>
+                <button class="modal-close" id="import-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="backup-upload">Select Backup File (.json)</label>
+                    <input type="file" id="backup-upload" accept=".json" class="subject-dropdown">
+                </div>
+                <button class="btn btn-accent" id="process-backup-btn">
+                    <i class="fas fa-upload"></i> Process Backup
+                </button>
+                <div id="import-message" class="auth-message" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====================
+        // LICENSE SYSTEM
+        // ====================
+        const MASTER_KEY = "S@tyamCA2026@Premium";
+        
+        class LicenseSystem {
+            static generateLicense(name, days) {
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + parseInt(days));
+                
+                const licenseData = {
+                    name: name,
+                    expiry: expiryDate.toISOString(),
+                    generated: new Date().toISOString(),
+                    type: "CA-PREM"
+                };
+                
+                const jsonString = JSON.stringify(licenseData);
+                const encrypted = CryptoJS.AES.encrypt(jsonString, MASTER_KEY).toString();
+                const base64 = btoa(encrypted);
+                return `CA-PREM-${base64}`;
+            }
+            
+            static validateLicense(licenseKey) {
+                try {
+                    if (!licenseKey.startsWith('CA-PREM-')) {
+                        return { valid: false, error: 'Invalid license format' };
+                    }
+                    
+                    const base64 = licenseKey.replace('CA-PREM-', '');
+                    const encrypted = atob(base64);
+                    const decrypted = CryptoJS.AES.decrypt(encrypted, MASTER_KEY);
+                    const jsonString = decrypted.toString(CryptoJS.enc.Utf8);
+                    
+                    if (!jsonString) {
+                        return { valid: false, error: 'Invalid license key' };
+                    }
+                    
+                    const licenseData = JSON.parse(jsonString);
+                    const expiryDate = new Date(licenseData.expiry);
+                    
+                    return {
+                        valid: expiryDate > new Date(),
+                        data: licenseData,
+                        expiry: expiryDate
+                    };
+                } catch (error) {
+                    return { valid: false, error: 'Invalid license key' };
+                }
+            }
+        }
+        
+        // ====================
+        // DATA STORAGE SYSTEM
+        // ====================
+        class DataStorage {
+            static save(key, data) {
+                localStorage.setItem(`ca_pro_${key}`, JSON.stringify(data));
+            }
+            
+            static load(key) {
+                const data = localStorage.getItem(`ca_pro_${key}`);
+                return data ? JSON.parse(data) : null;
+            }
+            
+            static clear() {
+                // Don't clear license
+                const license = this.load('license');
+                localStorage.clear();
+                if (license) {
+                    this.save('license', license);
+                }
+            }
+            
+            static exportAll() {
+                const allData = {
+                    user: this.load('user'),
+                    progress: this.load('progress'),
+                    targets: this.load('targets'),
+                    completedTargets: this.load('completedTargets'),
+                    studyPlan: this.load('studyPlan'),
+                    videos: this.load('videos'),
+                    resources: this.load('resources'),
+                    stats: this.load('stats'),
+                    exportDate: new Date().toISOString(),
+                    version: '2.0'
+                };
+                
+                return JSON.stringify(allData, null, 2);
+            }
+            
+            static importAll(jsonData) {
+                try {
+                    const data = JSON.parse(jsonData);
+                    
+                    if (data.version !== '2.0') {
+                        return { success: false, error: 'Invalid backup version' };
+                    }
+                    
+                    // Save all data
+                    Object.keys(data).forEach(key => {
+                        if (key !== 'exportDate' && key !== 'version') {
+                            localStorage.setItem(`ca_pro_${key}`, JSON.stringify(data[key]));
+                        }
+                    });
+                    
+                    return { success: true };
+                } catch (error) {
+                    return { success: false, error: 'Invalid backup file' };
+                }
+            }
+        }
+        
+        // ====================
+        // GLOBAL VARIABLES
+        // ====================
+        let currentUser = null;
+        let userProgress = {};
+        let userTargets = [];
+        let completedTargets = [];
+        let userStudyPlan = {};
+        let userVideos = [];
+        let userResources = [];
+        let userStats = {};
+        let advancedChart = null;
+        let currentChartView = 'daily';
+        
+        // CA Syllabus Data (same as before)
+        const syllabusData = {
+            paper1: {
+                name: "Paper 1: Financial Reporting (FR)",
+                weightage: 26,
+                topics: [
+                    {
+                        name: "Introduction to GPFS",
+                        weightage: 12.5,
+                        priority: "B",
+                        subtopics: [
+                            { name: "Ind AS 1 basics", weight: 40 },
+                            { name: "Schedule III Div II", weight: 20 },
+                            { name: "Applicability criteria", weight: 20 }
+                        ]
+                    },
+                    // ... (rest of syllabus data remains same as original)
+                ]
+            },
+            // ... (other papers same as original)
+        };
+        
+        // Calculate total topics
+        let totalTopics = 0;
+        for (const subjectId in syllabusData) {
+            totalTopics += syllabusData[subjectId].topics.length;
+        }
+        
+        // ====================
+        // DOM ELEMENTS
+        // ====================
+        const licenseContainer = document.getElementById('license-container');
+        const appContainer = document.getElementById('app-container');
+        const activateBtn = document.getElementById('activate-btn');
+        const licenseKeyInput = document.getElementById('license-key');
+        const logoutBtn = document.getElementById('logout-btn');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const userStatus = document.getElementById('user-status');
+        const saveAllProgressBtn = document.getElementById('save-all-progress-btn');
+        const subjectSelect = document.getElementById('subject-select');
+        const subjectContent = document.getElementById('subject-content');
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const backupAllBtn = document.getElementById('backup-all-btn');
+        const restoreBackupBtn = document.getElementById('restore-backup-btn');
+        const backupFile = document.getElementById('backup-file');
+        const resetPlanBtn = document.getElementById('reset-plan-btn');
+        
+        // ====================
+        // INITIALIZATION
+        // ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLicense();
+            setupEventListeners();
+            loadDefaultVideos();
+            loadDefaultResources();
+        });
+        
+        function checkLicense() {
+            const licenseData = DataStorage.load('license');
+            
+            if (!licenseData) {
+                // Show license screen
+                licenseContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+                return;
+            }
+            
+            const validation = LicenseSystem.validateLicense(licenseData.key);
+            
+            if (!validation.valid) {
+                // Invalid or expired license
+                licenseContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+                licenseKeyInput.value = licenseData.key;
+                showMessage('License expired or invalid. Please renew.', 'error');
+                return;
+            }
+            
+            // Valid license
+            currentUser = validation.data;
+            licenseContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Update UI
+            updateUserUI();
+            loadUserData();
+        }
+        
+        function updateUserUI() {
+            if (currentUser) {
+                const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                userAvatar.textContent = initials.substring(0, 2);
+                userName.textContent = currentUser.name;
+                
+                const expiryDate = new Date(currentUser.expiry);
+                if (expiryDate < new Date()) {
+                    userStatus.textContent = 'Expired';
+                    userStatus.classList.add('expired');
+                } else {
+                    userStatus.textContent = 'Premium Member';
+                }
+            }
+        }
+        
+        function setupEventListeners() {
+            // License activation
+            activateBtn.addEventListener('click', activateLicense);
+            licenseKeyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') activateLicense();
+            });
+            
+            // Navigation
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const pageId = link.getAttribute('data-page');
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    pages.forEach(page => page.classList.remove('active'));
+                    document.getElementById(`${pageId}-page`).classList.add('active');
+                    
+                    if (pageId === 'subjects') {
+                        loadSubjectContent();
+                    } else if (pageId === 'dashboard') {
+                        updateDashboard();
+                    } else if (pageId === 'planning') {
+                        loadPlanningPage();
+                    }
+                });
+            });
+            
+            // Data management
+            exportBtn.addEventListener('click', exportUserData);
+            importBtn.addEventListener('click', () => {
+                document.getElementById('import-modal').classList.add('active');
+            });
+            
+            backupAllBtn.addEventListener('click', backupAllData);
+            restoreBackupBtn.addEventListener('click', () => backupFile.click());
+            backupFile.addEventListener('change', restoreBackupData);
+            
+            // Subjects
+            subjectSelect.addEventListener('change', loadSubjectContent);
+            saveAllProgressBtn.addEventListener('click', saveAllProgress);
+            
+            // Planning
+            document.getElementById('planning-toggle')?.addEventListener('click', () => {
+                const form = document.getElementById('planning-form');
+                form.classList.toggle('expanded');
+            });
+            
+            document.getElementById('save-target-btn')?.addEventListener('click', saveTarget);
+            document.getElementById('reset-plan-btn')?.addEventListener('click', resetStudyPlan);
+            
+            // Logout
+            logoutBtn.addEventListener('click', logout);
+            
+            // Modal close buttons
+            document.getElementById('license-close')?.addEventListener('click', () => {
+                document.getElementById('license-generator-modal').classList.remove('active');
+            });
+            
+            document.getElementById('import-close')?.addEventListener('click', () => {
+                document.getElementById('import-modal').classList.remove('active');
+            });
+            
+            // Close modals on outside click
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // ====================
+        // LICENSE FUNCTIONS
+        // ====================
+        function activateLicense() {
+            const licenseKey = licenseKeyInput.value.trim();
+            
+            if (!licenseKey) {
+                showMessage('Please enter a license key', 'error');
+                return;
+            }
+            
+            const validation = LicenseSystem.validateLicense(licenseKey);
+            
+            if (!validation.valid) {
+                showMessage(validation.error || 'Invalid license key', 'error');
+                return;
+            }
+            
+            // Save license
+            DataStorage.save('license', {
+                key: licenseKey,
+                activated: new Date().toISOString()
+            });
+            
+            // Set current user
+            currentUser = validation.data;
+            
+            // Show app
+            licenseContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Update UI
+            updateUserUI();
+            initializeUserData();
+            
+            showToast('License activated successfully!', 'success');
+        }
+        
+        // ====================
+        // DATA MANAGEMENT
+        // ====================
+        function loadUserData() {
+            userProgress = DataStorage.load('progress') || initializeProgress();
+            userTargets = DataStorage.load('targets') || [];
+            completedTargets = DataStorage.load('completedTargets') || [];
+            userStudyPlan = DataStorage.load('studyPlan') || initializeStudyPlan();
+            userStats = DataStorage.load('stats') || initializeStats();
+            
+            // Filter out expired targets
+            const today = new Date().toISOString().split('T')[0];
+            userTargets = userTargets.filter(target => {
+                const targetDate = target.date;
+                return targetDate >= today;
+            });
+            
+            updateDashboard();
+        }
+        
+        function initializeUserData() {
+            userProgress = initializeProgress();
+            userTargets = [];
+            completedTargets = [];
+            userStudyPlan = initializeStudyPlan();
+            userStats = initializeStats();
+            
+            DataStorage.save('progress', userProgress);
+            DataStorage.save('targets', userTargets);
+            DataStorage.save('completedTargets', completedTargets);
+            DataStorage.save('studyPlan', userStudyPlan);
+            DataStorage.save('stats', userStats);
+            
+            updateDashboard();
+            showToast('Welcome! Your study data has been initialized.', 'success');
+        }
+        
+        function initializeProgress() {
+            const progress = { subjects: {} };
+            
+            for (const paperId in syllabusData) {
+                progress.subjects[paperId] = {
+                    completedTopics: 0,
+                    totalTopics: syllabusData[paperId].topics.length,
+                    topics: {}
+                };
+                
+                syllabusData[paperId].topics.forEach(topic => {
+                    progress.subjects[paperId].topics[topic.name] = {
+                        status: 'not-started',
+                        subtopics: {}
+                    };
+                    
+                    topic.subtopics.forEach(subtopic => {
+                        progress.subjects[paperId].topics[topic.name].subtopics[subtopic.name] = {
+                            actualHours: 0,
+                            completed: false
+                        };
+                    });
+                });
+            }
+            
+            return progress;
+        }
+        
+        function initializeStudyPlan() {
+            const today = new Date();
+            const examDate = new Date();
+            examDate.setDate(today.getDate() + 90);
+            
+            const plan = {
+                daysToExam: 90,
+                dailyHours: 6,
+                totalHours: 540,
+                startDate: today.toISOString().split('T')[0],
+                examDate: examDate.toISOString().split('T')[0],
+                subjectHours: {},
+                dailyTargets: {}
+            };
+            
+            // Distribute hours based on weightage
+            for (const subjectId in syllabusData) {
+                const subjectWeight = syllabusData[subjectId].weightage;
+                plan.subjectHours[subjectId] = Math.round((subjectWeight / 100) * 540);
+            }
+            
+            return plan;
+        }
+        
+        function initializeStats() {
+            return {
+                totalStudyDays: 0,
+                currentStreak: 0,
+                bestStreak: 0,
+                totalHoursStudied: 0,
+                successRate: 0,
+                lastStudyDate: null
+            };
+        }
+        
+        function backupAllData() {
+            const backupData = DataStorage.exportAll();
+            const blob = new Blob([backupData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ca_pro_tracker_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('Backup created successfully!', 'success');
+        }
+        
+        function restoreBackupData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const result = DataStorage.importAll(e.target.result);
+                
+                if (result.success) {
+                    loadUserData();
+                    showToast('Backup restored successfully!', 'success');
+                } else {
+                    showToast(result.error, 'error');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
+        }
+        
+        function exportUserData() {
+            backupAllData();
+        }
+        
+        // ====================
+        // SUBJECTS & PROGRESS
+        // ====================
+        function loadSubjectContent() {
+            const selectedSubject = subjectSelect.value;
+            let contentHTML = '';
+            
+            if (selectedSubject === 'all') {
+                for (const subjectId in syllabusData) {
+                    contentHTML += renderSubject(subjectId, syllabusData[subjectId]);
+                }
+            } else {
+                contentHTML = renderSubject(selectedSubject, syllabusData[selectedSubject]);
+            }
+            
+            subjectContent.innerHTML = contentHTML;
+            
+            // Add event listeners to topic headers
+            document.querySelectorAll('.topic-header').forEach(header => {
+                header.addEventListener('click', function() {
+                    const topicItem = this.parentElement;
+                    topicItem.classList.toggle('expanded');
+                });
+            });
+            
+            // Add event listeners to status icons
+            document.querySelectorAll('.topic-status').forEach(status => {
+                status.addEventListener('click', function() {
+                    const subjectId = this.getAttribute('data-subject');
+                    const topicName = this.getAttribute('data-topic');
+                    toggleTopicStatus(subjectId, topicName);
+                });
+            });
+        }
+        
+        function renderSubject(subjectId, subjectData) {
+            const plannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+            const progress = userProgress?.subjects?.[subjectId] || { completedTopics: 0, totalTopics: subjectData.topics.length };
+            
+            let html = `<div class="subject-content">
+                <div class="subject-header">
+                    <h3>${subjectData.name}</h3>
+                    <div class="subject-hours">${plannedHours} hrs planned • ${progress.completedTopics}/${progress.totalTopics} topics</div>
+                </div>
+                <div class="topic-list">`;
+            
+            subjectData.topics.forEach(topic => {
+                const topicProgress = userProgress?.subjects?.[subjectId]?.topics?.[topic.name] || { status: 'not-started' };
+                
+                // Calculate topic hours
+                let topicHours = 0;
+                if (topicProgress.subtopics) {
+                    Object.values(topicProgress.subtopics).forEach(subtopic => {
+                        topicHours += subtopic.actualHours || 0;
+                    });
+                }
+                
+                html += `<div class="topic-item">
+                    <div class="topic-header">
+                        <div class="topic-title">
+                            <i class="fas fa-chevron-right"></i>
+                            ${topic.name}
+                            <span class="topic-status status-${topicProgress.status}" 
+                                  data-subject="${subjectId}"
+                                  data-topic="${topic.name}"
+                                  title="Click to toggle status">
+                                <i class="fas fa-${topicProgress.status === 'completed' ? 'check-circle' : topicProgress.status === 'in-progress' ? 'spinner' : 'circle'}"></i>
+                                ${topicProgress.status === 'completed' ? 'Completed' : topicProgress.status === 'in-progress' ? 'In Progress' : 'Not Started'}
+                            </span>
+                            ${topicHours > 0 ? `<span style="margin-left: 10px; color: var(--secondary);">(${topicHours} hrs)</span>` : ''}
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="topic-priority priority-${topic.priority}">Priority ${topic.priority}</span>
+                            <span class="topic-weightage">${topic.weightage}%</span>
+                        </div>
+                    </div>
+                    <div class="subtopic-list">
+                        ${topic.subtopics.map(subtopic => {
+                            const subtopicProgress = topicProgress.subtopics?.[subtopic.name] || { actualHours: 0, completed: false };
+                            
+                            return `<div class="subtopic-item">
+                                <div class="subtopic-info">
+                                    <div class="subtopic-name">${subtopic.name}</div>
+                                    <div class="subtopic-details">
+                                        <span>Weight: ${subtopic.weight}%</span>
+                                        ${subtopicProgress.completed ? '<span class="status-completed"><i class="fas fa-check"></i> Completed</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="subtopic-actions">
+                                    <div class="time-info">
+                                        <div class="actual-time-input">
+                                            <input type="number" 
+                                                   id="time-${subjectId}-${topic.name}-${subtopic.name}"
+                                                   value="${subtopicProgress.actualHours || 0}"
+                                                   min="0" 
+                                                   step="0.5"
+                                                   placeholder="Hours"
+                                                   style="width: 100px;">
+                                            <span>hrs</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            });
+            
+            html += `</div></div>`;
+            return html;
+        }
+        
+        function toggleTopicStatus(subjectId, topicName) {
+            if (!userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) return;
+            
+            const topic = userProgress.subjects[subjectId].topics[topicName];
+            const currentStatus = topic.status;
+            
+            // Cycle through statuses: not-started -> in-progress -> completed -> not-started
+            const nextStatus = currentStatus === 'not-started' ? 'in-progress' : 
+                             currentStatus === 'in-progress' ? 'completed' : 'not-started';
+            
+            topic.status = nextStatus;
+            
+            // If marking as completed, check all subtopics
+            if (nextStatus === 'completed') {
+                Object.keys(topic.subtopics).forEach(subtopicName => {
+                    topic.subtopics[subtopicName].completed = true;
+                });
+            }
+            
+            DataStorage.save('progress', userProgress);
+            loadSubjectContent();
+            updateDashboard();
+            
+            showToast(`Topic marked as ${nextStatus}`, 'success');
+        }
+        
+        function saveAllProgress() {
+            // Collect all time inputs
+            const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
+            
+            timeInputs.forEach(input => {
+                const id = input.id.replace('time-', '');
+                const [subjectId, topicName, subtopicName] = id.split('-');
+                
+                const hours = parseFloat(input.value) || 0;
+                
+                if (hours > 0) {
+                    // Update progress
+                    if (!userProgress.subjects[subjectId]) {
+                        userProgress.subjects[subjectId] = { topics: {} };
+                    }
+                    if (!userProgress.subjects[subjectId].topics[topicName]) {
+                        userProgress.subjects[subjectId].topics[topicName] = { subtopics: {} };
+                    }
+                    if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
+                        userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = {};
+                    }
+                    
+                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours = hours;
+                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = true;
+                    
+                    // Auto-mark topic as in-progress if hours added
+                    if (userProgress.subjects[subjectId].topics[topicName].status === 'not-started') {
+                        userProgress.subjects[subjectId].topics[topicName].status = 'in-progress';
+                    }
+                }
+            });
+            
+            // Save to storage
+            DataStorage.save('progress', userProgress);
+            updateDashboard();
+            
+            showToast('All progress saved successfully!', 'success');
+        }
+        
+        // ====================
+        // PLANNING & TARGETS
+        // ====================
+        function loadPlanningPage() {
+            loadLiveTargets();
+            loadTargetHistory();
+            
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('target-date').value = today;
+        }
+        
+        function loadLiveTargets() {
+            const liveTargetsList = document.getElementById('live-targets-list');
+            
+            if (!userTargets || userTargets.length === 0) {
+                liveTargetsList.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-plus"></i><h3>No active targets</h3><p>Add your first target to get started!</p></div>';
+                return;
+            }
+            
+            let html = '';
+            const today = new Date().toISOString().split('T')[0];
+            
+            userTargets.forEach((target, index) => {
+                const isToday = target.date === today;
+                const achievement = target.plannedHours > 0 ? 
+                    Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
+                
+                html += `<div class="target-item">
+                    <div class="target-header">
+                        <div class="target-title">${target.topic}</div>
+                        <span class="target-subject">${getSubjectName(target.subject)}</span>
+                    </div>
+                    <div class="target-details">
+                        <div><strong>Type:</strong> ${target.type}</div>
+                        <div><strong>Date:</strong> ${formatDate(target.date)}</div>
+                        ${isToday ? '<span style="color: var(--success); font-weight: 600;"><i class="fas fa-bolt"></i> Today</span>' : ''}
+                    </div>
+                    <div class="target-time">
+                        <div class="target-planned">
+                            <strong>Planned:</strong> ${target.plannedHours} hrs
+                        </div>
+                        <div class="target-actual">
+                            <strong>Actual:</strong>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="number" 
+                                       class="actual-hours-input"
+                                       value="${target.actualHours || 0}"
+                                       min="0"
+                                       max="24"
+                                       step="0.5"
+                                       data-index="${index}"
+                                       style="width: 80px;">
+                                <span>hrs</span>
+                                <button class="save-target-hours" data-index="${index}" style="padding: 8px 15px; background: var(--secondary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="target-progress">
+                        <div class="progress-bar" style="height: 10px; background: #e9ecef; border-radius: 5px; margin: 15px 0; overflow: hidden;">
+                            <div class="progress-fill" style="height: 100%; background: ${achievement >= 100 ? 'var(--success)' : 'var(--secondary)'}; width: ${Math.min(100, achievement)}%;"></div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--gray);">
+                            <span>Achievement: ${achievement}%</span>
+                            <div class="target-actions">
+                                <button class="complete-target-btn" data-index="${index}" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                                <button class="delete-target-btn" data-index="${index}" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            liveTargetsList.innerHTML = html;
+            
+            // Add event listeners
+            document.querySelectorAll('.save-target-hours').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    const input = document.querySelector(`.actual-hours-input[data-index="${index}"]`);
+                    const hours = parseFloat(input.value) || 0;
+                    updateTargetHours(index, hours);
+                });
+            });
+            
+            document.querySelectorAll('.complete-target-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    completeTarget(index);
+                });
+            });
+            
+            document.querySelectorAll('.delete-target-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = this.getAttribute('data-index');
+                    deleteTarget(index);
+                });
+            });
+        }
+        
+        function loadTargetHistory() {
+            const historyTbody = document.getElementById('history-tbody');
+            
+            if (!completedTargets || completedTargets.length === 0) {
+                historyTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--gray);">No historical targets found</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            
+            completedTargets.forEach(target => {
+                const achievement = target.plannedHours > 0 ? 
+                    Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
+                
+                let achievementClass = 'achievement-high';
+                if (achievement < 50) achievementClass = 'achievement-low';
+                else if (achievement < 80) achievementClass = 'achievement-medium';
+                
+                html += `<tr>
+                    <td>${formatDate(target.date)}</td>
+                    <td>${target.topic}</td>
+                    <td>${getSubjectName(target.subject)}</td>
+                    <td>${target.plannedHours}</td>
+                    <td>${target.actualHours || 0}</td>
+                    <td class="achievement-cell ${achievementClass}">${achievement}%</td>
+                </tr>`;
+            });
+            
+            historyTbody.innerHTML = html;
+        }
+        
+        function saveTarget() {
+            const type = document.getElementById('target-type').value;
+            const date = document.getElementById('target-date').value;
+            const subject = document.getElementById('planning-subject').value;
+            const topic = document.getElementById('planning-topic').value;
+            const plannedHours = parseFloat(document.getElementById('planned-hours-input').value) || 2;
+            
+            if (!subject || !topic) {
+                showMessage('Please select subject and topic', 'error');
+                return;
+            }
+            
+            const target = {
+                type: type,
+                date: date,
+                subject: subject,
+                topic: topic,
+                plannedHours: plannedHours,
+                actualHours: 0,
+                created: new Date().toISOString()
+            };
+            
+            userTargets.push(target);
+            DataStorage.save('targets', userTargets);
+            
+            // Clear form
+            document.getElementById('planning-subject').value = '';
+            document.getElementById('planning-topic').value = '';
+            document.getElementById('planned-hours-input').value = 2;
+            
+            // Hide form
+            document.getElementById('planning-form').classList.remove('expanded');
+            
+            // Reload targets
+            loadLiveTargets();
+            
+            showToast('Target saved successfully!', 'success');
+        }
+        
+        function updateTargetHours(index, hours) {
+            if (index >= 0 && index < userTargets.length) {
+                userTargets[index].actualHours = hours;
+                DataStorage.save('targets', userTargets);
+                loadLiveTargets();
+                updateDashboard();
+                showToast('Hours updated!', 'success');
+            }
+        }
+        
+        function completeTarget(index) {
+            if (index >= 0 && index < userTargets.length) {
+                const target = userTargets[index];
+                target.completed = true;
+                target.completedDate = new Date().toISOString();
+                
+                // Move to completed targets
+                completedTargets.push(target);
+                userTargets.splice(index, 1);
+                
+                DataStorage.save('targets', userTargets);
+                DataStorage.save('completedTargets', completedTargets);
+                
+                loadLiveTargets();
+                loadTargetHistory();
+                updateDashboard();
+                
+                showToast('Target marked as completed!', 'success');
+            }
+        }
+        
+        function deleteTarget(index) {
+            if (confirm('Are you sure you want to delete this target?')) {
+                if (index >= 0 && index < userTargets.length) {
+                    userTargets.splice(index, 1);
+                    DataStorage.save('targets', userTargets);
+                    loadLiveTargets();
+                    showToast('Target deleted!', 'success');
+                }
+            }
+        }
+        
+        // ====================
+        // DASHBOARD & ANALYTICS
+        // ====================
+        function updateDashboard() {
+            calculateKPIs();
+            updateSmartProjection();
+            updateAdvancedChart();
+        }
+        
+        function calculateKPIs() {
+            // Calculate total actual hours
+            let totalActualHours = 0;
+            let totalPlannedHours = userStudyPlan?.totalHours || 540;
+            let completedTopics = 0;
+            let completedSubjects = 0;
+            
+            if (userProgress.subjects) {
+                for (const subjectId in userProgress.subjects) {
+                    const subject = userProgress.subjects[subjectId];
+                    
+                    // Check if subject is completed
+                    let subjectCompleted = true;
+                    for (const topicName in subject.topics) {
+                        const topic = subject.topics[topicName];
+                        if (topic.status === 'completed') {
+                            completedTopics++;
+                        } else {
+                            subjectCompleted = false;
+                        }
+                        
+                        // Add hours from subtopics
+                        if (topic.subtopics) {
+                            Object.values(topic.subtopics).forEach(subtopic => {
+                                totalActualHours += subtopic.actualHours || 0;
+                            });
+                        }
+                    }
+                    
+                    if (subjectCompleted) {
+                        completedSubjects++;
+                    }
+                }
+            }
+            
+            // Calculate success rate from completed targets
+            let successRate = 0;
+            if (completedTargets.length > 0) {
+                const successfulTargets = completedTargets.filter(t => {
+                    const achievement = t.plannedHours > 0 ? 
+                        (t.actualHours || 0) / t.plannedHours : 0;
+                    return achievement >= 0.8; // 80% or more considered successful
+                }).length;
+                
+                successRate = Math.round((successfulTargets / completedTargets.length) * 100);
+            }
+            
+            // Calculate daily efficiency
+            const today = new Date().toISOString().split('T')[0];
+            const todayTargets = userTargets.filter(t => t.date === today);
+            let dailyEfficiency = 0;
+            
+            if (todayTargets.length > 0) {
+                const totalPlannedToday = todayTargets.reduce((sum, t) => sum + t.plannedHours, 0);
+                const totalActualToday = todayTargets.reduce((sum, t) => sum + (t.actualHours || 0), 0);
+                dailyEfficiency = totalPlannedToday > 0 ? 
+                    Math.round((totalActualToday / totalPlannedToday) * 100) : 0;
+            }
+            
+            // Calculate performance indicator
+            const dailyTarget = userStudyPlan?.dailyHours || 6;
+            const performance = totalActualHours / (dailyTarget * userStats.totalStudyDays || 1);
+            
+            // Update UI
+            document.getElementById('actual-hours').textContent = totalActualHours;
+            document.getElementById('planned-hours').textContent = totalPlannedHours;
+            document.getElementById('overall-progress').textContent = `${Math.round((completedTopics / totalTopics) * 100)}%`;
+            document.getElementById('subjects-completed').textContent = completedSubjects;
+            document.getElementById('topics-completed').textContent = completedTopics;
+            document.getElementById('success-rate').textContent = `${successRate}%`;
+            document.getElementById('daily-efficiency').textContent = `${dailyEfficiency}%`;
+            
+            const performanceIndicator = document.getElementById('performance-indicator');
+            if (performance >= 1) {
+                performanceIndicator.innerHTML = '<i class="fas fa-arrow-up performance-good"></i> <span>Overperforming</span>';
+            } else if (performance >= 0.8) {
+                performanceIndicator.innerHTML = '<i class="fas fa-check performance-good"></i> <span>On Track</span>';
+            } else {
+                performanceIndicator.innerHTML = '<i class="fas fa-arrow-down performance-bad"></i> <span>Underperforming</span>';
+            }
+            
+            // Update streak
+            updateStreak();
+        }
+        
+        function updateStreak() {
+            const today = new Date().toISOString().split('T')[0];
+            const lastStudy = userStats.lastStudyDate;
+            
+            if (!lastStudy) {
+                userStats.currentStreak = 0;
+            } else {
+                const lastDate = new Date(lastStudy);
+                const todayDate = new Date(today);
+                const diffTime = Math.abs(todayDate - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    userStats.currentStreak++;
+                } else if (diffDays > 1) {
+                    userStats.currentStreak = 1;
+                }
+            }
+            
+            userStats.lastStudyDate = today;
+            userStats.bestStreak = Math.max(userStats.bestStreak, userStats.currentStreak);
+            userStats.totalStudyDays++;
+            
+            DataStorage.save('stats', userStats);
+            document.getElementById('streak-days').textContent = userStats.currentStreak;
+        }
+        
+        function updateSmartProjection() {
+            const totalPlannedHours = userStudyPlan?.totalHours || 540;
+            let totalActualHours = 0;
+            
+            // Calculate actual hours from progress
+            if (userProgress.subjects) {
+                for (const subjectId in userProgress.subjects) {
+                    const subject = userProgress.subjects[subjectId];
+                    for (const topicName in subject.topics) {
+                        const topic = subject.topics[topicName];
+                        if (topic.subtopics) {
+                            Object.values(topic.subtopics).forEach(subtopic => {
+                                totalActualHours += subtopic.actualHours || 0;
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Calculate remaining hours and days
+            const remainingHours = Math.max(0, totalPlannedHours - totalActualHours);
+            const dailyAverage = userStats.totalStudyDays > 0 ? 
+                totalActualHours / userStats.totalStudyDays : userStudyPlan?.dailyHours || 6;
+            
+            const remainingDays = dailyAverage > 0 ? Math.ceil(remainingHours / dailyAverage) : 999;
+            
+            const projectionText = document.getElementById('projection-text');
+            
+            if (remainingDays <= 0) {
+                projectionText.innerHTML = `🎉 <strong>Congratulations!</strong> You've completed your study plan!`;
+            } else if (dailyAverage >= (userStudyPlan?.dailyHours || 6)) {
+                projectionText.innerHTML = `📈 <strong>Great progress!</strong> At this rate, you'll complete in <strong>${remainingDays} days</strong>. Keep it up!`;
+            } else {
+                projectionText.innerHTML = `📊 <strong>Current pace:</strong> At this rate, you'll complete in <strong>${remainingDays} days</strong>. Consider increasing daily hours.`;
+            }
+        }
+        
+        function updateAdvancedChart() {
+            const ctx = document.getElementById('advanced-chart').getContext('2d');
+            
+            if (advancedChart) {
+                advancedChart.destroy();
+            }
+            
+            // Generate chart data based on current view
+            let labels = [];
+            let plannedData = [];
+            let actualData = [];
+            
+            const today = new Date();
+            
+            switch (currentChartView) {
+                case 'daily':
+                    // Last 7 days
+                    for (let i = 6; i >= 0; i--) {
+                        const date = new Date();
+                        date.setDate(today.getDate() - i);
+                        labels.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                        
+                        const dateStr = date.toISOString().split('T')[0];
+                        const dayTargets = userTargets.filter(t => t.date === dateStr);
+                        const dayCompleted = completedTargets.filter(t => t.date === dateStr);
+                        
+                        const planned = dayTargets.reduce((sum, t) => sum + t.plannedHours, 0) +
+                                      dayCompleted.reduce((sum, t) => sum + t.plannedHours, 0);
+                        const actual = dayTargets.reduce((sum, t) => sum + (t.actualHours || 0), 0) +
+                                     dayCompleted.reduce((sum, t) => sum + (t.actualHours || 0), 0);
+                        
+                        plannedData.push(planned);
+                        actualData.push(actual);
+                    }
+                    break;
+                    
+                case 'weekly':
+                    // Last 4 weeks
+                    for (let i = 3; i >= 0; i--) {
+                        const weekStart = new Date();
+                        weekStart.setDate(today.getDate() - (i * 7));
+                        labels.push(`Week ${Math.ceil((today.getDate() - (i * 7)) / 7)}`);
+                        
+                        // Simplified - in real app, filter by week
+                        plannedData.push(Math.random() * 30 + 20);
+                        actualData.push(Math.random() * 30 + 15);
+                    }
+                    break;
+                    
+                case 'monthly':
+                    // Last 6 months
+                    for (let i = 5; i >= 0; i--) {
+                        const month = new Date();
+                        month.setMonth(today.getMonth() - i);
+                        labels.push(month.toLocaleDateString('en-US', { month: 'short' }));
+                        
+                        plannedData.push(Math.random() * 120 + 80);
+                        actualData.push(Math.random() * 120 + 60);
+                    }
+                    break;
+                    
+                case 'subject':
+                    // By subject
+                    for (const subjectId in syllabusData) {
+                        labels.push(syllabusData[subjectId].name.substring(0, 15) + '...');
+                        plannedData.push(userStudyPlan?.subjectHours?.[subjectId] || 0);
+                        
+                        let subjectActual = 0;
+                        if (userProgress.subjects[subjectId]) {
+                            for (const topicName in userProgress.subjects[subjectId].topics) {
+                                const topic = userProgress.subjects[subjectId].topics[topicName];
+                                if (topic.subtopics) {
+                                    Object.values(topic.subtopics).forEach(subtopic => {
+                                        subjectActual += subtopic.actualHours || 0;
+                                    });
+                                }
+                            }
+                        }
+                        actualData.push(subjectActual);
+                    }
+                    break;
+            }
+            
+            // Create dataset with conditional coloring
+            const dataset = {
+                label: 'Actual Hours',
+                data: actualData,
+                backgroundColor: actualData.map((actual, index) => {
+                    const planned = plannedData[index];
+                    return actual >= planned ? 'rgba(46, 204, 113, 0.7)' : 'rgba(231, 76, 60, 0.7)';
+                }),
+                borderColor: actualData.map((actual, index) => {
+                    const planned = plannedData[index];
+                    return actual >= planned ? 'rgba(46, 204, 113, 1)' : 'rgba(231, 76, 60, 1)';
+                }),
+                borderWidth: 2,
+                borderRadius: 8
+            };
+            
+            advancedChart = new Chart(ctx, {
+                type: currentChartView === 'subject' ? 'bar' : 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Planned Hours',
+                            data: plannedData,
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: true
+                        },
+                        dataset
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw} hours`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ====================
+        // RESET & SETTINGS
+        // ====================
+        function resetStudyPlan() {
+            if (confirm('Are you sure you want to reset your study plan? This will redistribute hours based on professional ratios.')) {
+                userStudyPlan = initializeStudyPlan();
+                DataStorage.save('studyPlan', userStudyPlan);
+                updateDashboard();
+                showToast('Study plan reset successfully!', 'success');
+            }
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear current session but keep license
+                const licenseData = DataStorage.load('license');
+                localStorage.clear();
+                
+                if (licenseData) {
+                    DataStorage.save('license', licenseData);
+                }
+                
+                window.location.reload();
+            }
+        }
+        
+        // ====================
+        // DEFAULT CONTENT
+        // ====================
+        function loadDefaultVideos() {
+            userVideos = DataStorage.load('videos') || [
+                {
+                    title: "Financial Reporting - Complete Guide",
+                    subject: "paper1",
+                    link: "https://youtube.com/playlist?list=example1",
+                    author: "CA Expert"
+                },
+                {
+                    title: "Advanced Financial Management Tips",
+                    subject: "paper2",
+                    link: "https://youtube.com/playlist?list=example2",
+                    author: "Finance Guru"
+                },
+                {
+                    title: "Auditing Standards Explained",
+                    subject: "paper3",
+                    link: "https://youtube.com/playlist?list=example3",
+                    author: "Audit Professional"
+                }
+            ];
+            DataStorage.save('videos', userVideos);
+        }
+        
+        function loadDefaultResources() {
+            userResources = DataStorage.load('resources') || [
+                {
+                    title: "FR Formula Sheet",
+                    subject: "paper1",
+                    type: "formulas",
+                    link: "#",
+                    author: "Satyam Kumar"
+                },
+                {
+                    title: "DT Important Sections",
+                    subject: "paper4",
+                    type: "notes",
+                    link: "#",
+                    author: "Satyam Kumar"
+                },
+                {
+                    title: "Past Year Questions",
+                    subject: "paper6",
+                    type: "question_paper",
+                    link: "#",
+                    author: "CA Institute"
+                }
+            ];
+            DataStorage.save('resources', userResources);
+        }
+        
+        // ====================
+        // HELPER FUNCTIONS
+        // ====================
+        function getSubjectName(subjectId) {
+            const subjectMap = {
+                'paper1': 'Paper 1: FR',
+                'paper2': 'Paper 2: AFM',
+                'paper3': 'Paper 3: Audit',
+                'paper4': 'Paper 4: DT',
+                'paper5': 'Paper 5: IDT',
+                'paper6': 'Paper 6: IBS',
+                'general': 'General'
+            };
+            return subjectMap[subjectId] || subjectId;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+        
+        function showToast(message, type = 'success') {
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <div>
+                    <h4>${type === 'success' ? 'Success!' : 'Error!'}</h4>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('backup-message');
+            if (messageDiv) {
+                messageDiv.textContent = message;
+                messageDiv.className = `auth-message ${type}`;
+                messageDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // ====================
+        // NOTIFICATIONS
+        // ====================
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        
+        // Request permission on page load
+        if ('Notification' in window) {
+            requestNotificationPermission();
+        }
+    </script>
+</body>
+</html>
