@@ -3679,61 +3679,39 @@
         }
         
         function validateLicense(licenseKey) {
-            try {
-                // First layer decryption with MASTER_KEY
-                let decrypted = CryptoJS.AES.decrypt(licenseKey, MASTER_KEY).toString(CryptoJS.enc.Utf8);
-                
-                if (!decrypted) {
-                    // Try with BACKUP_KEY
-                    decrypted = CryptoJS.AES.decrypt(licenseKey, BACKUP_KEY).toString(CryptoJS.enc.Utf8);
-                }
-                
-                if (!decrypted) {
-                    return { valid: false, error: 'Invalid license key' };
-                }
-                
-                // Parse the license data
-                const licenseData = JSON.parse(decrypted);
-                
-                // Check expiration
-                const expiryDate = new Date(licenseData.expiry);
-                const currentDate = new Date();
-                
-                if (expiryDate < currentDate) {
-                    return { valid: false, error: 'License has expired' };
-                }
-                
-                // Check device binding if required
-                if (licenseData.deviceId && licenseData.deviceId !== deviceId) {
-                    return { valid: false, error: 'License is bound to another device' };
-                }
-                
-                return { valid: true, data: licenseData };
-            } catch (error) {
-                return { valid: false, error: 'Invalid license key format' };
-            }
+    try {
+        // 1. Decrypt the raw bytes
+        const bytes = CryptoJS.AES.decrypt(licenseKey, MASTER_KEY);
+        
+        // 2. Convert bytes to Utf8 string
+        const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+        
+        // 3. Check if decryption actually returned a string
+        if (!decryptedData) {
+            return { valid: false, error: 'Invalid key or wrong Master Key' };
         }
         
-        function getDeviceId() {
-            if (!deviceId) {
-                // Generate a device ID based on browser fingerprint
-                const navigatorInfo = JSON.stringify({
-                    userAgent: navigator.userAgent,
-                    language: navigator.language,
-                    platform: navigator.platform,
-                    hardwareConcurrency: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory
-                });
-                
-                deviceId = CryptoJS.SHA256(navigatorInfo).toString().substring(0, 16);
-            }
-            return deviceId;
+        // 4. Parse JSON
+        const licenseData = JSON.parse(decryptedData);
+        
+        // 5. Expiry Check
+        const expiryDate = new Date(licenseData.expiry);
+        const currentDate = new Date();
+        if (expiryDate < currentDate) {
+            return { valid: false, error: 'License has expired' };
         }
         
-        function updateDeviceId() {
-            deviceId = getDeviceId();
-            document.getElementById('device-id').textContent = deviceId;
+        // 6. Device ID Check (Important: The generator must provide this)
+        if (licenseData.deviceId && licenseData.deviceId !== getDeviceId()) {
+            return { valid: false, error: 'License bound to another device' };
         }
+        
+        return { valid: true, data: licenseData };
+    } catch (error) {
+        console.error("Decryption error:", error);
+        return { valid: false, error: 'Invalid license format' };
+    }
+}
         
         function activateLicense() {
             const licenseInput = document.getElementById('license-input');
@@ -6318,3 +6296,4 @@
     </script>
 </body>
 </html>
+
