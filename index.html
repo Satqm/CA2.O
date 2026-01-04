@@ -2106,6 +2106,20 @@
                 flex-direction: column;
             }
         }
+        /* Manual entry indicator */
+.manual-entry {
+    border: 2px solid #3498db !important;
+    background: rgba(52, 152, 219, 0.05) !important;
+}
+
+.manual-entry-indicator {
+    font-size: 10px;
+    background: #3498db;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 5px;
+}
     </style>
 </head>
 <body>
@@ -2132,16 +2146,21 @@
                     <i class="fas fa-key"></i> License Activation
                 </h3>
                 
-                <div class="license-input-group">
-                    <input type="text" 
-                           id="license-input" 
-                           class="license-input" 
-                           placeholder="Enter your license key"
-                           maxlength="64">
-                    <button class="license-activate-btn" id="license-activate-btn">
-                        <i class="fas fa-check"></i> Activate
-                    </button>
-                </div>
+              <div class="license-input-group">
+    <input type="text" 
+           id="user-name-input" 
+           class="license-input" 
+           placeholder="Enter your name"
+           maxlength="50">
+    <input type="text" 
+           id="license-input" 
+           class="license-input" 
+           placeholder="Enter your license key"
+           maxlength="64">
+    <button class="license-activate-btn" id="license-activate-btn">
+        <i class="fas fa-check"></i> Activate
+    </button>
+</div>
                 
                 <div class="license-status" id="license-status"></div>
                 
@@ -3791,91 +3810,131 @@ function validateLicense(licenseKey) {
 }
 
         
-      function activateLicense() {
+    function activateLicense() {
+    const userNameInput = document.getElementById('user-name-input');
     const licenseInput = document.getElementById('license-input');
+    let userName = userNameInput.value.trim();
     let licenseKey = licenseInput.value;
+    
+    if (!userName) {
+        showLicenseStatus('expired', 'Please enter your name');
+        userNameInput.focus();
+        return;
+    }
     
     if (!licenseKey) {
         showLicenseStatus('expired', 'Please enter a license key');
+        licenseInput.focus();
         return;
     }
     
     // Apply aggressive sanitization
     licenseKey = licenseKey.trim().toUpperCase().replace(/\s+/g, '');
+    userName = userName.substring(0, 50); // Limit to 50 chars
     
-    // Update input with cleaned value
+    // Update inputs with cleaned values
+    userNameInput.value = userName;
     licenseInput.value = licenseKey;
     
     // Handle demo license
     if (licenseKey === DEMO_LICENSE.replace(/\s+/g, '').toUpperCase()) {
+        currentUser.name = userName || 'Demo User';
         useDemoLicense();
         return;
     }
     
     const validation = validateLicense(licenseKey);
             
-            if (validation.valid) {
-                currentLicense = {
-                    key: licenseKey,
-                    ...validation.data
-                };
-                
-                DataStorage.save('license', currentLicense);
-                showLicenseStatus('active', 'License activated successfully!');
-                licenseInput.classList.add('valid');
-                licenseInput.classList.remove('invalid');
-                
-                // Update UI
-                document.getElementById('license-type').textContent = currentLicense.type || 'Premium';
-                document.getElementById('license-customer').textContent = currentLicense.customer || 'Premium User';
-                document.getElementById('license-expiry').textContent = currentLicense.expiry || 'Lifetime';
-                
-                enableAppAccess();
-            } else {
-                showLicenseStatus('expired', validation.error || 'Invalid license key');
-                licenseInput.classList.add('invalid');
-                licenseInput.classList.remove('valid');
-            }
-        }
+    if (validation.valid) {
+        currentLicense = {
+            key: licenseKey,
+            ...validation.data
+        };
+        
+        // Store user name
+        currentUser.name = userName;
+        currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        
+        DataStorage.save('license', currentLicense);
+        DataStorage.save('user', currentUser);
+        
+        showLicenseStatus('active', 'License activated successfully!');
+        licenseInput.classList.add('valid');
+        userNameInput.classList.add('valid');
+        
+        // Update UI
+        document.getElementById('license-type').textContent = currentLicense.type || 'Premium';
+        document.getElementById('license-customer').textContent = userName || 'Premium User';
+        document.getElementById('license-expiry').textContent = currentLicense.expiry || 'Lifetime';
+        
+        // Update user UI
+        updateUserUI();
+        
+        enableAppAccess();
+    } else {
+        showLicenseStatus('expired', validation.error || 'Invalid license key');
+        licenseInput.classList.add('invalid');
+    }
+}
+
         
         function useDemoLicense() {
-            const trialData = DataStorage.load('trial');
+    const userNameInput = document.getElementById('user-name-input');
+    let userName = userNameInput ? userNameInput.value.trim() : 'Demo User';
+    
+    if (!userName) {
+        userName = 'Demo User';
+    }
+    
+    // Set user name
+    currentUser.name = userName;
+    currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    DataStorage.save('user', currentUser);
+    
+    const trialData = DataStorage.load('trial');
+    
+    if (!trialData || !trialData.active) {
+        // Start new trial
+        const trialStart = new Date().toISOString();
+        DataStorage.save('trial', {
+            active: true,
+            startDate: trialStart,
+            type: 'demo'
+        });
+        
+        isTrialActive = true;
+        trialStartDate = trialStart;
+        trialDaysLeft = 7;
+        
+        // Pre-fill demo license
+        document.getElementById('license-input').value = DEMO_LICENSE;
+        
+        showLicenseStatus('trial', 'Demo license activated! 7-day trial started.');
+        document.getElementById('trial-info').style.display = 'block';
+        document.getElementById('trial-days').textContent = trialDaysLeft;
+        document.getElementById('license-input').classList.add('valid');
+        
+        // Update user UI
+        updateUserUI();
+        
+        enableAppAccess();
+    } else {
+        // Trial already active
+        trialDaysLeft = calculateTrialDaysLeft(trialData.startDate);
+        if (trialDaysLeft > 0) {
+            showLicenseStatus('trial', `Trial active - ${trialDaysLeft} days remaining`);
+            document.getElementById('trial-info').style.display = 'block';
+            document.getElementById('trial-days').textContent = trialDaysLeft;
             
-            if (!trialData || !trialData.active) {
-                // Start new trial
-                const trialStart = new Date().toISOString();
-                DataStorage.save('trial', {
-                    active: true,
-                    startDate: trialStart,
-                    type: 'demo'
-                });
-                
-                isTrialActive = true;
-                trialStartDate = trialStart;
-                trialDaysLeft = 7;
-                
-                // Pre-fill demo license
-                document.getElementById('license-input').value = DEMO_LICENSE;
-                
-                showLicenseStatus('trial', 'Demo license activated! 7-day trial started.');
-                document.getElementById('trial-info').style.display = 'block';
-                document.getElementById('trial-days').textContent = trialDaysLeft;
-                document.getElementById('license-input').classList.add('valid');
-                
-                enableAppAccess();
-            } else {
-                // Trial already active
-                trialDaysLeft = calculateTrialDaysLeft(trialData.startDate);
-                if (trialDaysLeft > 0) {
-                    showLicenseStatus('trial', `Trial active - ${trialDaysLeft} days remaining`);
-                    document.getElementById('trial-info').style.display = 'block';
-                    document.getElementById('trial-days').textContent = trialDaysLeft;
-                    enableAppAccess();
-                } else {
-                    showLicenseStatus('expired', 'Trial period has expired. Please activate a license.');
-                }
-            }
+            // Update user UI
+            updateUserUI();
+            
+            enableAppAccess();
+        } else {
+            showLicenseStatus('expired', 'Trial period has expired. Please activate a license.');
         }
+    }
+}
         
         function showLicenseStatus(type, message) {
             const statusEl = document.getElementById('license-status');
@@ -5346,7 +5405,7 @@ function validateLicense(licenseKey) {
             return html;
         }
         
-       function toggleTopicStatus(subjectId, topicName) {
+function toggleTopicStatus(subjectId, topicName) {
     if (!userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) {
         return;
     }
@@ -5360,7 +5419,7 @@ function validateLicense(licenseKey) {
     
     topic.status = nextStatus;
     
-    // If marking as completed, calculate hours based on weightage
+    // If marking as completed, respect user's manual hours input
     if (nextStatus === 'completed') {
         // Find topic data from syllabus to get weightage
         const subjectData = syllabusData[subjectId];
@@ -5375,7 +5434,8 @@ function validateLicense(licenseKey) {
             Object.keys(topic.subtopics).forEach(subtopicName => {
                 const subtopic = topic.subtopics[subtopicName];
                 
-                // If user hasn't entered hours, calculate based on subtopic weightage
+                // IMPORTANT: Only auto-calculate hours if user hasn't entered ANY hours
+                // (actualHours is 0 or doesn't exist)
                 if (!subtopic.actualHours || subtopic.actualHours === 0) {
                     // Find subtopic data to get its weight
                     const subtopicData = syllabusTopic.subtopics.find(s => s.name === subtopicName);
@@ -5388,9 +5448,11 @@ function validateLicense(licenseKey) {
                         const numSubtopics = Object.keys(topic.subtopics).length;
                         subtopic.actualHours = topicPlannedHours / numSubtopics;
                     }
+                    subtopic.completed = true;
+                } else {
+                    // User has manually entered hours - mark as completed but keep their hours
+                    subtopic.completed = true;
                 }
-                
-                subtopic.completed = true;
             });
         } else {
             // If syllabus topic not found, just mark subtopics as completed
@@ -5399,13 +5461,30 @@ function validateLicense(licenseKey) {
             });
         }
     } else if (nextStatus === 'not-started') {
-        // Reset hours if going back to not-started
+        // Reset hours if going back to not-started, but only for auto-calculated hours
+        // Don't reset user's manual entries
         Object.keys(topic.subtopics).forEach(subtopicName => {
             const subtopic = topic.subtopics[subtopicName];
-            // Only reset if it's the default 1 hour (indicating it was auto-set)
-            if (subtopic.actualHours === 1) {
-                subtopic.actualHours = 0;
+            
+            // Check if hours were auto-calculated (close to rounded weight-based value)
+            if (syllabusData[subjectId]) {
+                const syllabusTopic = syllabusData[subjectId].topics.find(t => t.name === topicName);
+                if (syllabusTopic) {
+                    const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+                    const topicWeightage = syllabusTopic.weightage;
+                    const topicPlannedHours = (topicWeightage / 100) * subjectPlannedHours;
+                    
+                    const subtopicData = syllabusTopic.subtopics.find(s => s.name === subtopicName);
+                    if (subtopicData) {
+                        const expectedHours = (subtopicData.weight / 100) * topicPlannedHours;
+                        // If actual hours are within 10% of expected auto-calculated hours, reset them
+                        if (Math.abs(subtopic.actualHours - expectedHours) < (expectedHours * 0.1)) {
+                            subtopic.actualHours = 0;
+                        }
+                    }
+                }
             }
+            
             subtopic.completed = false;
         });
     }
@@ -5419,6 +5498,7 @@ function validateLicense(licenseKey) {
     
     showToast(`Topic marked as ${nextStatus}`, 'success');
 }
+
 
         
         function updateCompletedTopics(subjectId) {
@@ -5434,59 +5514,73 @@ function validateLicense(licenseKey) {
             userProgress.subjects[subjectId].completedTopics = completedCount;
         }
         
-        function saveAllProgress() {
-            // Collect all time inputs
-            const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
-            let savedCount = 0;
-            
-            timeInputs.forEach(input => {
-                const id = input.id.replace('time-', '');
-                const [subjectId, topicNameEncoded, subtopicNameEncoded] = id.split('-');
-                
-                // Decode names (replace hyphens with spaces)
-                const topicName = topicNameEncoded.replace(/-/g, ' ');
-                const subtopicName = subtopicNameEncoded.replace(/-/g, ' ');
-                
-                const hours = parseFloat(input.value) || 0;
-                
-                if (hours >= 0) {
-                    // Ensure progress structure exists
-                    if (!userProgress.subjects[subjectId]) {
-                        userProgress.subjects[subjectId] = { topics: {}, completedTopics: 0, totalTopics: syllabusData[subjectId].topics.length };
-                    }
-                    if (!userProgress.subjects[subjectId].topics[topicName]) {
-                        userProgress.subjects[subjectId].topics[topicName] = { status: 'not-started', subtopics: {} };
-                    }
-                    if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
-                        userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = { actualHours: 0, completed: false };
-                    }
-                    
-                    // Update hours
-                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours = hours;
-                    
-                    // Auto-mark as completed if hours > 0
-                    userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = hours > 0;
-                    
-                    // Auto-mark topic as in-progress if hours added
-                    if (hours > 0 && userProgress.subjects[subjectId].topics[topicName].status === 'not-started') {
-                        userProgress.subjects[subjectId].topics[topicName].status = 'inprogress';
-                    }
-                    
-                    savedCount++;
-                }
-            });
-            
-            // Update completed topics counts
-            for (const subjectId in userProgress.subjects) {
-                updateCompletedTopics(subjectId);
+function saveAllProgress() {
+    // Collect all time inputs
+    const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
+    let savedCount = 0;
+    let manualEntries = 0;
+    
+    timeInputs.forEach(input => {
+        const id = input.id.replace('time-', '');
+        const [subjectId, topicNameEncoded, subtopicNameEncoded] = id.split('-');
+        
+        // Decode names (replace hyphens with spaces)
+        const topicName = topicNameEncoded.replace(/-/g, ' ');
+        const subtopicName = subtopicNameEncoded.replace(/-/g, ' ');
+        
+        const hours = parseFloat(input.value) || 0;
+        
+        if (hours >= 0) {
+            // Ensure progress structure exists
+            if (!userProgress.subjects[subjectId]) {
+                userProgress.subjects[subjectId] = { topics: {}, completedTopics: 0, totalTopics: syllabusData[subjectId].topics.length };
+            }
+            if (!userProgress.subjects[subjectId].topics[topicName]) {
+                userProgress.subjects[subjectId].topics[topicName] = { status: 'not-started', subtopics: {} };
+            }
+            if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
+                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = { 
+                    actualHours: 0, 
+                    completed: false,
+                    manualEntry: false  // Track if this was manually entered
+                };
             }
             
-            // Save to storage
-            DataStorage.save('progress', userProgress);
-            updateDashboard();
+            // Get previous hours to detect changes
+            const prevHours = userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours || 0;
             
-            showToast(`${savedCount} subtopic hours saved successfully!`, 'success');
+            // Update hours
+            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours = hours;
+            
+            // Mark as manual entry if user changed from auto-calculated value
+            if (hours !== prevHours) {
+                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].manualEntry = true;
+                manualEntries++;
+            }
+            
+            // Auto-mark as completed if hours > 0
+            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = hours > 0;
+            
+            // Auto-mark topic as in-progress if hours added
+            if (hours > 0 && userProgress.subjects[subjectId].topics[topicName].status === 'not-started') {
+                userProgress.subjects[subjectId].topics[topicName].status = 'inprogress';
+            }
+            
+            savedCount++;
         }
+    });
+    
+    // Update completed topics counts
+    for (const subjectId in userProgress.subjects) {
+        updateCompletedTopics(subjectId);
+    }
+    
+    // Save to storage
+    DataStorage.save('progress', userProgress);
+    updateDashboard();
+    
+    showToast(`${savedCount} subtopic hours saved! (${manualEntries} manual entries)`, 'success');
+}
         
         // ====================
         // PLANNING PAGE FUNCTIONS
@@ -6434,6 +6528,7 @@ function validateLicense(licenseKey) {
     </script>
 </body>
 </html>
+
 
 
 
