@@ -3678,57 +3678,99 @@
             }
         }
         
-        function validateLicense(licenseKey) {
+       function validateLicense(licenseKey) {
     try {
-        // 1. Decrypt the raw bytes
-        const bytes = CryptoJS.AES.decrypt(licenseKey, MASTER_KEY);
+        // Step 1: Aggressive Input Sanitization
+        let cleanKey = licenseKey.trim().toUpperCase();
         
-        // 2. Convert bytes to Utf8 string
-        const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+        // Remove all whitespace (spaces, tabs, newlines)
+        cleanKey = cleanKey.replace(/\s+/g, '');
         
-        // 3. Check if decryption actually returned a string
-        if (!decryptedData) {
-            return { valid: false, error: 'Invalid key or wrong Master Key' };
+        // Handle demo license separately
+        if (cleanKey === DEMO_LICENSE.replace(/\s+/g, '').toUpperCase()) {
+            return { 
+                valid: true, 
+                data: { 
+                    key: cleanKey, 
+                    type: 'DEMO', 
+                    customer: 'Demo User', 
+                    expiry: '2026-12-31' 
+                } 
+            };
         }
         
-        // 4. Parse JSON
-        const licenseData = JSON.parse(decryptedData);
+        // Step 2: Validate Format (XXXX-XXXX-XXXX-C)
+        const pattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]$/;
+        if (!pattern.test(cleanKey)) {
+            return { valid: false, error: 'Invalid license key format. Expected: XXXX-XXXX-XXXX-C' };
+        }
         
-        // 5. Expiry Check
-        const expiryDate = new Date(licenseData.expiry);
+        // Step 3: Extract payload and checksum
+        const parts = cleanKey.split('-');
+        const payload = (parts[0] + parts[1] + parts[2]).replace(/-/g, ''); // First 12 chars
+        const providedChecksum = parts[3]; // Last char
+        
+        // Step 4: Weighted Modulo-36 Checksum Calculation
+        let sum = 0;
+        for (let i = 0; i < payload.length; i++) {
+            sum += payload.charCodeAt(i) * (i + 1); // i+1 for 1-based position
+        }
+        
+        const calculatedChecksum = (sum % 36).toString(36).toUpperCase();
+        
+        // Step 5: Verify Checksum
+        if (calculatedChecksum !== providedChecksum) {
+            return { valid: false, error: 'Invalid license key checksum' };
+        }
+        
+        // Step 6: Additional validations
+        const expiryDate = new Date('2026-12-31');
         const currentDate = new Date();
+        
         if (expiryDate < currentDate) {
             return { valid: false, error: 'License has expired' };
         }
         
-        // 6. Device ID Check (Important: The generator must provide this)
-        if (licenseData.deviceId && licenseData.deviceId !== getDeviceId()) {
-            return { valid: false, error: 'License bound to another device' };
-        }
+        // Success - Return license data
+        return { 
+            valid: true, 
+            data: { 
+                key: cleanKey, 
+                type: 'PREMIUM', 
+                customer: 'Valid User', 
+                expiry: '2026-12-31',
+                deviceId: deviceId // Bind to current device
+            } 
+        };
         
-        return { valid: true, data: licenseData };
     } catch (error) {
-        console.error("Decryption error:", error);
-        return { valid: false, error: 'Invalid license format' };
+        return { valid: false, error: 'License validation failed: ' + error.message };
     }
 }
+
         
-        function activateLicense() {
-            const licenseInput = document.getElementById('license-input');
-            const licenseKey = licenseInput.value.trim();
-            
-            if (!licenseKey) {
-                showLicenseStatus('expired', 'Please enter a license key');
-                return;
-            }
-            
-            // Handle demo license
-            if (licenseKey === DEMO_LICENSE) {
-                useDemoLicense();
-                return;
-            }
-            
-            const validation = validateLicense(licenseKey);
+      function activateLicense() {
+    const licenseInput = document.getElementById('license-input');
+    let licenseKey = licenseInput.value;
+    
+    if (!licenseKey) {
+        showLicenseStatus('expired', 'Please enter a license key');
+        return;
+    }
+    
+    // Apply aggressive sanitization
+    licenseKey = licenseKey.trim().toUpperCase().replace(/\s+/g, '');
+    
+    // Update input with cleaned value
+    licenseInput.value = licenseKey;
+    
+    // Handle demo license
+    if (licenseKey === DEMO_LICENSE.replace(/\s+/g, '').toUpperCase()) {
+        useDemoLicense();
+        return;
+    }
+    
+    const validation = validateLicense(licenseKey);
             
             if (validation.valid) {
                 currentLicense = {
@@ -5262,40 +5304,80 @@
             return html;
         }
         
-        function toggleTopicStatus(subjectId, topicName) {
-            if (!userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) {
-                return;
-            }
+       function toggleTopicStatus(subjectId, topicName) {
+    if (!userProgress.subjects[subjectId] || !userProgress.subjects[subjectId].topics[topicName]) {
+        return;
+    }
+    
+    const topic = userProgress.subjects[subjectId].topics[topicName];
+    const currentStatus = topic.status;
+    
+    // Cycle through statuses: not-started -> inprogress -> completed -> not-started
+    const nextStatus = currentStatus === 'not-started' ? 'inprogress' : 
+                     currentStatus === 'inprogress' ? 'completed' : 'not-started';
+    
+    topic.status = nextStatus;
+    
+    // If marking as completed, calculate hours based on weightage
+    if (nextStatus === 'completed') {
+        // Find topic data from syllabus to get weightage
+        const subjectData = syllabusData[subjectId];
+        const syllabusTopic = subjectData.topics.find(t => t.name === topicName);
+        
+        if (syllabusTopic) {
+            // Calculate topic planned hours based on subject distribution
+            const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+            const topicWeightage = syllabusTopic.weightage;
+            const topicPlannedHours = (topicWeightage / 100) * subjectPlannedHours;
             
-            const topic = userProgress.subjects[subjectId].topics[topicName];
-            const currentStatus = topic.status;
-            
-            // Cycle through statuses: not-started -> inprogress -> completed -> not-started
-            const nextStatus = currentStatus === 'not-started' ? 'inprogress' : 
-                             currentStatus === 'inprogress' ? 'completed' : 'not-started';
-            
-            topic.status = nextStatus;
-            
-            // If marking as completed, mark all subtopics as completed
-            if (nextStatus === 'completed') {
-                Object.keys(topic.subtopics).forEach(subtopicName => {
-                    topic.subtopics[subtopicName].completed = true;
-                    // Set minimum hours if not set
-                    if (!topic.subtopics[subtopicName].actualHours) {
-                        topic.subtopics[subtopicName].actualHours = 1;
+            Object.keys(topic.subtopics).forEach(subtopicName => {
+                const subtopic = topic.subtopics[subtopicName];
+                
+                // If user hasn't entered hours, calculate based on subtopic weightage
+                if (!subtopic.actualHours || subtopic.actualHours === 0) {
+                    // Find subtopic data to get its weight
+                    const subtopicData = syllabusTopic.subtopics.find(s => s.name === subtopicName);
+                    if (subtopicData) {
+                        const subtopicWeightage = subtopicData.weight;
+                        // Calculate hours: subtopic weight * topic planned hours
+                        subtopic.actualHours = (subtopicWeightage / 100) * topicPlannedHours;
+                    } else {
+                        // Fallback: distribute equally
+                        const numSubtopics = Object.keys(topic.subtopics).length;
+                        subtopic.actualHours = topicPlannedHours / numSubtopics;
                     }
-                });
-            }
-            
-            // Update completed topics count
-            updateCompletedTopics(subjectId);
-            
-            DataStorage.save('progress', userProgress);
-            loadSubjectContent();
-            updateDashboard();
-            
-            showToast(`Topic marked as ${nextStatus}`, 'success');
+                }
+                
+                subtopic.completed = true;
+            });
+        } else {
+            // If syllabus topic not found, just mark subtopics as completed
+            Object.keys(topic.subtopics).forEach(subtopicName => {
+                topic.subtopics[subtopicName].completed = true;
+            });
         }
+    } else if (nextStatus === 'not-started') {
+        // Reset hours if going back to not-started
+        Object.keys(topic.subtopics).forEach(subtopicName => {
+            const subtopic = topic.subtopics[subtopicName];
+            // Only reset if it's the default 1 hour (indicating it was auto-set)
+            if (subtopic.actualHours === 1) {
+                subtopic.actualHours = 0;
+            }
+            subtopic.completed = false;
+        });
+    }
+    
+    // Update completed topics count
+    updateCompletedTopics(subjectId);
+    
+    DataStorage.save('progress', userProgress);
+    loadSubjectContent();
+    updateDashboard(); // Update dashboard instantly
+    
+    showToast(`Topic marked as ${nextStatus}`, 'success');
+}
+
         
         function updateCompletedTopics(subjectId) {
             if (!userProgress.subjects[subjectId]) return;
@@ -5592,16 +5674,19 @@
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--gray);">
                             <span>Achievement: ${achievement}%</span>
-                            <div class="target-actions">
-                                ${!target.completed ? `
-                                    <button class="complete-target-btn" style="padding: 8px 16px; background: var(--success); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                                        <i class="fas fa-check"></i> Complete
-                                    </button>
-                                ` : '<span style="color: var(--success); font-weight: 600;"><i class="fas fa-check-circle"></i> Completed</span>'}
-                                <button class="delete-target-btn" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </div>
+                         <div class="target-actions">
+    ${target.actualHours > 0 ? `
+        <button class="complete-target-btn ${target.actualHours >= target.plannedHours ? 'btn-success' : 'btn-warning'}" 
+                style="padding: 8px 16px; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; ${target.actualHours >= target.plannedHours ? 'background: var(--success);' : 'background: var(--warning);'}">
+            ${target.actualHours >= target.plannedHours ? '✅ Completed - Archive to History' : `Partially Done (${target.actualHours}/${target.plannedHours} hrs) - Archive?`}
+        </button>
+    ` : `
+        <span style="color: var(--gray); font-weight: 600; padding: 8px 16px; background: #f8f9fa; border-radius: 6px;">Pending (0 hrs)</span>
+    `}
+    <button class="delete-target-btn" style="padding: 8px 16px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        <i class="fas fa-trash"></i> Delete
+    </button>
+</div>
                         </div>
                     </div>
                 </div>`;
@@ -5651,40 +5736,48 @@
             }
         }
         
-        function completeTarget(index) {
-            if (index >= 0 && index < userTargets.length) {
-                const target = userTargets[index];
-                target.completed = true;
-                target.completedDate = new Date().toISOString();
-                target.status = 'completed';
-                
-                // Calculate achievement
-                const achievement = target.plannedHours > 0 ? 
-                    Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
-                
-                // Set detailed status
-                if (achievement >= 100) {
-                    target.detailedStatus = 'completed';
-                } else if (achievement >= 80) {
-                    target.detailedStatus = 'almost-completed';
-                } else {
-                    target.detailedStatus = 'partial';
-                }
-                
-                // Move to completed targets
-                completedTargets.push(target);
-                userTargets.splice(index, 1);
-                
-                DataStorage.save('targets', userTargets);
-                DataStorage.save('completedTargets', completedTargets);
-                
-                loadTargets();
-                loadTargetHistory();
-                updateDashboard();
-                
-                showToast('Target marked as completed!', 'success');
-            }
+       function completeTarget(index) {
+    if (index >= 0 && index < userTargets.length) {
+        const target = userTargets[index];
+        
+        // Only allow archiving if actual hours > 0
+        if (!isEligibleForArchive(target.actualHours, target.plannedHours)) {
+            showToast('Cannot archive target with 0 actual hours. Please enter actual hours first.', 'error');
+            return;
         }
+        
+        target.completed = true;
+        target.completedDate = new Date().toISOString();
+        target.status = 'completed';
+        
+        // Calculate achievement percentage
+        const achievement = target.plannedHours > 0 ? 
+            Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
+        target.achievement = achievement;
+        
+        // Set detailed status
+        if (achievement >= 100) {
+            target.detailedStatus = 'completed';
+        } else if (achievement >= 80) {
+            target.detailedStatus = 'almost-completed';
+        } else {
+            target.detailedStatus = 'partial';
+        }
+        
+        // Move to completed targets
+        completedTargets.push(target);
+        userTargets.splice(index, 1);
+        
+        DataStorage.save('targets', userTargets);
+        DataStorage.save('completedTargets', completedTargets);
+        
+        loadTargets();
+        loadTargetHistory();
+        updateDashboard();
+        
+        showToast('Target archived to history!', 'success');
+    }
+}
         
         function deleteTarget(index) {
             if (confirm('Are you sure you want to delete this target?')) {
@@ -6244,6 +6337,9 @@
                 day: 'numeric' 
             });
         }
+        function isEligibleForArchive(actual, planned) {
+    return actual > 0;
+}
         
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -6296,4 +6392,5 @@
     </script>
 </body>
 </html>
+
 
