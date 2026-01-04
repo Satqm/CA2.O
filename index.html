@@ -3678,20 +3678,19 @@
             }
         }
         
-       function validateLicense(licenseKey) {
+function validateLicense(licenseKey) {
     try {
-        // Step 1: Aggressive Input Sanitization
+        // ===== STEP 1: AGGRESSIVE INPUT SANITIZATION =====
         let cleanKey = licenseKey.trim().toUpperCase();
+        cleanKey = cleanKey.replace(/\s+/g, ''); // Remove all whitespace
         
-        // Remove all whitespace (spaces, tabs, newlines)
-        cleanKey = cleanKey.replace(/\s+/g, '');
-        
-        // Handle demo license separately
-        if (cleanKey === DEMO_LICENSE.replace(/\s+/g, '').toUpperCase()) {
+        // ===== STEP 2: HANDLE DEMO LICENSE =====
+        const demoKeyClean = DEMO_LICENSE.trim().toUpperCase().replace(/\s+/g, '');
+        if (cleanKey === demoKeyClean) {
             return { 
                 valid: true, 
                 data: { 
-                    key: cleanKey, 
+                    key: DEMO_LICENSE,
                     type: 'DEMO', 
                     customer: 'Demo User', 
                     expiry: '2026-12-31' 
@@ -3699,51 +3698,94 @@
             };
         }
         
-        // Step 2: Validate Format (XXXX-XXXX-XXXX-C)
-        const pattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]$/;
-        if (!pattern.test(cleanKey)) {
-            return { valid: false, error: 'Invalid license key format. Expected: XXXX-XXXX-XXXX-C' };
+        // ===== STEP 3: VALIDATE FORMAT (XXXX-XXXX-XXXX-C) =====
+        // Remove dashes for validation
+        const keyWithoutDashes = cleanKey.replace(/-/g, '');
+        
+        // Check if it's 13 alphanumeric characters
+        if (!/^[A-Z0-9]{13}$/.test(keyWithoutDashes)) {
+            return { valid: false, error: 'Invalid license key format. Expected: XXXX-XXXX-XXXX-C (13 alphanumeric characters)' };
         }
         
-        // Step 3: Extract payload and checksum
-        const parts = cleanKey.split('-');
-        const payload = (parts[0] + parts[1] + parts[2]).replace(/-/g, ''); // First 12 chars
-        const providedChecksum = parts[3]; // Last char
+        // ===== STEP 4: EXTRACT PAYLOAD AND CHECKSUM =====
+        const payload = keyWithoutDashes.substring(0, 12);
+        const providedChecksum = keyWithoutDashes.substring(12, 13);
         
-        // Step 4: Weighted Modulo-36 Checksum Calculation
+        // ===== STEP 5: WEIGHTED MODULO-36 CHECKSUM CALCULATION =====
         let sum = 0;
+        let calculationSteps = [];
+        
         for (let i = 0; i < payload.length; i++) {
-            sum += payload.charCodeAt(i) * (i + 1); // i+1 for 1-based position
+            const charCode = payload.charCodeAt(i);
+            const weight = i + 1; // 1-based position
+            const product = charCode * weight;
+            sum += product;
+            calculationSteps.push(`${payload[i]}: ${charCode} × ${weight} = ${product}`);
         }
         
-        const calculatedChecksum = (sum % 36).toString(36).toUpperCase();
+        const moduloResult = sum % 36;
+        const calculatedChecksum = moduloResult.toString(36).toUpperCase();
         
-        // Step 5: Verify Checksum
+        // ===== STEP 6: VERIFY CHECKSUM =====
         if (calculatedChecksum !== providedChecksum) {
+            console.log('Checksum validation failed:', {
+                payload,
+                providedChecksum,
+                calculatedChecksum,
+                sum,
+                moduloResult,
+                steps: calculationSteps
+            });
             return { valid: false, error: 'Invalid license key checksum' };
         }
         
-        // Step 6: Additional validations
-        const expiryDate = new Date('2026-12-31');
+        // ===== STEP 7: ADDITIONAL VALIDATIONS =====
+        const expiryDate = new Date('2026-12-31'); // Fixed expiry for now
         const currentDate = new Date();
         
         if (expiryDate < currentDate) {
             return { valid: false, error: 'License has expired' };
         }
         
-        // Success - Return license data
+        // ===== STEP 8: LICENSE DATA CONSTRUCTION =====
+        // Extract customer initials from payload
+        let customerName = 'Premium User';
+        if (/^[A-Z]{2}/.test(payload)) {
+            const firstTwo = payload.substring(0, 2);
+            customerName = `${firstTwo[0]}.${firstTwo[1]}. License Holder`;
+        }
+        
+        // Determine license type based on pattern
+        let licenseType = 'PREMIUM';
+        if (payload.startsWith('STU') || payload.includes('STUDENT')) {
+            licenseType = 'STUDENT';
+        } else if (payload.startsWith('TRIAL') || payload.includes('TRIAL')) {
+            licenseType = 'TRIAL';
+        }
+        
+        // Format key with dashes for display
+        const formattedKey = payload.substring(0,4) + '-' + 
+                           payload.substring(4,8) + '-' + 
+                           payload.substring(8,12) + '-' + 
+                           providedChecksum;
+        
+        // ===== STEP 9: RETURN VALID LICENSE DATA =====
         return { 
             valid: true, 
             data: { 
-                key: cleanKey, 
-                type: 'PREMIUM', 
-                customer: 'Valid User', 
+                key: formattedKey,
+                originalKey: licenseKey,
+                type: licenseType, 
+                customer: customerName, 
                 expiry: '2026-12-31',
-                deviceId: deviceId // Bind to current device
+                deviceId: deviceId, // Bind to current device
+                checksumVerified: true,
+                validationDate: new Date().toISOString()
             } 
         };
         
     } catch (error) {
+        console.error('License validation error:', error);
         return { valid: false, error: 'License validation failed: ' + error.message };
     }
 }
@@ -6392,5 +6434,6 @@
     </script>
 </body>
 </html>
+
 
 
