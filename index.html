@@ -2388,11 +2388,7 @@
         </a>
     </div>
     
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="https://wa.me/919142300129" target="_blank" class="whatsapp-cta">
-            <i class="fab fa-whatsapp"></i> Contact for License on WhatsApp
-        </a>
-    </div>
+   
 </div>
       
         
@@ -3799,20 +3795,40 @@
             });
         }
         
-        function checkLicenseOnStartup() {
-            if (currentLicense) {
-                const validation = validateLicense(currentLicense.key);
-                if (validation.valid) {
-                    showLicenseStatus('active', 'License activated successfully!');
-                    enableAppAccess();
-                } else {
-                    showLicenseStatus('expired', 'License has expired or is invalid.');
-                    checkTrialAccess();
-                }
+       function checkLicenseOnStartup() {
+    // Load saved license
+    currentLicense = DataStorage.load('license');
+    const trialData = DataStorage.load('trial');
+    
+    if (trialData) {
+        isTrialActive = trialData.active;
+        trialStartDate = trialData.startDate;
+        trialDaysLeft = calculateTrialDaysLeft(trialStartDate);
+    }
+    
+    if (currentLicense) {
+        const validation = validateLicense(currentLicense.key);
+        if (validation.valid) {
+            // Check if license is expired
+            const expiryDate = new Date(currentLicense.expiry);
+            const today = new Date();
+            
+            if (expiryDate >= today) {
+                showLicenseStatus('active', 'License active. Welcome back!');
+                enableAppAccess();
             } else {
+                showLicenseStatus('expired', 'License has expired');
                 checkTrialAccess();
             }
+        } else {
+            showLicenseStatus('expired', 'License validation failed');
+            checkTrialAccess();
         }
+    } else {
+        checkTrialAccess();
+    }
+}
+
         
         function checkTrialAccess() {
             const trialData = DataStorage.load('trial');
@@ -3848,7 +3864,6 @@ document.getElementById('license-input').addEventListener('input', function(e) {
     
     e.target.value = value;
 });
-        
 function validateLicense(licenseKey) {
     try {
         // ===== STEP 1: CLEAN AND SANITIZE =====
@@ -3860,26 +3875,25 @@ function validateLicense(licenseKey) {
         console.log('License validation:', { original: licenseKey, cleanKey });
         
         // ===== STEP 2: HANDLE DEMO LICENSE =====
-   // Handle demo license
-const demoKeyClean = "DEMOCAFINAL2C";
-if (cleanKey === demoKeyClean) {
-    return { 
-        valid: true, 
-        data: { 
-            key: licenseKey,
-            type: 'DEMO', 
-            customer: userNameInput.value || 'Demo User', // Use entered name
-            expiry: '2026-12-31' 
-        } 
-    };
-}
+        const demoKeyClean = "DEMOCAFINAL2C";
+        if (cleanKey === demoKeyClean) {
+            return { 
+                valid: true, 
+                data: { 
+                    key: "DEMO-CAFI-NAL2-C",
+                    type: 'DEMO', 
+                    customer: "Demo User",
+                    expiry: getExpiryDate('TRIAL', 7)  // 7-day trial
+                } 
+            };
+        }
         
         // ===== STEP 3: CHECK LENGTH =====
         // Format should be 13 alphanumeric characters (12 payload + 1 checksum)
         if (cleanKey.length !== 13) {
             return { 
                 valid: false, 
-                error: `License key must be 13 characters (got ${cleanKey.length}). Format: 12 letters/numbers + 1 checksum` 
+                error: `License key must be 13 characters (got ${cleanKey.length}). Format: XXXX-XXXX-XXXX-C` 
             };
         }
         
@@ -3926,14 +3940,6 @@ if (cleanKey === demoKeyClean) {
             calculatedChecksum = String.fromCharCode(moduloResult + 55); // A-Z
         }
         
-        console.log('Checksum calculation:', {
-            payload,
-            sum,
-            moduloResult,
-            calculatedChecksum,
-            providedChecksum
-        });
-        
         // ===== STEP 7: VERIFY CHECKSUM =====
         if (calculatedChecksum !== providedChecksum) {
             return { 
@@ -3942,30 +3948,15 @@ if (cleanKey === demoKeyClean) {
             };
         }
         
-        // ===== STEP 8: EXPIRY CHECK =====
-        const expiryDate = new Date('2026-12-31');
-        const currentDate = new Date();
-        
-        if (expiryDate < currentDate) {
-            return { valid: false, error: 'License has expired' };
-        }
-        
-        // ===== STEP 9: CONSTRUCT LICENSE DATA =====
-        // Format key for display (add dashes)
-        const formattedKey = cleanKey.substring(0, 4) + '-' + 
-                           cleanKey.substring(4, 8) + '-' + 
-                           cleanKey.substring(8, 12) + '-' + 
-                           providedChecksum;
-        
-        // Determine license type from payload
+        // ===== STEP 8: DETERMINE LICENSE TYPE =====
         let licenseType = 'PREMIUM';
         let customerName = 'Premium User';
         
-        // Check for special prefixes
+        // Check for special prefixes (same as generator)
         if (payload.startsWith('DEMO')) {
             licenseType = 'DEMO';
             customerName = 'Demo User';
-        } else if (payload.startsWith('STU') || payload.includes('STUDENT')) {
+        } else if (payload.startsWith('STU')) {
             licenseType = 'STUDENT';
             customerName = 'Student User';
         } else if (payload.startsWith('TRIAL')) {
@@ -3973,7 +3964,32 @@ if (cleanKey === demoKeyClean) {
             customerName = 'Trial User';
         }
         
-        // ===== STEP 10: RETURN VALID LICENSE =====
+        // ===== STEP 9: EXPIRY DATE BASED ON TYPE =====
+        let expiryDate;
+        switch(licenseType) {
+            case 'PREMIUM':
+                expiryDate = getExpiryDate('PREMIUM', 365);
+                break;
+            case 'STUDENT':
+                expiryDate = getExpiryDate('STUDENT', 180);
+                break;
+            case 'TRIAL':
+                expiryDate = getExpiryDate('TRIAL', 30);
+                break;
+            case 'DEMO':
+                expiryDate = getExpiryDate('TRIAL', 7); // 7-day demo
+                break;
+            default:
+                expiryDate = getExpiryDate('PREMIUM', 365);
+        }
+        
+        // ===== STEP 10: FORMAT KEY FOR DISPLAY =====
+        const formattedKey = cleanKey.substring(0, 4) + '-' + 
+                           cleanKey.substring(4, 8) + '-' + 
+                           cleanKey.substring(8, 12) + '-' + 
+                           providedChecksum;
+        
+        // ===== STEP 11: RETURN VALID LICENSE =====
         return { 
             valid: true, 
             data: { 
@@ -3981,7 +3997,7 @@ if (cleanKey === demoKeyClean) {
                 originalKey: licenseKey,
                 type: licenseType, 
                 customer: customerName, 
-                expiry: '2026-12-31',
+                expiry: expiryDate,
                 deviceId: deviceId,
                 checksumVerified: true,
                 validationDate: new Date().toISOString()
@@ -3994,8 +4010,15 @@ if (cleanKey === demoKeyClean) {
     }
 }
 
+// Add this helper function for expiry dates
+function getExpiryDate(type, days) {
+    const today = new Date();
+    const expiryDate = new Date(today);
+    expiryDate.setDate(today.getDate() + days);
+    return expiryDate.toISOString().split('T')[0];
+}
         
-    function activateLicense() {
+   function activateLicense() {
     const userNameInput = document.getElementById('user-name-input');
     const licenseInput = document.getElementById('license-input');
     let userName = userNameInput.value.trim();
@@ -4012,36 +4035,43 @@ if (cleanKey === demoKeyClean) {
         licenseInput.focus();
         return;
     }
-        // Auto-highlight demo inputs
-if (licenseKey === "DEMO-CAFI-NAL2-C") {
-    userNameInput.classList.add('manual-highlight');
-    licenseInput.classList.add('manual-highlight');
-}
     
-    // Apply aggressive sanitization
-    licenseKey = licenseKey.trim().toUpperCase().replace(/\s+/g, '');
-    userName = userName.substring(0, 50); // Limit to 50 chars
+    // Clean the license key
+    licenseKey = licenseKey.trim().toUpperCase();
+    userName = userName.substring(0, 50);
     
     // Update inputs with cleaned values
     userNameInput.value = userName;
-    licenseInput.value = licenseKey;
     
     // Handle demo license
-    if (licenseKey === DEMO_LICENSE.replace(/\s+/g, '').toUpperCase()) {
-        currentUser.name = userName || 'Demo User';
-        useDemoLicense();
+    const demoKeyClean = "DEMOCAFINAL2C";
+    if (licenseKey.replace(/[^A-Z0-9]/g, '') === demoKeyClean) {
+        licenseInput.value = "DEMO-CAFI-NAL2-C";
+        licenseKey = "DEMO-CAFI-NAL2-C";
+        
+        currentLicense = {
+            key: "DEMO-CAFI-NAL2-C",
+            type: 'DEMO',
+            customer: userName || 'Demo User',
+            expiry: getExpiryDate('TRIAL', 7),
+            deviceId: deviceId
+        };
+        
+        DataStorage.save('license', currentLicense);
+        showLicenseStatus('active', 'Demo license activated! 7-day trial started.');
+        licenseInput.classList.add('valid');
+        userNameInput.classList.add('valid');
+        
+        enableAppAccess();
         return;
     }
     
     const validation = validateLicense(licenseKey);
             
-if (validation.valid) {
-    // ... success code ...
-} else {
-    showLicenseStatus('expired', validation.error || 'Invalid license key');
-    licenseInput.classList.add('invalid');
-    licenseInput.classList.remove('valid');
-}
+    if (validation.valid) {
+        currentLicense = validation.data;
+        currentLicense.customer = userName || validation.data.customer;
+        
         // Store user name
         currentUser.name = userName;
         currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
@@ -4053,20 +4083,14 @@ if (validation.valid) {
         licenseInput.classList.add('valid');
         userNameInput.classList.add('valid');
         
-        // Update UI
-        document.getElementById('license-type').textContent = currentLicense.type || 'Premium';
-        document.getElementById('license-customer').textContent = userName || 'Premium User';
-        document.getElementById('license-expiry').textContent = currentLicense.expiry || 'Lifetime';
-        
-        // Update user UI
-        updateUserUI();
-        
         enableAppAccess();
     } else {
         showLicenseStatus('expired', validation.error || 'Invalid license key');
         licenseInput.classList.add('invalid');
+        licenseInput.classList.remove('valid');
     }
 }
+
 
         
 function useDemoLicense() {
@@ -4081,18 +4105,19 @@ function useDemoLicense() {
     // Auto-fill demo license key
     licenseInput.value = "DEMO-CAFI-NAL2-C";
     
-    // Trigger activation
-    setTimeout(() => {
-        document.getElementById('license-activate-btn').click();
-    }, 500);
-    
     // Visual feedback
     userNameInput.classList.add('manual-highlight');
     licenseInput.classList.add('manual-highlight');
     
-    showToast('Demo license loaded! Click "Activate & Start" to begin', 'success');
+    // Auto-activate immediately (no need for extra click)
+    setTimeout(() => {
+        activateLicense();
+    }, 100);
+    
+    showToast('Demo license loaded! Starting 7-day trial...', 'success');
 }
-        function showLicenseStatus(type, message) {
+
+       function showLicenseStatus(type, message) {
     const statusEl = document.getElementById('license-status');
     statusEl.className = `license-status ${type}`;
     
@@ -4103,6 +4128,7 @@ function useDemoLicense() {
     if (type === 'trial') icon = 'fa-clock';
     
     statusEl.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+    statusEl.style.display = 'block';
     
     // Update footer status
     const footerStatus = document.getElementById('footer-license-status');
@@ -4112,35 +4138,80 @@ function useDemoLicense() {
                                  'License: Not Active';
     }
     
-    // Update app header status
+    // Update app header status (if app is active)
     const headerStatus = document.getElementById('license-status-text');
     if (headerStatus) {
         headerStatus.textContent = type === 'active' ? 'Premium' : 
                                   type === 'trial' ? 'Trial' : 'Inactive';
     }
     
-    // Show/hide trial status
+    // Show/hide trial status in app header
     const trialStatus = document.getElementById('trial-status');
     if (trialStatus) {
         trialStatus.style.display = type === 'trial' ? 'inline' : 'none';
     }
+    
+    // Show/hide trial info in welcome screen
+    const trialInfo = document.getElementById('trial-info');
+    if (trialInfo) {
+        trialInfo.style.display = type === 'trial' ? 'block' : 'none';
+    }
 }
+// Auto-format license key as user types
+document.getElementById('license-input').addEventListener('input', function(e) {
+    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    
+    // Auto-insert dashes at correct positions
+    if (value.length > 4 && value.length <= 8) {
+        value = value.substring(0, 4) + '-' + value.substring(4);
+    } else if (value.length > 8 && value.length <= 12) {
+        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + value.substring(8);
+    } else if (value.length > 12) {
+        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + 
+                value.substring(8, 12) + '-' + value.substring(12, 13);
+    }
+    
+    e.target.value = value;
+});
+
    function enableAppAccess() {
     // Hide welcome screen and show app immediately
-    welcomeContainer.style.display = 'none';
-    appContainer.style.display = 'block';
-    appContainer.classList.add('active');
+    document.getElementById('welcome-container').style.display = 'none';
+    document.getElementById('app-container').style.display = 'block';
+    document.getElementById('app-container').classList.add('active');
+    
+    // Update user name from input
+    const userName = document.getElementById('user-name-input').value.trim() || 'User';
+    currentUser.name = userName;
+    currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    
+    // Update UI
+    updateUserUI();
     
     // Update dashboard
     updateDashboard();
     
-    // Schedule notifications if enabled
-    scheduleNotifications();
-    
-    // Update user UI
-    updateUserUI();
-    
+    // Show success message
     showToast(`Welcome ${currentUser.name}! Starting your study tracker...`, 'success');
+    
+    // Save user data
+    DataStorage.save('user', currentUser);
+    
+    // For demo license, set trial data
+    if (currentLicense && currentLicense.type === 'DEMO') {
+        const trialData = {
+            active: true,
+            startDate: new Date().toISOString(),
+            days: 7
+        };
+        DataStorage.save('trial', trialData);
+        isTrialActive = true;
+        trialDaysLeft = 7;
+        
+        // Show trial info
+        document.getElementById('trial-info').style.display = 'block';
+        document.getElementById('trial-days').textContent = trialDaysLeft;
+    }
 }
 
         
@@ -6811,6 +6882,7 @@ function highlightManualEntries() {
     </script>
 </body>
 </html>
+
 
 
 
