@@ -2233,6 +2233,97 @@
     border-radius: 3px;
     margin-left: 5px;
 }
+        /* Simplified layout adjustments */
+.welcome-box {
+    padding: 30px;
+    max-width: 500px;
+}
+
+.license-actions {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.license-actions .use-demo-btn,
+.license-actions .get-license-btn {
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.license-actions .use-demo-btn {
+    background: #f8f9fa;
+    color: var(--primary);
+    border: 2px solid var(--secondary);
+}
+
+.license-actions .get-license-btn {
+    background: #25D366;
+    color: white;
+    border: 2px solid #25D366;
+}
+
+.license-actions .use-demo-btn:hover,
+.license-actions .get-license-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.license-details {
+    display: none !important;
+}
+
+.license-toggle {
+    display: none;
+}
+
+.whatsapp-cta {
+    background: #25D366;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.whatsapp-cta:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+}
+
+@media (max-width: 768px) {
+    .license-input-group {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .license-actions {
+        flex-direction: column;
+    }
+    
+    .license-actions .use-demo-btn,
+    .license-actions .get-license-btn {
+        width: 100%;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -2255,131 +2346,58 @@
             
             <!-- License Section -->
             <div class="license-section">
-                <h3 style="text-align: center; margin-bottom: 20px; color: var(--primary);">
-                    <i class="fas fa-key"></i> License Activation
-                </h3>
-                
-<div class="license-input-group">
-    <div class="input-with-label">
-        <label for="user-name-input">Your Name</label>
-        <input type="text" 
-               id="user-name-input" 
-               class="license-input" 
-               placeholder="Enter your full name"
-               maxlength="50">
+    <div class="license-input-group">
+        <div class="input-with-label">
+            <label for="user-name-input"><i class="fas fa-user"></i> Your Name</label>
+            <input type="text" 
+                   id="user-name-input" 
+                   class="license-input" 
+                   placeholder="Enter your full name"
+                   maxlength="50">
+        </div>
+        <div class="input-with-label">
+            <label for="license-input"><i class="fas fa-key"></i> License Key</label>
+            <input type="text" 
+                   id="license-input" 
+                   class="license-input" 
+                   placeholder="XXXX-XXXX-XXXX-X (13 characters)"
+                   maxlength="19"
+                   pattern="[A-Z0-9-]{13,19}"
+                   title="Format: XXXX-XXXX-XXXX-C">
+        </div>
+        <div class="activate-button-container">
+            <button class="license-activate-btn" id="license-activate-btn">
+                <i class="fas fa-rocket"></i> Activate & Start
+            </button>
+        </div>
     </div>
-    <div class="input-with-label">
-        <label for="license-input">License Key</label>
-       <input type="text" 
-       id="license-input" 
-       class="license-input" 
-       placeholder="XXXX-XXXX-XXXX-X (13 characters)"
-       maxlength="19"
-       pattern="[A-Z0-9-]{13,19}"
-       title="Format: XXXX-XXXX-XXXX-C">    </div>
-    <div class="activate-button-container">
-        <button class="license-activate-btn" id="license-activate-btn">
-            <i class="fas fa-rocket"></i> Activate & Start
+    
+    <div class="license-status" id="license-status"></div>
+    
+    <div class="trial-info" id="trial-info" style="display: none;">
+        <h4><i class="fas fa-clock"></i> Trial Period Active</h4>
+        <p>You have <span id="trial-days">7</span> days left in your trial period.</p>
+    </div>
+    
+    <div class="license-actions">
+        <button class="use-demo-btn" id="use-demo-btn">
+            <i class="fas fa-play-circle"></i> Use Demo License
         </button>
+        <a href="https://wa.me/919142300129" target="_blank" class="get-license-btn">
+            <i class="fab fa-whatsapp"></i> Get License Key
+        </a>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="https://wa.me/919142300129" target="_blank" class="whatsapp-cta">
+            <i class="fab fa-whatsapp"></i> Contact for License on WhatsApp
+        </a>
     </div>
 </div>
-                
-                <div class="license-status" id="license-status"></div>
-                
-                <div class="trial-info" id="trial-info" style="display: none;">
-                    <h4><i class="fas fa-clock"></i> Trial Period Active</h4>
-                    <p>You have <span id="trial-days">7</span> days left in your trial period.</p>
-                    <p style="font-size: 14px; margin-top: 10px;">
-                        Upgrade to premium for unlimited access to all features.
-                    </p>
-                </div>
-                
-                <div class="license-actions">
-                    <button class="use-demo-btn" id="use-demo-btn">
-                        <i class="fas fa-play-circle"></i> Use Demo License
-                    </button>
-                    <button class="get-license-btn" id="get-license-btn">
-                        <i class="fas fa-key"></i> Get License Key
-                    </button>
-                    <button class="buy-now-btn" id="buy-now-btn">
-                        <i class="fas fa-shopping-cart"></i> Buy Now
-                    </button>
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="https://wa.me/919142300129" target="_blank" class="whatsapp-cta">
-                        <i class="fab fa-whatsapp"></i> Contact for License on WhatsApp
-                    </a>
-                </div>
-                
-                <div class="license-toggle">
-                    <button class="license-toggle-btn" id="license-toggle">
-                        <i class="fas fa-chevron-down"></i> Show License Details
-                    </button>
-                </div>
-                
-                <div class="license-details" id="license-details">
-                    <div class="license-detail-item">
-                        <i class="fas fa-info-circle"></i>
-                        <span>License Type: <span id="license-type">Not Activated</span></span>
-                    </div>
-                    <div class="license-detail-item">
-                        <i class="fas fa-user"></i>
-                        <span>Customer: <span id="license-customer">-</span></span>
-                    </div>
-                    <div class="license-detail-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Expiry: <span id="license-expiry">-</span></span>
-                    </div>
-                    <div class="license-detail-item">
-                        <i class="fas fa-id-card"></i>
-                        <span>Device ID: <span id="device-id">-</span></span>
-                    </div>
-                </div>
-            </div>
+      
+        
             
-            <!-- Premium Features -->
-            <div class="premium-features">
-                <h3><i class="fas fa-crown"></i> Premium Features</h3>
-                <div class="features-list">
-                    <div class="feature-item">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Advanced Analytics & KPIs</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-bell"></i>
-                        <span>Smart Notifications</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-database"></i>
-                        <span>Unlimited Data Storage</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-cloud-download-alt"></i>
-                        <span>Cloud Backup & Sync</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-mobile-alt"></i>
-                        <span>Mobile Responsive</span>
-                    </div>
-                    <div class="feature-item">
-                        <i class="fas fa-headset"></i>
-                        <span>Priority Support</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Demo Credentials -->
-            <div class="demo-credentials">
-                <h4><i class="fas fa-info-circle"></i> Demo License</h4>
-                <p>Try the app with demo license (7-day trial):</p>
-                <div class="demo-license" id="demo-license">
-                    DEMO-CAFI-NAL2-C
-                </div>
-                <p style="font-size: 14px; margin-top: 10px;">
-                    Copy and paste this key to activate demo mode
-                </p>
-            </div>
+       
             
             <div class="social-links">
                 <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-link" title="Portfolio">
@@ -3842,18 +3860,19 @@ function validateLicense(licenseKey) {
         console.log('License validation:', { original: licenseKey, cleanKey });
         
         // ===== STEP 2: HANDLE DEMO LICENSE =====
-        const demoKeyClean = "DEMOCAFINAL2C"; // 13 characters without dashes
-        if (cleanKey === demoKeyClean) {
-            return { 
-                valid: true, 
-                data: { 
-                    key: licenseKey,
-                    type: 'DEMO', 
-                    customer: 'Demo User', 
-                    expiry: '2026-12-31' 
-                } 
-            };
-        }
+   // Handle demo license
+const demoKeyClean = "DEMOCAFINAL2C";
+if (cleanKey === demoKeyClean) {
+    return { 
+        valid: true, 
+        data: { 
+            key: licenseKey,
+            type: 'DEMO', 
+            customer: userNameInput.value || 'Demo User', // Use entered name
+            expiry: '2026-12-31' 
+        } 
+    };
+}
         
         // ===== STEP 3: CHECK LENGTH =====
         // Format should be 13 alphanumeric characters (12 payload + 1 checksum)
@@ -3993,6 +4012,11 @@ function validateLicense(licenseKey) {
         licenseInput.focus();
         return;
     }
+        // Auto-highlight demo inputs
+if (licenseKey === "DEMO-CAFI-NAL2-C") {
+    userNameInput.classList.add('manual-highlight');
+    licenseInput.classList.add('manual-highlight');
+}
     
     // Apply aggressive sanitization
     licenseKey = licenseKey.trim().toUpperCase().replace(/\s+/g, '');
@@ -4045,62 +4069,28 @@ if (validation.valid) {
 }
 
         
-        function useDemoLicense() {
+function useDemoLicense() {
     const userNameInput = document.getElementById('user-name-input');
-    let userName = userNameInput ? userNameInput.value.trim() : 'Demo User';
+    const licenseInput = document.getElementById('license-input');
     
-    if (!userName) {
-        userName = 'Demo User';
+    // Auto-fill name if empty
+    if (!userNameInput.value.trim()) {
+        userNameInput.value = "Demo User";
     }
     
-    // Set user name
-    currentUser.name = userName;
-    currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-    DataStorage.save('user', currentUser);
+    // Auto-fill demo license key
+    licenseInput.value = "DEMO-CAFI-NAL2-C";
     
-    const trialData = DataStorage.load('trial');
+    // Trigger activation
+    setTimeout(() => {
+        document.getElementById('license-activate-btn').click();
+    }, 500);
     
-    if (!trialData || !trialData.active) {
-        // Start new trial
-        const trialStart = new Date().toISOString();
-        DataStorage.save('trial', {
-            active: true,
-            startDate: trialStart,
-            type: 'demo'
-        });
-        
-        isTrialActive = true;
-        trialStartDate = trialStart;
-        trialDaysLeft = 7;
-        
-        // Pre-fill demo license
-        document.getElementById('license-input').value = DEMO_LICENSE;
-        
-        showLicenseStatus('trial', 'Demo license activated! 7-day trial started.');
-        document.getElementById('trial-info').style.display = 'block';
-        document.getElementById('trial-days').textContent = trialDaysLeft;
-        document.getElementById('license-input').classList.add('valid');
-        
-        // Update user UI
-        updateUserUI();
-        
-        enableAppAccess();
-    } else {
-        // Trial already active
-        trialDaysLeft = calculateTrialDaysLeft(trialData.startDate);
-        if (trialDaysLeft > 0) {
-            showLicenseStatus('trial', `Trial active - ${trialDaysLeft} days remaining`);
-            document.getElementById('trial-info').style.display = 'block';
-            document.getElementById('trial-days').textContent = trialDaysLeft;
-            
-            // Update user UI
-            updateUserUI();
-            
-            enableAppAccess();
-        } else {
-            showLicenseStatus('expired', 'Trial period has expired. Please activate a license.');
-        }
-    }
+    // Visual feedback
+    userNameInput.classList.add('manual-highlight');
+    licenseInput.classList.add('manual-highlight');
+    
+    showToast('Demo license loaded! Click "Activate & Start" to begin', 'success');
 }
         function showLicenseStatus(type, message) {
     const statusEl = document.getElementById('license-status');
@@ -6821,6 +6811,7 @@ function highlightManualEntries() {
     </script>
 </body>
 </html>
+
 
 
 
