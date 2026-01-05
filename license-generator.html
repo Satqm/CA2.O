@@ -166,7 +166,7 @@
             <h3>📌 How This Works:</h3>
             <p>This generator creates license keys using the <strong>Weighted Modulo-36 Checksum Algorithm</strong>.</p>
             <p><strong>Format:</strong> XXXX-XXXX-XXXX-C (13 characters total, 12 payload + 1 checksum)</p>
-            <p><strong>Example:</strong> ABCD-EFGH-IJKL-M (where M is the calculated checksum)</p>
+            <p><strong>Logic:</strong> A=10, B=11... Z=35 (Base36 Matching App Logic)</p>
         </div>
         
         <div class="form-group">
@@ -231,25 +231,12 @@
                     </div>
                     <div class="detail-item">
                         <span><strong>Checksum Calculation:</strong></span>
-                        <span id="validation-calc"></span>
+                        <span id="validation-calc" style="font-size: 13px;"></span>
                     </div>
                     <div class="detail-item">
                         <span><strong>Modulo 36 Result:</strong></span>
                         <span id="validation-modulo"></span>
                     </div>
-                </div>
-                
-                <h3 class="section-title">📝 Instructions for Use</h3>
-                <div class="info-box">
-                    <p>1. Copy the generated license key</p>
-                    <p>2. Paste it into the CA Final Pro Tracker activation screen</p>
-                    <p>3. The system will automatically:</p>
-                    <ul style="margin-left: 20px; margin-top: 10px;">
-                        <li>Trim whitespace</li>
-                        <li>Convert to uppercase</li>
-                        <li>Validate checksum</li>
-                        <li>Activate premium features</li>
-                    </ul>
                 </div>
             </div>
         </div>
@@ -269,5 +256,193 @@
         </div>
     </div>
 
-    </body>
-</html>                    
+    <script>
+        // Character set for license keys
+        const CHARACTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        
+        // License durations (in days)
+        const LICENSE_DURATIONS = {
+            'PREMIUM': 365,
+            'STUDENT': 180,
+            'TRIAL': 30
+        };
+        
+        function generateRandomString(length) {
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += CHARACTERS.charAt(Math.floor(Math.random() * CHARACTERS.length));
+            }
+            return result;
+        }
+        
+        function calculateChecksum(payload) {
+            // ==========================================
+            // LOGIC FIXED TO MATCH APP EXACTLY (Base36)
+            // ==========================================
+            let sum = 0;
+            
+            for (let i = 0; i < payload.length; i++) {
+                const char = payload.charAt(i);
+                let charValue;
+                
+                // Convert character to value (0-9 = 0-9, A-Z = 10-35)
+                if (char >= '0' && char <= '9') {
+                    charValue = parseInt(char);
+                } else {
+                    // A (65) - 55 = 10
+                    charValue = char.charCodeAt(0) - 55; 
+                }
+                
+                // Weighted sum (1-based index)
+                sum += charValue * (i + 1);
+            }
+            
+            const moduloResult = sum % 36;
+            
+            // Convert result to base-36 digit (0-9, A-Z)
+            if (moduloResult < 10) {
+                return moduloResult.toString();
+            } else {
+                return String.fromCharCode(moduloResult + 55);
+            }
+        }
+        
+        function formatLicenseKey(keyWithoutDashes) {
+            return keyWithoutDashes.substring(0,4) + '-' + 
+                   keyWithoutDashes.substring(4,8) + '-' + 
+                   keyWithoutDashes.substring(8,12) + '-' + 
+                   keyWithoutDashes.substring(12,13);
+        }
+        
+        function getExpiryDate(licenseType) {
+            const today = new Date();
+            const daysToAdd = LICENSE_DURATIONS[licenseType] || 365;
+            const expiryDate = new Date(today);
+            expiryDate.setDate(today.getDate() + daysToAdd);
+            return expiryDate.toISOString().split('T')[0];
+        }
+        
+        function generateLicenseKey() {
+            const licenseType = document.getElementById('license-type').value;
+            const customerName = document.getElementById('customer-name').value || 'Premium User';
+            const customPayload = document.getElementById('custom-payload').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            
+            // Generate payload (12 characters)
+            let payload;
+            if (customPayload && customPayload.length === 12) {
+                payload = customPayload;
+            } else {
+                // Generate random payload
+                payload = generateRandomString(12);
+                
+                // Make first 4 chars represent customer initials
+                const initials = customerName.split(' ').map(n => n[0]).join('').toUpperCase();
+                if (initials.length >= 2) {
+                    payload = initials.substring(0,2) + generateRandomString(10);
+                }
+            }
+            
+            // Calculate checksum using NEW logic
+            const checksum = calculateChecksum(payload);
+            const fullKeyWithoutDashes = payload + checksum;
+            const formattedKey = formatLicenseKey(fullKeyWithoutDashes);
+            const expiryDate = getExpiryDate(licenseType);
+            
+            // Display results
+            document.getElementById('generated-key').textContent = formattedKey;
+            document.getElementById('detail-type').textContent = licenseType;
+            document.getElementById('detail-customer').textContent = customerName;
+            document.getElementById('detail-expiry').textContent = expiryDate;
+            document.getElementById('detail-full').textContent = fullKeyWithoutDashes;
+            document.getElementById('detail-checksum').textContent = checksum;
+            document.getElementById('validation-payload').textContent = payload;
+            
+            // Show validation calculation (Updated Visuals)
+            let sum = 0;
+            let calculationSteps = [];
+            for (let i = 0; i < payload.length; i++) {
+                const char = payload.charAt(i);
+                let val;
+                if (char >= '0' && char <= '9') {
+                    val = parseInt(char);
+                } else {
+                    val = char.charCodeAt(0) - 55; 
+                }
+                
+                const product = val * (i + 1);
+                sum += product;
+                calculationSteps.push(`${char}(${val})×${i+1}`);
+            }
+            
+            document.getElementById('validation-calc').innerHTML = 
+                `Sum: ${sum} <br><small style="color:#666;">(${calculationSteps.join(' + ')})</small>`;
+            
+            document.getElementById('validation-modulo').innerHTML = 
+                `${sum} % 36 = ${sum % 36} → Base36 = ${checksum}`;
+            
+            // Show results section
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('test-section').style.display = 'block';
+            
+            // Auto-fill test field
+            document.getElementById('test-key').value = formattedKey;
+        }
+        
+        function copyToClipboard() {
+            const keyText = document.getElementById('generated-key').textContent;
+            navigator.clipboard.writeText(keyText).then(() => {
+                alert('✅ License key copied to clipboard!');
+            });
+        }
+        
+        function testValidation() {
+            const testKey = document.getElementById('test-key').value;
+            const resultDiv = document.getElementById('test-result');
+            
+            // Sanitize input
+            let cleanKey = testKey.trim().toUpperCase().replace(/\s+/g, '').replace(/-/g, '');
+            
+            if (cleanKey.length !== 13) {
+                resultDiv.innerHTML = `<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                    ❌ Invalid length: Expected 13 characters, got ${cleanKey.length}
+                </div>`;
+                return;
+            }
+            
+            const payload = cleanKey.substring(0, 12);
+            const providedChecksum = cleanKey.substring(12, 13);
+            const calculatedChecksum = calculateChecksum(payload);
+            
+            if (calculatedChecksum === providedChecksum) {
+                resultDiv.innerHTML = `<div style="background: #d4edda; color: #155724; padding: 15px; border-radius: 8px;">
+                    ✅ VALID LICENSE KEY! (Matched App Logic)
+                    <br><br>
+                    <strong>Formatted:</strong> ${formatLicenseKey(cleanKey)}
+                </div>`;
+            } else {
+                resultDiv.innerHTML = `<div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px;">
+                    ❌ INVALID LICENSE KEY!
+                    <br><br>
+                    <strong>Provided Checksum:</strong> ${providedChecksum}
+                    <br><strong>Expected Checksum:</strong> ${calculatedChecksum}
+                </div>`;
+            }
+        }
+        
+        // Auto-generate on page load
+        window.onload = function() {
+            generateLicenseKey();
+        };
+        
+        // Event Listeners
+        document.getElementById('custom-payload').addEventListener('input', function(e) {
+            const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            e.target.value = value.substring(0, 12);
+            if (value.length === 12) generateLicenseKey();
+        });
+        
+        document.getElementById('customer-name').addEventListener('input', generateLicenseKey);
+        document.getElementById('license-type').addEventListener('change', generateLicenseKey);
+    </script>
+</body>
+</html>
