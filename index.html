@@ -135,12 +135,76 @@
             border: 2px solid #e9ecef;
         }
         
-        .license-input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
+.license-input-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+@media (min-width: 768px) {
+    .license-input-group {
+        grid-template-columns: 1fr 1fr auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .license-input-group {
+        grid-template-columns: 1fr;
+    }
+}
+        .input-with-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-with-label label {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+.activate-button-container {
+    display: flex;
+    align-items: flex-end;
+}
+
+.license-activate-btn {
+    padding: 16px 30px;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    width: 100%;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.license-activate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+}
+
+.license-activate-btn i {
+    font-size: 18px;
+}
+
+.license-activate-btn:disabled {
+    background: var(--gray);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
         .license-input {
             flex: 1;
             padding: 16px 20px;
@@ -214,19 +278,33 @@
             border: 2px solid rgba(52, 152, 219, 0.2);
         }
         
-        .trial-info {
-            text-align: center;
-            padding: 15px;
-            margin: 20px 0;
-            background: rgba(52, 152, 219, 0.1);
-            border-radius: 12px;
-            border: 2px solid rgba(52, 152, 219, 0.2);
-        }
-        
-        .trial-info h4 {
-            color: var(--secondary);
-            margin-bottom: 10px;
-        }
+      .trial-info {
+    text-align: center;
+    padding: 12px;
+    margin: 15px 0;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 12px;
+    border: 2px solid rgba(52, 152, 219, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.trial-info h4 {
+    color: var(--secondary);
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+}
+
+.trial-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
         
         .license-actions {
             display: flex;
@@ -2002,6 +2080,41 @@
             color: var(--primary);
             margin-bottom: 10px;
         }
+        /* Manual entry highlighting */
+.manual-highlight {
+    border: 2px solid #3498db !important;
+    background-color: rgba(52, 152, 219, 0.05) !important;
+    font-weight: 600;
+}
+
+.manual-highlight:focus {
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2) !important;
+}
+
+.manual-indicator {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #3498db;
+}
+
+.manual-tooltip {
+    position: absolute;
+    background: #2c3e50;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 1000;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.manual-highlight:hover + .manual-tooltip {
+    opacity: 1;
+}
+
         
         /* Animations */
         @keyframes slideDown {
@@ -2146,20 +2259,28 @@
                     <i class="fas fa-key"></i> License Activation
                 </h3>
                 
-              <div class="license-input-group">
-    <input type="text" 
-           id="user-name-input" 
-           class="license-input" 
-           placeholder="Enter your name"
-           maxlength="50">
-    <input type="text" 
-           id="license-input" 
-           class="license-input" 
-           placeholder="Enter your license key"
-           maxlength="64">
-    <button class="license-activate-btn" id="license-activate-btn">
-        <i class="fas fa-check"></i> Activate
-    </button>
+<div class="license-input-group">
+    <div class="input-with-label">
+        <label for="user-name-input">Your Name</label>
+        <input type="text" 
+               id="user-name-input" 
+               class="license-input" 
+               placeholder="Enter your full name"
+               maxlength="50">
+    </div>
+    <div class="input-with-label">
+        <label for="license-input">License Key</label>
+        <input type="text" 
+               id="license-input" 
+               class="license-input" 
+               placeholder="XXXX-XXXX-XXXX-XXXX"
+               maxlength="64">
+    </div>
+    <div class="activate-button-container">
+        <button class="license-activate-btn" id="license-activate-btn">
+            <i class="fas fa-rocket"></i> Activate & Start
+        </button>
+    </div>
 </div>
                 
                 <div class="license-status" id="license-status"></div>
@@ -2274,13 +2395,9 @@
                 </a>
             </div>
             
-            <button class="start-btn" id="start-btn" style="display: none;">
-                <i class="fas fa-play-circle"></i> Start Tracking
-            </button>
-            
-            <div class="copyright">
-                © 2026 CA Final Pro Tracker. Professional Version • Licensed to Satyam Kumar
-            </div>
+<div class="copyright">
+    © 2026 CA Final Pro Tracker. Professional Version • Enter your name and license to begin
+</div>
         </div>
     </div>
     
@@ -3935,27 +4052,57 @@ function validateLicense(licenseKey) {
         }
     }
 }
-        
         function showLicenseStatus(type, message) {
-            const statusEl = document.getElementById('license-status');
-            statusEl.className = `license-status ${type}`;
-            statusEl.innerHTML = `<i class="fas fa-${type === 'active' ? 'check-circle' : type === 'expired' ? 'exclamation-circle' : 'clock'}"></i> ${message}`;
-            
-            // Update UI elements
-            document.getElementById('footer-license-status').textContent = 
-                type === 'active' ? 'License: Active' : 
-                type === 'trial' ? 'License: Trial' : 'License: Inactive';
-                
-            document.getElementById('license-status-text').textContent = 
-                type === 'active' ? 'Premium' : 
-                type === 'trial' ? 'Trial' : 'Inactive';
-                
-            document.getElementById('trial-status').style.display = type === 'trial' ? 'inline' : 'none';
-        }
-        
-        function enableAppAccess() {
-            document.getElementById('start-btn').style.display = 'block';
-        }
+    const statusEl = document.getElementById('license-status');
+    statusEl.className = `license-status ${type}`;
+    
+    // Different icons based on status
+    let icon = 'fa-info-circle';
+    if (type === 'active') icon = 'fa-check-circle';
+    if (type === 'expired') icon = 'fa-exclamation-circle';
+    if (type === 'trial') icon = 'fa-clock';
+    
+    statusEl.innerHTML = `<i class="fas ${icon}"></i> ${message}`;
+    
+    // Update footer status
+    const footerStatus = document.getElementById('footer-license-status');
+    if (footerStatus) {
+        footerStatus.textContent = type === 'active' ? 'License: Premium Active' : 
+                                 type === 'trial' ? 'License: Trial Active' : 
+                                 'License: Not Active';
+    }
+    
+    // Update app header status
+    const headerStatus = document.getElementById('license-status-text');
+    if (headerStatus) {
+        headerStatus.textContent = type === 'active' ? 'Premium' : 
+                                  type === 'trial' ? 'Trial' : 'Inactive';
+    }
+    
+    // Show/hide trial status
+    const trialStatus = document.getElementById('trial-status');
+    if (trialStatus) {
+        trialStatus.style.display = type === 'trial' ? 'inline' : 'none';
+    }
+}
+   function enableAppAccess() {
+    // Hide welcome screen and show app immediately
+    welcomeContainer.style.display = 'none';
+    appContainer.style.display = 'block';
+    appContainer.classList.add('active');
+    
+    // Update dashboard
+    updateDashboard();
+    
+    // Schedule notifications if enabled
+    scheduleNotifications();
+    
+    // Update user UI
+    updateUserUI();
+    
+    showToast(`Welcome ${currentUser.name}! Starting your study tracker...`, 'success');
+}
+
         
         function checkAccess() {
             if (currentLicense) {
@@ -5372,30 +5519,37 @@ function validateLicense(licenseKey) {
                             const subtopicProgress = topicProgress.subtopics?.[subtopic.name] || { actualHours: 0, completed: false };
                             const hours = subtopicProgress.actualHours || 0;
                             const completed = subtopicProgress.completed || false;
-                            
-                            return `<div class="subtopic-item">
-                                <div class="subtopic-info">
-                                    <div class="subtopic-name">${subtopic.name}</div>
-                                    <div class="subtopic-details">
-                                        <span>Weight: ${subtopic.weight}%</span>
-                                        ${completed ? '<span style="color: var(--success);"><i class="fas fa-check"></i> Completed</span>' : ''}
-                                    </div>
-                                </div>
-                                <div class="subtopic-actions">
-                                    <div class="time-info">
-                                        <div class="actual-time-input">
-                                            <input type="number" 
-                                                   id="time-${subjectId}-${topic.name.replace(/\s+/g, '-')}-${subtopic.name.replace(/\s+/g, '-')}"
-                                                   value="${hours}"
-                                                   min="0" 
-                                                   step="0.5"
-                                                   placeholder="Hours"
-                                                   style="width: 100px;">
-                                            <span>hrs</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>`;
+                            // Check if this is a manual entry
+const isManual = subtopicProgress.manualEntry === true;
+const manualClass = isManual ? 'manual-highlight' : '';
+
+return `<div class="subtopic-item">
+    <div class="subtopic-info">
+        <div class="subtopic-name">${subtopic.name} 
+            ${isManual ? '<span class="manual-indicator" title="Manually entered"><i class="fas fa-user-edit"></i></span>' : ''}
+        </div>
+        <div class="subtopic-details">
+            <span>Weight: ${subtopic.weight}%</span>
+            ${completed ? '<span style="color: var(--success);"><i class="fas fa-check"></i> Completed</span>' : ''}
+            ${isManual ? '<span style="color: #3498db; margin-left: 10px;"><i class="fas fa-user"></i> Manual</span>' : ''}
+        </div>
+    </div>
+    <div class="subtopic-actions">
+        <div class="time-info">
+            <div class="actual-time-input">
+                <input type="number" 
+                       id="time-${subjectId}-${topic.name.replace(/\s+/g, '-')}-${subtopic.name.replace(/\s+/g, '-')}"
+                       value="${hours.toFixed(1)}"
+                       min="0" 
+                       step="0.5"
+                       placeholder="Hours"
+                       class="${manualClass}"
+                       style="width: 120px; ${isManual ? 'border: 2px solid #3498db; background-color: rgba(52, 152, 219, 0.05);' : ''}">
+                <span>hrs</span>
+            </div>
+        </div>
+    </div>
+</div>`;
                         }).join('')}
                     </div>
                 </div>`;
@@ -5413,90 +5567,108 @@ function toggleTopicStatus(subjectId, topicName) {
     const topic = userProgress.subjects[subjectId].topics[topicName];
     const currentStatus = topic.status;
     
-    // Cycle through statuses: not-started -> inprogress -> completed -> not-started
+    // Cycle through statuses: not-started → inprogress → completed → not-started
     const nextStatus = currentStatus === 'not-started' ? 'inprogress' : 
                      currentStatus === 'inprogress' ? 'completed' : 'not-started';
     
+    // Store previous status for reference
+    const wasCompleted = topic.status === 'completed';
+    
+    // Update topic status
     topic.status = nextStatus;
     
-    // If marking as completed, respect user's manual hours input
+    // Find syllabus topic data
+    const subjectData = syllabusData[subjectId];
+    const syllabusTopic = subjectData.topics.find(t => t.name === topicName);
+    
     if (nextStatus === 'completed') {
-        // Find topic data from syllabus to get weightage
-        const subjectData = syllabusData[subjectId];
-        const syllabusTopic = subjectData.topics.find(t => t.name === topicName);
+        // Marking as COMPLETED
+        console.log(`Marking topic ${topicName} as completed`);
         
-        if (syllabusTopic) {
-            // Calculate topic planned hours based on subject distribution
-            const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
-            const topicWeightage = syllabusTopic.weightage;
-            const topicPlannedHours = (topicWeightage / 100) * subjectPlannedHours;
-            
-            Object.keys(topic.subtopics).forEach(subtopicName => {
-                const subtopic = topic.subtopics[subtopicName];
-                
-                // IMPORTANT: Only auto-calculate hours if user hasn't entered ANY hours
-                // (actualHours is 0 or doesn't exist)
-                if (!subtopic.actualHours || subtopic.actualHours === 0) {
-                    // Find subtopic data to get its weight
-                    const subtopicData = syllabusTopic.subtopics.find(s => s.name === subtopicName);
-                    if (subtopicData) {
-                        const subtopicWeightage = subtopicData.weight;
-                        // Calculate hours: subtopic weight * topic planned hours
-                        subtopic.actualHours = (subtopicWeightage / 100) * topicPlannedHours;
-                    } else {
-                        // Fallback: distribute equally
-                        const numSubtopics = Object.keys(topic.subtopics).length;
-                        subtopic.actualHours = topicPlannedHours / numSubtopics;
-                    }
-                    subtopic.completed = true;
-                } else {
-                    // User has manually entered hours - mark as completed but keep their hours
-                    subtopic.completed = true;
-                }
-            });
-        } else {
-            // If syllabus topic not found, just mark subtopics as completed
-            Object.keys(topic.subtopics).forEach(subtopicName => {
-                topic.subtopics[subtopicName].completed = true;
-            });
-        }
-    } else if (nextStatus === 'not-started') {
-        // Reset hours if going back to not-started, but only for auto-calculated hours
-        // Don't reset user's manual entries
+        // For each subtopic in this topic
         Object.keys(topic.subtopics).forEach(subtopicName => {
             const subtopic = topic.subtopics[subtopicName];
             
-            // Check if hours were auto-calculated (close to rounded weight-based value)
-            if (syllabusData[subjectId]) {
-                const syllabusTopic = syllabusData[subjectId].topics.find(t => t.name === topicName);
+            // IMPORTANT: Check if user has manually entered hours
+            const hasManualHours = subtopic.actualHours > 0;
+            const isManualEntry = subtopic.manualEntry === true;
+            
+            console.log(`Subtopic ${subtopicName}: hasManualHours=${hasManualHours}, isManualEntry=${isManualEntry}, actualHours=${subtopic.actualHours}`);
+            
+            if (hasManualHours || isManualEntry) {
+                // User has manually entered hours - RESPECT THEIR INPUT
+                // Mark as completed but keep their exact hours
+                subtopic.completed = true;
+                console.log(`✓ Keeping manual hours: ${subtopic.actualHours} hours`);
+            } else {
+                // No manual hours entered - calculate based on weightage
                 if (syllabusTopic) {
                     const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
                     const topicWeightage = syllabusTopic.weightage;
                     const topicPlannedHours = (topicWeightage / 100) * subjectPlannedHours;
                     
+                    // Find subtopic weight
                     const subtopicData = syllabusTopic.subtopics.find(s => s.name === subtopicName);
                     if (subtopicData) {
-                        const expectedHours = (subtopicData.weight / 100) * topicPlannedHours;
-                        // If actual hours are within 10% of expected auto-calculated hours, reset them
-                        if (Math.abs(subtopic.actualHours - expectedHours) < (expectedHours * 0.1)) {
-                            subtopic.actualHours = 0;
-                        }
+                        const subtopicWeightage = subtopicData.weight;
+                        // Calculate hours: subtopic weight * topic planned hours
+                        subtopic.actualHours = (subtopicWeightage / 100) * topicPlannedHours;
+                        console.log(`✓ Auto-calculated hours: ${subtopic.actualHours.toFixed(1)} (weight: ${subtopicWeightage}%)`);
+                    } else {
+                        // Fallback: distribute equally
+                        const numSubtopics = Object.keys(topic.subtopics).length;
+                        subtopic.actualHours = topicPlannedHours / numSubtopics;
+                        console.log(`✓ Equally distributed hours: ${subtopic.actualHours.toFixed(1)}`);
                     }
                 }
+                subtopic.completed = true;
+                subtopic.manualEntry = false; // Mark as auto-calculated
             }
+        });
+        
+        showToast(`Topic marked as completed! ${wasCompleted ? '(Status updated)' : ''}`, 'success');
+        
+    } else if (nextStatus === 'inprogress') {
+        // Marking as IN PROGRESS
+        Object.keys(topic.subtopics).forEach(subtopicName => {
+            const subtopic = topic.subtopics[subtopicName];
+            // Don't change hours, just update completion status
+            if (subtopic.actualHours > 0) {
+                subtopic.completed = true; // If hours exist, mark as completed
+            } else {
+                subtopic.completed = false;
+            }
+        });
+        
+        showToast(`Topic marked as in progress`, 'info');
+        
+    } else if (nextStatus === 'not-started') {
+        // Marking as NOT STARTED - Reset only auto-calculated hours
+        Object.keys(topic.subtopics).forEach(subtopicName => {
+            const subtopic = topic.subtopics[subtopicName];
             
+            // Only reset if it's NOT a manual entry
+            if (subtopic.manualEntry !== true) {
+                subtopic.actualHours = 0;
+                console.log(`↻ Reset auto-calculated hours for ${subtopicName}`);
+            } else {
+                console.log(`✓ Kept manual hours for ${subtopicName}: ${subtopic.actualHours}`);
+            }
             subtopic.completed = false;
         });
+        
+        showToast(`Topic marked as not started`, 'info');
     }
     
     // Update completed topics count
     updateCompletedTopics(subjectId);
     
+    // Save progress
     DataStorage.save('progress', userProgress);
-    loadSubjectContent();
-    updateDashboard(); // Update dashboard instantly
     
-    showToast(`Topic marked as ${nextStatus}`, 'success');
+    // Refresh the UI
+    loadSubjectContent();
+    updateDashboard();
 }
 
 
@@ -5518,11 +5690,17 @@ function saveAllProgress() {
     // Collect all time inputs
     const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
     let savedCount = 0;
-    let manualEntries = 0;
+    let manualEntriesCount = 0;
     
     timeInputs.forEach(input => {
         const id = input.id.replace('time-', '');
-        const [subjectId, topicNameEncoded, subtopicNameEncoded] = id.split('-');
+        const parts = id.split('-');
+        
+        if (parts.length < 3) return;
+        
+        const subjectId = parts[0];
+        const topicNameEncoded = parts[1];
+        const subtopicNameEncoded = parts.slice(2).join('-'); // Handle subtopic names with hyphens
         
         // Decode names (replace hyphens with spaces)
         const topicName = topicNameEncoded.replace(/-/g, ' ');
@@ -5533,37 +5711,51 @@ function saveAllProgress() {
         if (hours >= 0) {
             // Ensure progress structure exists
             if (!userProgress.subjects[subjectId]) {
-                userProgress.subjects[subjectId] = { topics: {}, completedTopics: 0, totalTopics: syllabusData[subjectId].topics.length };
+                userProgress.subjects[subjectId] = { 
+                    topics: {}, 
+                    completedTopics: 0, 
+                    totalTopics: syllabusData[subjectId]?.topics?.length || 0 
+                };
             }
             if (!userProgress.subjects[subjectId].topics[topicName]) {
-                userProgress.subjects[subjectId].topics[topicName] = { status: 'not-started', subtopics: {} };
+                userProgress.subjects[subjectId].topics[topicName] = { 
+                    status: 'not-started', 
+                    subtopics: {} 
+                };
             }
             if (!userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName]) {
                 userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] = { 
                     actualHours: 0, 
                     completed: false,
-                    manualEntry: false  // Track if this was manually entered
+                    manualEntry: false
                 };
             }
             
-            // Get previous hours to detect changes
-            const prevHours = userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours || 0;
+            const subtopic = userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName];
+            const previousHours = subtopic.actualHours || 0;
             
             // Update hours
-            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].actualHours = hours;
+            subtopic.actualHours = hours;
             
-            // Mark as manual entry if user changed from auto-calculated value
-            if (hours !== prevHours) {
-                userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].manualEntry = true;
-                manualEntries++;
+            // Mark as manual entry if:
+            // 1. Hours changed from previous value, OR
+            // 2. User entered any hours (even if 0, as they explicitly set it)
+            if (hours !== previousHours || hours === 0) {
+                subtopic.manualEntry = true;
+                manualEntriesCount++;
+                console.log(`📝 Marked as manual entry: ${subtopicName} = ${hours} hours`);
             }
             
-            // Auto-mark as completed if hours > 0
-            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].completed = hours > 0;
-            
-            // Auto-mark topic as in-progress if hours added
-            if (hours > 0 && userProgress.subjects[subjectId].topics[topicName].status === 'not-started') {
-                userProgress.subjects[subjectId].topics[topicName].status = 'inprogress';
+            // Update completion status based on hours
+            if (hours > 0) {
+                subtopic.completed = true;
+                // Auto-mark topic as in-progress if hours added
+                if (userProgress.subjects[subjectId].topics[topicName].status === 'not-started') {
+                    userProgress.subjects[subjectId].topics[topicName].status = 'inprogress';
+                }
+            } else if (hours === 0 && subtopic.manualEntry) {
+                // User explicitly set 0 hours - mark as not completed
+                subtopic.completed = false;
             }
             
             savedCount++;
@@ -5579,9 +5771,60 @@ function saveAllProgress() {
     DataStorage.save('progress', userProgress);
     updateDashboard();
     
-    showToast(`${savedCount} subtopic hours saved! (${manualEntries} manual entries)`, 'success');
+    // Show success message
+    const message = manualEntriesCount > 0 
+        ? `${savedCount} hours saved! (${manualEntriesCount} manual entries preserved)` 
+        : `${savedCount} hours saved!`;
+    
+    showToast(message, 'success');
+    
+    // Highlight manual entries visually
+    highlightManualEntries();
 }
+function highlightManualEntries() {
+    // Remove existing highlights
+    document.querySelectorAll('.manual-highlight').forEach(el => {
+        el.classList.remove('manual-highlight');
+    });
+    
+    // Add highlights to manual entries
+    const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
+    
+    timeInputs.forEach(input => {
+        const id = input.id.replace('time-', '');
+        const parts = id.split('-');
         
+        if (parts.length < 3) return;
+        
+        const subjectId = parts[0];
+        const topicNameEncoded = parts[1];
+        const subtopicNameEncoded = parts.slice(2).join('-');
+        const topicName = topicNameEncoded.replace(/-/g, ' ');
+        const subtopicName = subtopicNameEncoded.replace(/-/g, ' ');
+        
+        // Check if this is a manual entry
+        if (userProgress.subjects[subjectId] &&
+            userProgress.subjects[subjectId].topics[topicName] &&
+            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] &&
+            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].manualEntry === true) {
+            
+            // Add highlight class
+            input.classList.add('manual-highlight');
+            
+            // Add a small indicator
+            const parent = input.parentElement;
+            if (parent && !parent.querySelector('.manual-indicator')) {
+                const indicator = document.createElement('span');
+                indicator.className = 'manual-indicator';
+                indicator.innerHTML = ' <i class="fas fa-user-edit" title="Manually entered"></i>';
+                indicator.style.color = '#3498db';
+                indicator.style.fontSize = '12px';
+                parent.appendChild(indicator);
+            }
+        }
+    });
+}
+
         // ====================
         // PLANNING PAGE FUNCTIONS
         // ====================
@@ -6528,6 +6771,7 @@ function saveAllProgress() {
     </script>
 </body>
 </html>
+
 
 
 
