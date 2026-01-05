@@ -3415,6 +3415,42 @@
                 }
             }
         }
+
+        // ====================
+        // DOM ELEMENTS
+        // ====================
+        const welcomeContainer = document.getElementById('welcome-container');
+        const appContainer = document.getElementById('app-container');
+        const startBtn = document.getElementById('start-btn');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const pages = document.querySelectorAll('.page');
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const exportBtn = document.getElementById('export-btn');
+        const importBtn = document.getElementById('import-btn');
+        const deleteEntriesBtn = document.getElementById('delete-entries-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const resetAppBtn = document.getElementById('reset-app-btn');
+        const saveAllProgressBtn = document.getElementById('save-all-progress-btn');
+        const subjectSelect = document.getElementById('subject-select');
+        const subjectContent = document.getElementById('subject-content');
+        const progressFilters = document.querySelectorAll('.progress-filter');
+        const targetToggle = document.getElementById('target-toggle');
+        const targetContent = document.getElementById('target-content');
+        const calculatePlanBtn = document.getElementById('calculate-plan-btn');
+        const savePlanBtn = document.getElementById('save-plan-btn');
+        const resetPlanBtn = document.getElementById('reset-plan-btn');
+        const updateTargetBtn = document.getElementById('update-target-btn');
+        const planningToggle = document.getElementById('planning-toggle');
+        const planningForm = document.getElementById('planning-form');
+        const videoToggle = document.getElementById('video-toggle');
+        const videoForm = document.getElementById('video-form');
+        const resourcesToggle = document.getElementById('resources-toggle');
+        const resourcesForm = document.getElementById('resources-form');
+        const chartTypeBtns = document.querySelectorAll('.chart-type-btn');
+        const backupAllBtn = document.getElementById('backup-all-btn');
+        const restoreBackupBtn = document.getElementById('restore-backup-btn');
+        const backupFile = document.getElementById('backup-file');
         
         // ====================
         // INITIALIZATION
@@ -5267,6 +5303,22 @@
             function isEligibleForArchive(actualHours, plannedHours) {
                 return actualHours > 0;
             }
+           // ====================
+        // PWA INSTALL PROMPT
+        // ====================
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button after 30 seconds
+            setTimeout(() => {
+                if (!localStorage.getItem('installPromptDismissed')) {
+                    showToast('Install this app for offline access!', 'success');
+                }
+            }, 30000);
+        });
             
             // ====================
             // ENTRY POINT
@@ -5492,7 +5544,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('App initialized successfully');
 });
+        // Highlight manual entries
+function highlightManualEntries() {
+    document.querySelectorAll('.manual-highlight').forEach(el => {
+        el.classList.remove('manual-highlight');
+    });
+    
+    const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
+    timeInputs.forEach(input => {
+        const id = input.id.replace('time-', '');
+        const parts = id.split('-');
+        
+        if (parts.length < 3) return;
+        
+        const subjectId = parts[0];
+        const topicNameEncoded = parts[1];
+        const subtopicNameEncoded = parts.slice(2).join('-');
+        const topicName = topicNameEncoded.replace(/-/g, ' ');
+        const subtopicName = subtopicNameEncoded.replace(/-/g, ' ');
+        
+        // Check if this is a manual entry
+        if (userProgress.subjects[subjectId] &&
+            userProgress.subjects[subjectId].topics[topicName] &&
+            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] &&
+            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].manualEntry === true) {
+            
+            input.classList.add('manual-highlight');
+        }
+    });
+}
+
         </script>
 </body>
 </html>
+
 
