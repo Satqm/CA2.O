@@ -1,410 +1,325 @@
-I see the issue! The license key format in your code expects 13 alphanumeric characters without dashes, but you're generating keys with format XXXX-XXXX-XXXX-C (which is 19 characters with dashes, 16 without). Let me fix this.
+I'll help you create a clean, minimal license welcome screen. Here's the step-by-step guide with code changes:
 
-🚨 LICENSE VALIDATION FIX
+STEP 1: REMOVE UNNECESSARY SECTIONS
 
-Step 1: Update the license validation function
+Find and DELETE these sections from your HTML:
 
-Find the validateLicense(licenseKey) function (around line 1500-1600) and REPLACE IT ENTIRELY with:
-
-```javascript
-function validateLicense(licenseKey) {
-    try {
-        // ===== STEP 1: CLEAN AND SANITIZE =====
-        let cleanKey = licenseKey.trim().toUpperCase();
-        
-        // Remove ALL non-alphanumeric characters (dashes, spaces, etc.)
-        cleanKey = cleanKey.replace(/[^A-Z0-9]/g, '');
-        
-        console.log('License validation:', { original: licenseKey, cleanKey });
-        
-        // ===== STEP 2: HANDLE DEMO LICENSE =====
-        const demoKeyClean = "DEMOCAFINAL2C"; // 13 characters without dashes
-        if (cleanKey === demoKeyClean) {
-            return { 
-                valid: true, 
-                data: { 
-                    key: licenseKey,
-                    type: 'DEMO', 
-                    customer: 'Demo User', 
-                    expiry: '2026-12-31' 
-                } 
-            };
-        }
-        
-        // ===== STEP 3: CHECK LENGTH =====
-        // Format should be 13 alphanumeric characters (12 payload + 1 checksum)
-        if (cleanKey.length !== 13) {
-            return { 
-                valid: false, 
-                error: `License key must be 13 characters (got ${cleanKey.length}). Format: 12 letters/numbers + 1 checksum` 
-            };
-        }
-        
-        // ===== STEP 4: VALIDATE ALPHANUMERIC =====
-        if (!/^[A-Z0-9]{13}$/.test(cleanKey)) {
-            return { 
-                valid: false, 
-                error: 'License key must contain only letters A-Z and numbers 0-9' 
-            };
-        }
-        
-        // ===== STEP 5: EXTRACT PAYLOAD AND CHECKSUM =====
-        const payload = cleanKey.substring(0, 12);
-        const providedChecksum = cleanKey.substring(12, 13);
-        
-        // ===== STEP 6: WEIGHTED MODULO-36 CHECKSUM CALCULATION =====
-        let sum = 0;
-        
-        for (let i = 0; i < payload.length; i++) {
-            const char = payload.charAt(i);
-            let charValue;
-            
-            // Convert character to value (0-9, A-Z)
-            if (char >= '0' && char <= '9') {
-                charValue = parseInt(char);
-            } else if (char >= 'A' && char <= 'Z') {
-                charValue = char.charCodeAt(0) - 55; // A=10, B=11, ..., Z=35
-            } else {
-                return { valid: false, error: `Invalid character in license key: ${char}` };
-            }
-            
-            const weight = i + 1; // 1-based position
-            sum += charValue * weight;
-        }
-        
-        // Calculate modulo 36
-        const moduloResult = sum % 36;
-        
-        // Convert result to base-36 character (0-9, A-Z)
-        let calculatedChecksum;
-        if (moduloResult < 10) {
-            calculatedChecksum = moduloResult.toString(); // 0-9
-        } else {
-            calculatedChecksum = String.fromCharCode(moduloResult + 55); // A-Z
-        }
-        
-        console.log('Checksum calculation:', {
-            payload,
-            sum,
-            moduloResult,
-            calculatedChecksum,
-            providedChecksum
-        });
-        
-        // ===== STEP 7: VERIFY CHECKSUM =====
-        if (calculatedChecksum !== providedChecksum) {
-            return { 
-                valid: false, 
-                error: `Invalid license key. Checksum mismatch: expected ${calculatedChecksum}, got ${providedChecksum}` 
-            };
-        }
-        
-        // ===== STEP 8: EXPIRY CHECK =====
-        const expiryDate = new Date('2026-12-31');
-        const currentDate = new Date();
-        
-        if (expiryDate < currentDate) {
-            return { valid: false, error: 'License has expired' };
-        }
-        
-        // ===== STEP 9: CONSTRUCT LICENSE DATA =====
-        // Format key for display (add dashes)
-        const formattedKey = cleanKey.substring(0, 4) + '-' + 
-                           cleanKey.substring(4, 8) + '-' + 
-                           cleanKey.substring(8, 12) + '-' + 
-                           providedChecksum;
-        
-        // Determine license type from payload
-        let licenseType = 'PREMIUM';
-        let customerName = 'Premium User';
-        
-        // Check for special prefixes
-        if (payload.startsWith('DEMO')) {
-            licenseType = 'DEMO';
-            customerName = 'Demo User';
-        } else if (payload.startsWith('STU') || payload.includes('STUDENT')) {
-            licenseType = 'STUDENT';
-            customerName = 'Student User';
-        } else if (payload.startsWith('TRIAL')) {
-            licenseType = 'TRIAL';
-            customerName = 'Trial User';
-        }
-        
-        // ===== STEP 10: RETURN VALID LICENSE =====
-        return { 
-            valid: true, 
-            data: { 
-                key: formattedKey,
-                originalKey: licenseKey,
-                type: licenseType, 
-                customer: customerName, 
-                expiry: '2026-12-31',
-                deviceId: deviceId,
-                checksumVerified: true,
-                validationDate: new Date().toISOString()
-            } 
-        };
-        
-    } catch (error) {
-        console.error('License validation error:', error);
-        return { valid: false, error: 'License validation failed: ' + error.message };
-    }
-}
-```
-
-Step 2: Update the demo license to match 13-character format
-
-Find this line in the JavaScript (around line 1350):
-
-```javascript
-const DEMO_LICENSE = "DEMO-CA-FINAL-2026-TRIAL-KEY";
-```
-
-REPLACE WITH:
-
-```javascript
-const DEMO_LICENSE = "DEMO-CAFI-NAL2-C";
-```
-
-Also update the HTML to show the correct demo license. Find this HTML (around line 470):
+1. Remove Premium Features Box (Lines ~730-776):
 
 ```html
-<div class="demo-license" id="demo-license">
-    DEMO-CA-FINAL-2026-TRIAL-KEY
+<!-- DELETE THIS ENTIRE SECTION -->
+<div class="premium-features">
+    <h3><i class="fas fa-crown"></i> Premium Features</h3>
+    <div class="features-list">
+        <!-- ... all feature items ... -->
+    </div>
 </div>
 ```
 
-REPLACE WITH:
+1. Remove Demo Credentials Box (Lines ~778-795):
 
 ```html
-<div class="demo-license" id="demo-license">
-    DEMO-CAFI-NAL2-C
+<!-- DELETE THIS ENTIRE SECTION -->
+<div class="demo-credentials">
+    <h4><i class="fas fa-info-circle"></i> Demo License</h4>
+    <p>Try the app with demo license (7-day trial):</p>
+    <div class="demo-license" id="demo-license">
+        DEMO-CAFI-NAL2-C
+    </div>
+    <p style="font-size: 14px; margin-top: 10px;">
+        Copy and paste this key to activate demo mode
+    </p>
 </div>
 ```
 
-Step 3: Add a license key generator helper function
-
-Add this function to help generate valid license keys:
-
-```javascript
-function generateLicenseKey(payload = "DEMOCAFINAL2") {
-    // Ensure payload is 12 characters
-    if (payload.length !== 12) {
-        throw new Error('Payload must be exactly 12 characters');
-    }
-    
-    payload = payload.toUpperCase();
-    
-    // Calculate checksum using weighted modulo-36
-    let sum = 0;
-    
-    for (let i = 0; i < payload.length; i++) {
-        const char = payload.charAt(i);
-        let charValue;
-        
-        if (char >= '0' && char <= '9') {
-            charValue = parseInt(char);
-        } else if (char >= 'A' && char <= 'Z') {
-            charValue = char.charCodeAt(0) - 55; // A=10, B=11, ..., Z=35
-        } else {
-            throw new Error(`Invalid character in payload: ${char}`);
-        }
-        
-        const weight = i + 1;
-        sum += charValue * weight;
-    }
-    
-    const moduloResult = sum % 36;
-    
-    let checksum;
-    if (moduloResult < 10) {
-        checksum = moduloResult.toString();
-    } else {
-        checksum = String.fromCharCode(moduloResult + 55);
-    }
-    
-    const fullKey = payload + checksum;
-    
-    // Format with dashes
-    const formattedKey = fullKey.substring(0, 4) + '-' + 
-                        fullKey.substring(4, 8) + '-' + 
-                        fullKey.substring(8, 12) + '-' + 
-                        checksum;
-    
-    console.log('Generated license key:', {
-        payload,
-        sum,
-        moduloResult,
-        checksum,
-        fullKey,
-        formattedKey
-    });
-    
-    return formattedKey;
-}
-```
-
-Step 4: Add a test function to validate your existing keys
-
-Add this function to test your existing keys:
-
-```javascript
-function testLicenseKey(key) {
-    console.log('Testing license key:', key);
-    const result = validateLicense(key);
-    console.log('Validation result:', result);
-    return result;
-}
-
-// Test the demo key
-console.log('Testing DEMO key:', testLicenseKey('DEMO-CAFI-NAL2-C'));
-```
-
-Step 5: Update the license input to auto-format
-
-Find this HTML:
+1. Remove Social Links (Lines ~797-818):
 
 ```html
-<input type="text" 
-       id="license-input" 
-       class="license-input" 
-       placeholder="XXXX-XXXX-XXXX-XXXX"
-       maxlength="64">
+<!-- DELETE THIS ENTIRE SECTION -->
+<div class="social-links">
+    <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-link" title="Portfolio">
+        <i class="fas fa-user-tie"></i>
+    </a>
+    <!-- ... other social links ... -->
+</div>
 ```
 
-REPLACE WITH:
+STEP 2: SIMPLIFY LICENSE SECTION
+
+Replace the entire license section (Lines ~664-717) with this simplified version:
 
 ```html
-<input type="text" 
-       id="license-input" 
-       class="license-input" 
-       placeholder="XXXX-XXXX-XXXX-X (13 characters)"
-       maxlength="19"
-       pattern="[A-Z0-9-]{13,19}"
-       title="Format: XXXX-XXXX-XXXX-C">
+<!-- License Section - SIMPLIFIED VERSION -->
+<div class="license-section">
+    <div class="license-input-group">
+        <div class="input-with-label">
+            <label for="user-name-input"><i class="fas fa-user"></i> Your Name</label>
+            <input type="text" 
+                   id="user-name-input" 
+                   class="license-input" 
+                   placeholder="Enter your full name"
+                   maxlength="50">
+        </div>
+        <div class="input-with-label">
+            <label for="license-input"><i class="fas fa-key"></i> License Key</label>
+            <input type="text" 
+                   id="license-input" 
+                   class="license-input" 
+                   placeholder="XXXX-XXXX-XXXX-X (13 characters)"
+                   maxlength="19"
+                   pattern="[A-Z0-9-]{13,19}"
+                   title="Format: XXXX-XXXX-XXXX-C">
+        </div>
+        <div class="activate-button-container">
+            <button class="license-activate-btn" id="license-activate-btn">
+                <i class="fas fa-rocket"></i> Activate & Start
+            </button>
+        </div>
+    </div>
+    
+    <div class="license-status" id="license-status"></div>
+    
+    <div class="trial-info" id="trial-info" style="display: none;">
+        <h4><i class="fas fa-clock"></i> Trial Period Active</h4>
+        <p>You have <span id="trial-days">7</span> days left in your trial period.</p>
+    </div>
+    
+    <div class="license-actions">
+        <button class="use-demo-btn" id="use-demo-btn">
+            <i class="fas fa-play-circle"></i> Use Demo License
+        </button>
+        <a href="https://wa.me/919142300129" target="_blank" class="get-license-btn">
+            <i class="fab fa-whatsapp"></i> Get License Key
+        </a>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="https://wa.me/919142300129" target="_blank" class="whatsapp-cta">
+            <i class="fab fa-whatsapp"></i> Contact for License on WhatsApp
+        </a>
+    </div>
+</div>
 ```
 
-Step 6: Add auto-formatting for license key input
+STEP 3: UPDATE THE WELCOME HEADER
 
-Add this function and event listener:
+Replace the welcome header section (Lines ~630-640) with this:
 
-```javascript
-// Auto-format license key as user types
-document.getElementById('license-input').addEventListener('input', function(e) {
-    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
-    // Auto-insert dashes
-    if (value.length > 4 && value.length <= 8) {
-        value = value.substring(0, 4) + '-' + value.substring(4);
-    } else if (value.length > 8 && value.length <= 12) {
-        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + value.substring(8);
-    } else if (value.length > 12) {
-        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + 
-                value.substring(8, 12) + '-' + value.substring(12, 13);
+```html
+<div class="welcome-header">
+    <div class="welcome-logo">
+        <i class="fas fa-graduation-cap"></i>
+    </div>
+    <h1>CA Final Pro Tracker</h1>
+    <p>Professional Offline Study Management System</p>
+</div>
+
+<div class="demo-video">
+    <a href="https://youtube.com/@__satyamkumar?si=yTdGDrWa-VE2_R5m" target="_blank">
+        <i class="fab fa-youtube"></i> Watch Demo Video
+    </a>
+</div>
+```
+
+STEP 4: UPDATE COPYRIGHT SECTION
+
+Replace the copyright section (Lines ~820-824) with this:
+
+```html
+<div class="copyright">
+    © 2026 CA Final Pro Tracker • Professional Version
+</div>
+```
+
+STEP 5: UPDATE CSS FOR SIMPLIFIED LAYOUT
+
+Add this CSS to remove extra spacing (add at the end of your CSS, before the closing </style>):
+
+```css
+/* Simplified layout adjustments */
+.welcome-box {
+    padding: 30px;
+    max-width: 500px;
+}
+
+.license-actions {
+    display: flex;
+    gap: 15px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.license-actions .use-demo-btn,
+.license-actions .get-license-btn {
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.license-actions .use-demo-btn {
+    background: #f8f9fa;
+    color: var(--primary);
+    border: 2px solid var(--secondary);
+}
+
+.license-actions .get-license-btn {
+    background: #25D366;
+    color: white;
+    border: 2px solid #25D366;
+}
+
+.license-actions .use-demo-btn:hover,
+.license-actions .get-license-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.license-details {
+    display: none !important;
+}
+
+.license-toggle {
+    display: none;
+}
+
+.whatsapp-cta {
+    background: #25D366;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.whatsapp-cta:hover {
+    background: #128C7E;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
+}
+
+@media (max-width: 768px) {
+    .license-input-group {
+        grid-template-columns: 1fr !important;
     }
     
-    e.target.value = value;
-});
-```
-
-Step 7: Update the license status to show clearer messages
-
-Update the activateLicense function to show better error messages. Find this part:
-
-```javascript
-if (validation.valid) {
-    // ... success code ...
-} else {
-    showLicenseStatus('expired', validation.error || 'Invalid license key');
-    licenseInput.classList.add('invalid');
-    licenseInput.classList.remove('valid');
-}
-```
-
-REPLACE WITH:
-
-```javascript
-if (validation.valid) {
-    // ... success code ...
-} else {
-    const errorMsg = validation.error || 'Invalid license key format. Expected: 13 characters (12 + 1 checksum)';
-    showLicenseStatus('expired', errorMsg);
-    licenseInput.classList.add('invalid');
-    licenseInput.classList.remove('valid');
+    .license-actions {
+        flex-direction: column;
+    }
     
-    // Show detailed error in console
-    console.error('License activation failed:', validation);
+    .license-actions .use-demo-btn,
+    .license-actions .get-license-btn {
+        width: 100%;
+    }
 }
 ```
 
-Step 8: Test with a sample valid key
+STEP 6: UPDATE JAVASCRIPT FOR AUTO-FILL DEMO
 
-Add this test code at the end to verify:
+Find the useDemoLicense function (around line ~2120-2180) and REPLACE it with:
 
 ```javascript
-// Test cases
-console.log('=== LICENSE KEY TEST CASES ===');
-
-// Valid demo key (13 characters: 12 payload + 1 checksum)
-const testKey = "DEMOCAFINAL2C"; // Without dashes
-console.log('Testing key without dashes:', testKey);
-console.log('Validation result:', validateLicense(testKey));
-
-// With dashes
-const testKeyWithDashes = "DEMO-CAFI-NAL2-C";
-console.log('Testing key with dashes:', testKeyWithDashes);
-console.log('Validation result:', validateLicense(testKeyWithDashes));
-
-// Generate a valid key
-console.log('Generated valid key:', generateLicenseKey("TEST12345678"));
+function useDemoLicense() {
+    const userNameInput = document.getElementById('user-name-input');
+    const licenseInput = document.getElementById('license-input');
+    
+    // Auto-fill name if empty
+    if (!userNameInput.value.trim()) {
+        userNameInput.value = "Demo User";
+    }
+    
+    // Auto-fill demo license key
+    licenseInput.value = "DEMO-CAFI-NAL2-C";
+    
+    // Trigger activation
+    setTimeout(() => {
+        document.getElementById('license-activate-btn').click();
+    }, 500);
+    
+    // Visual feedback
+    userNameInput.classList.add('manual-highlight');
+    licenseInput.classList.add('manual-highlight');
+    
+    showToast('Demo license loaded! Click "Activate & Start" to begin', 'success');
+}
 ```
 
-📋 KEY CHANGES SUMMARY:
-
-1. Fixed Format: License keys now require 13 alphanumeric characters (12 payload + 1 checksum)
-2. Correct Demo License: DEMO-CAFI-NAL2-C (13 characters with dashes, 12 + 1 checksum)
-3. Better Validation: Proper weighted modulo-36 checksum calculation
-4. Auto-formatting: License input auto-adds dashes as user types
-5. Clear Error Messages: Tells user exactly what's wrong
-
-🧪 HOW TO TEST YOUR EXISTING KEYS:
-
-1. Open browser developer tools (F12)
-2. Go to Console tab
-3. Test your keys with: testLicenseKey("YOUR-KEY-HERE")
-4. Or generate new ones with: generateLicenseKey("YOUR12CHARS")
-
-🔧 QUICK FIX IF KEYS STILL DON'T WORK:
-
-If your existing keys aren't working, they might not follow the 13-character format. You can temporarily accept them by adding this at the BEGINNING of the validateLicense function:
+Find the activateLicense function and ADD this at the beginning (after the variable declarations):
 
 ```javascript
-// TEMPORARY: Accept old format keys
-const oldValidKeys = [
-    "YOUR-OLD-KEY-1",
-    "YOUR-OLD-KEY-2",
-    // Add your old keys here
-];
+// Auto-highlight demo inputs
+if (licenseKey === "DEMO-CAFI-NAL2-C") {
+    userNameInput.classList.add('manual-highlight');
+    licenseInput.classList.add('manual-highlight');
+}
+```
 
-if (oldValidKeys.includes(licenseKey.trim().toUpperCase())) {
+STEP 7: UPDATE VALIDATION MESSAGES
+
+Find the validateLicense function and UPDATE the demo license check (around line ~2050):
+
+```javascript
+// Handle demo license
+const demoKeyClean = "DEMOCAFINAL2C";
+if (cleanKey === demoKeyClean) {
     return { 
         valid: true, 
         data: { 
             key: licenseKey,
-            type: 'LEGACY', 
-            customer: 'Legacy User', 
+            type: 'DEMO', 
+            customer: userNameInput.value || 'Demo User', // Use entered name
             expiry: '2026-12-31' 
         } 
     };
 }
 ```
 
-Copy and paste in this order:
+STEP 8: FINAL CLEANUP
 
-1. Replace validateLicense function
-2. Update DEMO_LICENSE constant
-3. Update HTML demo license display
-4. Add auto-formatting event listener
-5. Test with your keys
+Remove these unnecessary event listeners from your JavaScript (if they exist):
 
-The main issue was that your license validation expected 13 characters, but your generator might have been creating keys with different lengths. Now it's fixed to accept exactly 13 characters in the format XXXX-XXXX-XXXX-C.
+· License toggle button events
+· Buy now button events
+· Any other premium/demo specific events
+
+---
+
+HOW TO INSTALL:
+
+1. Open your HTML file in a text editor
+2. Find and DELETE the sections mentioned in Step 1
+3. REPLACE the sections with the code provided in Steps 2, 3, and 4
+4. ADD the CSS from Step 5 to your style section
+5. UPDATE the JavaScript functions as in Steps 6 and 7
+6. Save the file and test it
+
+FINAL RESULT:
+
+Your welcome screen will now have only:
+
+1. Logo and title
+2. "Watch Demo Video" link
+3. Name input box
+4. License key input box
+5. "Activate & Start" button
+6. "Use Demo License" button (auto-fills both fields)
+7. "Get License Key" button (opens WhatsApp)
+8. WhatsApp contact link
+
+The demo license will auto-fill both name and key when clicked, and users can immediately activate and start using the app.
+
+Note: Test thoroughly to ensure the auto-fill and activation work correctly with the demo license key DEMO-CAFI-NAL2-C.
