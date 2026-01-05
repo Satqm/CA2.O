@@ -2077,6 +2077,36 @@
         width: 100%;
     }
 }
+        /* FIX for initial display */
+#welcome-container {
+    display: flex !important;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#app-container {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#app-container.active {
+    display: block !important;
+    opacity: 1;
+}
+
+/* Ensure license buttons work */
+#license-activate-btn, #use-demo-btn {
+    cursor: pointer;
+    position: relative;
+    z-index: 100;
+}
+
+/* Prevent flash */
+body {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
 
     </style>
 </head>
@@ -3519,33 +3549,37 @@ function generateDeviceId() {
             return daysLeft;
         }
         
-    function setupLicenseEventListeners() {
+   function setupLicenseEventListeners() {
+    console.log('Setting up license event listeners...');
+    
     // Wait for DOM to be ready
-    const setupListeners = () => {
+    const checkAndSetup = () => {
         // Activate button
         const activateBtn = document.getElementById('license-activate-btn');
         if (activateBtn) {
+            console.log('Found activate button');
             activateBtn.addEventListener('click', function(e) {
+                console.log('Activate button clicked');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Activate button clicked');
                 activateLicense();
             });
         } else {
-            console.error('Activate button not found');
+            console.warn('Activate button not found yet, retrying...');
+            setTimeout(checkAndSetup, 100);
+            return;
         }
 
         // Demo button
         const demoBtn = document.getElementById('use-demo-btn');
         if (demoBtn) {
+            console.log('Found demo button');
             demoBtn.addEventListener('click', function(e) {
+                console.log('Demo button clicked');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Demo button clicked');
                 useDemoLicense();
             });
-        } else {
-            console.error('Demo button not found');
         }
 
         // Get license button
@@ -3579,42 +3613,23 @@ function generateDeviceId() {
             });
         }
 
-        // License info modal
-        const licenseInfoBtn = document.getElementById('license-info-btn');
-        if (licenseInfoBtn) {
-            licenseInfoBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('license-modal').classList.add('active');
-                updateLicenseModal();
-            });
-        }
-
-        const licenseClose = document.getElementById('license-close');
-        if (licenseClose) {
-            licenseClose.addEventListener('click', function() {
-                document.getElementById('license-modal').classList.remove('active');
-            });
-        }
-
-        const upgradeNow = document.getElementById('upgrade-now');
-        if (upgradeNow) {
-            upgradeNow.addEventListener('click', function() {
-                window.open('https://wa.me/919142300129', '_blank');
-            });
-        }
-
         console.log('License event listeners set up successfully');
     };
 
-    // Try immediately if DOM is ready
+    // Try immediately
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupListeners);
+        document.addEventListener('DOMContentLoaded', checkAndSetup);
     } else {
-        setupListeners();
+        setTimeout(checkAndSetup, 100);
     }
 }
-
-       function checkLicenseOnStartup() {
+    function checkLicenseOnStartup() {
+    console.log('Checking license on startup...');
+    
+    // ALWAYS show welcome screen first
+    document.getElementById('welcome-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+    
     // Load saved license
     currentLicense = DataStorage.load('license');
     const trialData = DataStorage.load('trial');
@@ -3625,7 +3640,9 @@ function generateDeviceId() {
         trialDaysLeft = calculateTrialDaysLeft(trialStartDate);
     }
     
+    // Check if we have a license and it's still valid
     if (currentLicense) {
+        console.log('Found saved license:', currentLicense);
         const validation = validateLicense(currentLicense.key);
         if (validation.valid) {
             // Check if license is expired
@@ -3634,7 +3651,8 @@ function generateDeviceId() {
             
             if (expiryDate >= today) {
                 showLicenseStatus('active', 'License active. Welcome back!');
-                enableAppAccess();
+                // Don't auto-enable app access - let user click activate
+                // enableAppAccess(); // COMMENTED OUT - User must click activate
             } else {
                 showLicenseStatus('expired', 'License has expired');
                 checkTrialAccess();
@@ -3644,6 +3662,7 @@ function generateDeviceId() {
             checkTrialAccess();
         }
     } else {
+        console.log('No saved license found');
         checkTrialAccess();
     }
 }
@@ -3993,46 +4012,74 @@ document.getElementById('license-input').addEventListener('input', function(e) {
     e.target.value = value;
 });
 
-   function enableAppAccess() {
-    // Hide welcome screen and show app immediately
-    document.getElementById('welcome-container').style.display = 'none';
-    document.getElementById('app-container').style.display = 'block';
-    document.getElementById('app-container').classList.add('active');
+function enableAppAccess() {
+    console.log('Enabling app access...');
     
-    // Update user name from input
-    const userName = document.getElementById('user-name-input').value.trim() || 'User';
-    currentUser.name = userName;
-    currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    // Hide welcome screen and show app with animation
+    const welcomeContainer = document.getElementById('welcome-container');
+    const appContainer = document.getElementById('app-container');
     
-    // Update UI
-    updateUserUI();
+    // Add fade out animation to welcome screen
+    welcomeContainer.style.opacity = '1';
+    welcomeContainer.style.transition = 'opacity 0.5s ease';
     
-    // Update dashboard
-    updateDashboard();
-    
-    // Show success message
-    showToast(`Welcome ${currentUser.name}! Starting your study tracker...`, 'success');
-    
-    // Save user data
-    DataStorage.save('user', currentUser);
-    
-    // For demo license, set trial data
-    if (currentLicense && currentLicense.type === 'DEMO') {
-        const trialData = {
-            active: true,
-            startDate: new Date().toISOString(),
-            days: 7
-        };
-        DataStorage.save('trial', trialData);
-        isTrialActive = true;
-        trialDaysLeft = 7;
-        
-        // Show trial info
-        document.getElementById('trial-info').style.display = 'block';
-        document.getElementById('trial-days').textContent = trialDaysLeft;
-    }
+    setTimeout(() => {
+        welcomeContainer.style.opacity = '0';
+        setTimeout(() => {
+            welcomeContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Add fade in animation to app container
+            appContainer.style.opacity = '0';
+            appContainer.classList.add('active');
+            
+            setTimeout(() => {
+                appContainer.style.opacity = '1';
+                appContainer.style.transition = 'opacity 0.5s ease';
+            }, 50);
+            
+            // Update user name from input
+            const userNameInput = document.getElementById('user-name-input');
+            const userName = userNameInput ? userNameInput.value.trim() || 'User' : 'User';
+            currentUser.name = userName;
+            currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            
+            // Update UI
+            updateUserUI();
+            
+            // Update dashboard
+            updateDashboard();
+            
+            // Show success message
+            showToast(`Welcome ${currentUser.name}! Starting your study tracker...`, 'success');
+            
+            // Save user data
+            DataStorage.save('user', currentUser);
+            
+            // For demo license, set trial data
+            if (currentLicense && currentLicense.type === 'DEMO') {
+                const trialData = {
+                    active: true,
+                    startDate: new Date().toISOString(),
+                    days: 7
+                };
+                DataStorage.save('trial', trialData);
+                isTrialActive = true;
+                trialDaysLeft = 7;
+                
+                // Show trial info
+                const trialInfo = document.getElementById('trial-info');
+                if (trialInfo) {
+                    trialInfo.style.display = 'block';
+                    const trialDays = document.getElementById('trial-days');
+                    if (trialDays) trialDays.textContent = trialDaysLeft;
+                }
+            }
+            
+            console.log('App access enabled successfully');
+        }, 500);
+    }, 100);
 }
-
         
         function checkAccess() {
             if (currentLicense) {
@@ -4121,23 +4168,28 @@ document.getElementById('license-input').addEventListener('input', function(e) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded - initializing app');
 
+    // First, make sure welcome screen is visible
+    document.getElementById('welcome-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+
     // Set today's date in start date input
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('start-date').value = today;
     document.getElementById('target-date').value = today;
 
-    // Initialize license system FIRST
-    initializeLicenseSystem();
-
-    // Then setup other event listeners
-    setupEventListeners();
-    loadUserData();
-    loadDefaultContent();
-
-    // Update UI
-    updateUserUI();
-
-    console.log('App initialized successfully');
+    // Initialize license system with delay to ensure DOM is ready
+    setTimeout(function() {
+        initializeLicenseSystem();
+        setupEventListeners();
+        loadUserData();
+        loadDefaultContent();
+        updateUserUI();
+        console.log('App initialized successfully');
+        
+        // Force show welcome screen initially
+        document.getElementById('welcome-container').style.display = 'flex';
+        document.getElementById('app-container').style.display = 'none';
+    }, 100);
 });
 
         function setupEventListeners() {
@@ -6751,6 +6803,7 @@ function highlightManualEntries() {
     </script>
 </body>
 </html>
+
 
 
 
