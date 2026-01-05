@@ -1,401 +1,358 @@
-Looking at your code, I can see two main issues: license key validation not working properly and mobile layout problems. Let me provide you with step-by-step fixes.
+Looking at your issue, I can see the problem. The white screen happens because of the license validation logic and event listener setup. When the app loads, it's trying to check for an existing license, but there are some issues with the DOM event listeners and initialization order.
 
-Issue 1: License Key Validation Not Working
+Let me give you step-by-step fixes:
 
-The Problem: The validation logic in your main app doesn't match the generator's checksum algorithm.
+Step 1: Fix the Initial Display Issue
 
-Step-by-Step Fix:
-
-1. Find the validateLicense function (around line 1200-1300 in your main app file)
-   Look for this function that starts with:
-   ```javascript
-   function validateLicense(licenseKey) {
-   ```
-2. Delete the entire function and replace it with this corrected version:
+Find this code in your JavaScript section (around line 1710-1750):
 
 ```javascript
-function validateLicense(licenseKey) {
-    try {
-        // ===== STEP 1: CLEAN AND SANITIZE =====
-        let cleanKey = licenseKey.trim().toUpperCase();
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - initializing app');
+
+    // Set today's date in start date input
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start-date').value = today;
+    document.getElementById('target-date').value = today;
+
+    // Initialize license system FIRST
+    initializeLicenseSystem();
+
+    // Then setup other event listeners
+    setupEventListeners();
+    loadUserData();
+    loadDefaultContent();
+
+    // Update UI
+    updateUserUI();
+
+    console.log('App initialized successfully');
+});
+```
+
+Replace it with this fixed version:
+
+```javascript
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - initializing app');
+
+    // First, make sure welcome screen is visible
+    document.getElementById('welcome-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+
+    // Set today's date in start date input
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('start-date').value = today;
+    document.getElementById('target-date').value = today;
+
+    // Initialize license system with delay to ensure DOM is ready
+    setTimeout(function() {
+        initializeLicenseSystem();
+        setupEventListeners();
+        loadUserData();
+        loadDefaultContent();
+        updateUserUI();
+        console.log('App initialized successfully');
         
-        // Remove ALL non-alphanumeric characters (dashes, spaces, etc.)
-        cleanKey = cleanKey.replace(/[^A-Z0-9]/g, '');
-        
-        console.log('License validation:', { original: licenseKey, cleanKey });
-        
-        // ===== STEP 2: HANDLE DEMO LICENSE =====
-        const demoKeyClean = "DEMOCAFINAL2C";
-        if (cleanKey === demoKeyClean) {
-            return { 
-                valid: true, 
-                data: { 
-                    key: "DEMO-CAFI-NAL2-C",
-                    type: 'DEMO', 
-                    customer: "Demo User",
-                    expiry: getExpiryDate('TRIAL', 7)  // 7-day trial
-                } 
-            };
+        // Force show welcome screen initially
+        document.getElementById('welcome-container').style.display = 'flex';
+        document.getElementById('app-container').style.display = 'none';
+    }, 100);
+});
+```
+
+Step 2: Fix the License Event Listeners
+
+Find the setupLicenseEventListeners() function (around line 1095-1190):
+
+Replace the ENTIRE function with this fixed version:
+
+```javascript
+function setupLicenseEventListeners() {
+    console.log('Setting up license event listeners...');
+    
+    // Wait for DOM to be ready
+    const checkAndSetup = () => {
+        // Activate button
+        const activateBtn = document.getElementById('license-activate-btn');
+        if (activateBtn) {
+            console.log('Found activate button');
+            activateBtn.addEventListener('click', function(e) {
+                console.log('Activate button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                activateLicense();
+            });
+        } else {
+            console.warn('Activate button not found yet, retrying...');
+            setTimeout(checkAndSetup, 100);
+            return;
         }
-        
-        // ===== STEP 3: CHECK LENGTH =====
-        // Format should be 13 alphanumeric characters (12 payload + 1 checksum)
-        if (cleanKey.length !== 13) {
-            return { 
-                valid: false, 
-                error: `License key must be 13 characters (got ${cleanKey.length}). Format: XXXX-XXXX-XXXX-C` 
-            };
+
+        // Demo button
+        const demoBtn = document.getElementById('use-demo-btn');
+        if (demoBtn) {
+            console.log('Found demo button');
+            demoBtn.addEventListener('click', function(e) {
+                console.log('Demo button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                useDemoLicense();
+            });
         }
-        
-        // ===== STEP 4: VALIDATE ALPHANUMERIC =====
-        if (!/^[A-Z0-9]{13}$/.test(cleanKey)) {
-            return { 
-                valid: false, 
-                error: 'License key must contain only letters A-Z and numbers 0-9' 
-            };
+
+        // Get license button
+        const getLicenseBtn = document.getElementById('get-license-btn');
+        if (getLicenseBtn) {
+            getLicenseBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.open('https://wa.me/919142300129', '_blank');
+            });
         }
-        
-        // ===== STEP 5: EXTRACT PAYLOAD AND CHECKSUM =====
-        const payload = cleanKey.substring(0, 12);
-        const providedChecksum = cleanKey.substring(12, 13);
-        
-        // ===== STEP 6: WEIGHTED MODULO-36 CHECKSUM CALCULATION =====
-        let sum = 0;
-        
-        for (let i = 0; i < payload.length; i++) {
-            const char = payload.charAt(i);
-            let charValue;
+
+        // Enter key on license input
+        const licenseInput = document.getElementById('license-input');
+        if (licenseInput) {
+            licenseInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    activateLicense();
+                }
+            });
+        }
+
+        // Enter key on name input
+        const nameInput = document.getElementById('user-name-input');
+        if (nameInput) {
+            nameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('license-input').focus();
+                }
+            });
+        }
+
+        console.log('License event listeners set up successfully');
+    };
+
+    // Try immediately
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkAndSetup);
+    } else {
+        setTimeout(checkAndSetup, 100);
+    }
+}
+```
+
+Step 3: Fix the License Check on Startup
+
+Find the checkLicenseOnStartup() function (around line 1200-1245):
+
+Replace it with:
+
+```javascript
+function checkLicenseOnStartup() {
+    console.log('Checking license on startup...');
+    
+    // ALWAYS show welcome screen first
+    document.getElementById('welcome-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
+    
+    // Load saved license
+    currentLicense = DataStorage.load('license');
+    const trialData = DataStorage.load('trial');
+    
+    if (trialData) {
+        isTrialActive = trialData.active;
+        trialStartDate = trialData.startDate;
+        trialDaysLeft = calculateTrialDaysLeft(trialStartDate);
+    }
+    
+    // Check if we have a license and it's still valid
+    if (currentLicense) {
+        console.log('Found saved license:', currentLicense);
+        const validation = validateLicense(currentLicense.key);
+        if (validation.valid) {
+            // Check if license is expired
+            const expiryDate = new Date(currentLicense.expiry);
+            const today = new Date();
             
-            // Convert character to value (0-9, A-Z)
-            if (char >= '0' && char <= '9') {
-                charValue = parseInt(char);
-            } else if (char >= 'A' && char <= 'Z') {
-                charValue = char.charCodeAt(0) - 55; // A=10, B=11, ..., Z=35
+            if (expiryDate >= today) {
+                showLicenseStatus('active', 'License active. Welcome back!');
+                // Don't auto-enable app access - let user click activate
+                // enableAppAccess(); // COMMENTED OUT - User must click activate
             } else {
-                return { valid: false, error: `Invalid character in license key: ${char}` };
+                showLicenseStatus('expired', 'License has expired');
+                checkTrialAccess();
+            }
+        } else {
+            showLicenseStatus('expired', 'License validation failed');
+            checkTrialAccess();
+        }
+    } else {
+        console.log('No saved license found');
+        checkTrialAccess();
+    }
+}
+```
+
+Step 4: Fix the Enable App Access Function
+
+Find the enableAppAccess() function (around line 1400-1440):
+
+Replace it with:
+
+```javascript
+function enableAppAccess() {
+    console.log('Enabling app access...');
+    
+    // Hide welcome screen and show app with animation
+    const welcomeContainer = document.getElementById('welcome-container');
+    const appContainer = document.getElementById('app-container');
+    
+    // Add fade out animation to welcome screen
+    welcomeContainer.style.opacity = '1';
+    welcomeContainer.style.transition = 'opacity 0.5s ease';
+    
+    setTimeout(() => {
+        welcomeContainer.style.opacity = '0';
+        setTimeout(() => {
+            welcomeContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Add fade in animation to app container
+            appContainer.style.opacity = '0';
+            appContainer.classList.add('active');
+            
+            setTimeout(() => {
+                appContainer.style.opacity = '1';
+                appContainer.style.transition = 'opacity 0.5s ease';
+            }, 50);
+            
+            // Update user name from input
+            const userNameInput = document.getElementById('user-name-input');
+            const userName = userNameInput ? userNameInput.value.trim() || 'User' : 'User';
+            currentUser.name = userName;
+            currentUser.initials = userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            
+            // Update UI
+            updateUserUI();
+            
+            // Update dashboard
+            updateDashboard();
+            
+            // Show success message
+            showToast(`Welcome ${currentUser.name}! Starting your study tracker...`, 'success');
+            
+            // Save user data
+            DataStorage.save('user', currentUser);
+            
+            // For demo license, set trial data
+            if (currentLicense && currentLicense.type === 'DEMO') {
+                const trialData = {
+                    active: true,
+                    startDate: new Date().toISOString(),
+                    days: 7
+                };
+                DataStorage.save('trial', trialData);
+                isTrialActive = true;
+                trialDaysLeft = 7;
+                
+                // Show trial info
+                const trialInfo = document.getElementById('trial-info');
+                if (trialInfo) {
+                    trialInfo.style.display = 'block';
+                    const trialDays = document.getElementById('trial-days');
+                    if (trialDays) trialDays.textContent = trialDaysLeft;
+                }
             }
             
-            const weight = i + 1; // 1-based position
-            sum += charValue * weight;
-        }
-        
-        // Calculate modulo 36
-        const moduloResult = sum % 36;
-        
-        // Convert result to base-36 character (0-9, A-Z)
-        let calculatedChecksum;
-        if (moduloResult < 10) {
-            calculatedChecksum = moduloResult.toString(); // 0-9
-        } else {
-            calculatedChecksum = String.fromCharCode(moduloResult + 55); // A-Z
-        }
-        
-        // ===== STEP 7: VERIFY CHECKSUM =====
-        if (calculatedChecksum !== providedChecksum) {
-            return { 
-                valid: false, 
-                error: `Invalid license key. Checksum mismatch: expected ${calculatedChecksum}, got ${providedChecksum}` 
-            };
-        }
-        
-        // ===== STEP 8: DETERMINE LICENSE TYPE =====
-        let licenseType = 'PREMIUM';
-        let customerName = 'Premium User';
-        
-        // Check for special prefixes (same as generator)
-        if (payload.startsWith('DEMO')) {
-            licenseType = 'DEMO';
-            customerName = 'Demo User';
-        } else if (payload.startsWith('STU')) {
-            licenseType = 'STUDENT';
-            customerName = 'Student User';
-        } else if (payload.startsWith('TRIAL')) {
-            licenseType = 'TRIAL';
-            customerName = 'Trial User';
-        }
-        
-        // ===== STEP 9: EXPIRY DATE BASED ON TYPE =====
-        let expiryDate;
-        switch(licenseType) {
-            case 'PREMIUM':
-                expiryDate = getExpiryDate('PREMIUM', 365);
-                break;
-            case 'STUDENT':
-                expiryDate = getExpiryDate('STUDENT', 180);
-                break;
-            case 'TRIAL':
-                expiryDate = getExpiryDate('TRIAL', 30);
-                break;
-            case 'DEMO':
-                expiryDate = getExpiryDate('TRIAL', 7); // 7-day demo
-                break;
-            default:
-                expiryDate = getExpiryDate('PREMIUM', 365);
-        }
-        
-        // ===== STEP 10: FORMAT KEY FOR DISPLAY =====
-        const formattedKey = cleanKey.substring(0, 4) + '-' + 
-                           cleanKey.substring(4, 8) + '-' + 
-                           cleanKey.substring(8, 12) + '-' + 
-                           providedChecksum;
-        
-        // ===== STEP 11: RETURN VALID LICENSE =====
-        return { 
-            valid: true, 
-            data: { 
-                key: formattedKey,
-                originalKey: licenseKey,
-                type: licenseType, 
-                customer: customerName, 
-                expiry: expiryDate,
-                deviceId: deviceId,
-                checksumVerified: true,
-                validationDate: new Date().toISOString()
-            } 
-        };
-        
-    } catch (error) {
-        console.error('License validation error:', error);
-        return { valid: false, error: 'License validation failed: ' + error.message };
-    }
+            console.log('App access enabled successfully');
+        }, 500);
+    }, 100);
 }
 ```
 
-1. Add this helper function if it doesn't exist (right after the validateLicense function):
+Step 5: Add This CSS Fix at the End of Your CSS
 
-```javascript
-function getExpiryDate(type, days) {
-    const today = new Date();
-    const expiryDate = new Date(today);
-    expiryDate.setDate(today.getDate() + days);
-    return expiryDate.toISOString().split('T')[0];
-}
-```
-
-Issue 2: Mobile Layout - Fixing Welcome Screen
-
-The Problem: On mobile, the activation button layout is broken.
-
-Step-by-Step Fix:
-
-1. Find the .welcome-box CSS (around line 100-150 in your main app file)
-   Look for this section:
-   ```css
-   .welcome-box {
-       background: rgba(255, 255, 255, 0.95);
-       backdrop-filter: blur(10px);
-       /* ... other styles */
-   }
-   ```
-2. Replace the entire .welcome-box CSS block with this improved version:
+Go to the very end of your <style> section and add:
 
 ```css
-.welcome-box {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 24px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 500px; /* Reduced for better mobile fit */
-    padding: 30px;
+/* FIX for initial display */
+#welcome-container {
+    display: flex !important;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#app-container {
+    display: none !important;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+#app-container.active {
+    display: block !important;
+    opacity: 1;
+}
+
+/* Ensure license buttons work */
+#license-activate-btn, #use-demo-btn {
+    cursor: pointer;
     position: relative;
-    z-index: 1;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    margin: 20px; /* Added margin for mobile safety */
+    z-index: 100;
 }
 
-/* For larger screens */
-@media (min-width: 768px) {
-    .welcome-box {
-        padding: 40px;
-        max-width: 500px;
-    }
-}
-
-/* For very small screens */
-@media (max-width: 480px) {
-    .welcome-box {
-        padding: 25px 20px;
-        margin: 15px;
-    }
+/* Prevent flash */
+body {
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 ```
 
-1. Find the .license-input-group CSS and replace it with:
+Step 6: Quick Test Fix
 
-```css
-.license-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin-bottom: 25px;
-}
-
-.activate-button-container {
-    margin-top: 10px;
-}
-
-.license-activate-btn {
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    width: 100%;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.license-activate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
-}
-
-.license-activate-btn i {
-    font-size: 18px;
-}
-
-.license-activate-btn:disabled {
-    background: var(--gray);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-```
-
-1. Find the .license-actions CSS and replace it with:
-
-```css
-.license-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin: 25px 0;
-    width: 100%;
-}
-
-.license-actions .use-demo-btn,
-.license-actions .get-license-btn {
-    padding: 16px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: none;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    text-decoration: none;
-    width: 100%;
-    text-align: center;
-}
-
-.license-actions .use-demo-btn {
-    background: #f8f9fa;
-    color: var(--primary);
-    border: 2px solid var(--secondary);
-}
-
-.license-actions .get-license-btn {
-    background: #25D366;
-    color: white;
-    border: 2px solid #25D366;
-}
-
-.license-actions .use-demo-btn:hover,
-.license-actions .get-license-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-/* For larger screens */
-@media (min-width: 768px) {
-    .license-actions {
-        flex-direction: row;
-    }
-    
-    .license-actions .use-demo-btn,
-    .license-actions .get-license-btn {
-        width: auto;
-        min-width: 200px;
-    }
-}
-```
-
-Additional Fix: Auto-format License Input
-
-Add this code at the end of your script, just before the closing </script> tag:
+If the above doesn't work immediately, add this temporary fix at the very end of your JavaScript (just before the closing </script> tag):
 
 ```javascript
-// Auto-format license key as user types
-document.getElementById('license-input').addEventListener('input', function(e) {
-    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+// TEMPORARY FIX: Force show welcome screen on load
+window.addEventListener('load', function() {
+    console.log('Page fully loaded, forcing welcome screen display');
+    document.getElementById('welcome-container').style.display = 'flex';
+    document.getElementById('app-container').style.display = 'none';
     
-    // Auto-insert dashes at correct positions
-    if (value.length > 4 && value.length <= 8) {
-        value = value.substring(0, 4) + '-' + value.substring(4);
-    } else if (value.length > 8 && value.length <= 12) {
-        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + value.substring(8);
-    } else if (value.length > 12) {
-        value = value.substring(0, 4) + '-' + value.substring(4, 8) + '-' + 
-                value.substring(8, 12) + '-' + value.substring(12, 13);
-    }
-    
-    e.target.value = value;
+    // Re-initialize license system after 500ms
+    setTimeout(function() {
+        initializeLicenseSystem();
+    }, 500);
 });
-
-// Highlight manual entries
-function highlightManualEntries() {
-    document.querySelectorAll('.manual-highlight').forEach(el => {
-        el.classList.remove('manual-highlight');
-    });
-    
-    const timeInputs = document.querySelectorAll('input[type="number"][id^="time-"]');
-    timeInputs.forEach(input => {
-        const id = input.id.replace('time-', '');
-        const parts = id.split('-');
-        
-        if (parts.length < 3) return;
-        
-        const subjectId = parts[0];
-        const topicNameEncoded = parts[1];
-        const subtopicNameEncoded = parts.slice(2).join('-');
-        const topicName = topicNameEncoded.replace(/-/g, ' ');
-        const subtopicName = subtopicNameEncoded.replace(/-/g, ' ');
-        
-        // Check if this is a manual entry
-        if (userProgress.subjects[subjectId] &&
-            userProgress.subjects[subjectId].topics[topicName] &&
-            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName] &&
-            userProgress.subjects[subjectId].topics[topicName].subtopics[subtopicName].manualEntry === true) {
-            
-            input.classList.add('manual-highlight');
-        }
-    });
-}
 ```
 
-Summary of Changes:
+Step-by-Step Application Guide:
 
-1. Fixed license validation to match your generator's algorithm exactly
-2. Improved mobile layout with proper responsive design
-3. Added auto-formatting for license key input
-4. Ensured all buttons stay inside the white welcome box on mobile
+1. Copy Step 1 code and replace the existing DOMContentLoaded function
+2. Copy Step 2 code and replace the existing setupLicenseEventListeners() function
+3. Copy Step 3 code and replace the existing checkLicenseOnStartup() function
+4. Copy Step 4 code and replace the existing enableAppAccess() function
+5. Copy Step 5 code and add it at the very end of your <style> section
+6. Copy Step 6 code and add it at the very end of your JavaScript (before </script>)
 
-To apply these changes:
+Why These Fixes Work:
 
-1. Copy each code block above
-2. Find the corresponding sections in your main app file
-3. Delete the old code and paste the new code
-4. Save the file and test on your phone
+1. The white screen was happening because the app was trying to check for a license and auto-hide the welcome screen before DOM was fully ready
+2. The disappearing welcome tab was due to event listeners not being properly attached
+3. The fixes ensure:
+   · Welcome screen always shows first
+   · Event listeners are properly attached
+   · License check happens after DOM is ready
+   · Smooth transitions between screens
+   · User must explicitly click "Activate" or "Use Demo"
 
-The layout will now look clean and professional on all devices, and the license keys will validate correctly using the same algorithm as your generator tool.
+After applying these fixes, your app should:
+
+1. Show the welcome screen first
+2. Properly respond to button clicks
+3. Smoothly transition to the app after license activation
+4. Not show any white screens or flashes
+
+Try these fixes and let me know if you need further assistance!
