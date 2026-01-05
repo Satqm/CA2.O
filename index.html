@@ -3203,7 +3203,11 @@
         let isTrialActive = false;
         let trialDaysLeft = 7;
         let trialStartDate = null;
-        let deviceId = null;
+        let deviceId = generateDeviceId(); // Add this function
+
+function generateDeviceId() {
+    return 'DEVICE-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
         
         // CA Syllabus Data
         const syllabusData = {
@@ -6882,6 +6886,7 @@ function highlightManualEntries() {
     </script>
 </body>
 </html>
+
 
 
 
