@@ -46,514 +46,226 @@
         }
         
         /* ============= LICENSE WELCOME SCREEN ============= */
-        .welcome-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: var(--gradient);
-            position: relative;
-            overflow: hidden;
-            padding: 20px;
-        }
-        
-        .welcome-container::before {
-            content: '';
-            position: absolute;
-            width: 300%;
-            height: 300%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 1px, transparent 1px),
-                radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 100px 100px;
-            animation: float 20s linear infinite;
-        }
-        
-        @keyframes float {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-100px, -100px) rotate(360deg); }
-        }
-        
-        .welcome-box {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 600px;
-            padding: 40px;
-            position: relative;
-            z-index: 1;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .welcome-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .welcome-logo {
-            width: 100px;
-            height: 100px;
-            background: var(--gradient);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 25px;
-            color: white;
-            font-size: 40px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .welcome-header h1 {
-            font-size: 32px;
-            color: var(--primary);
-            margin-bottom: 10px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .welcome-header p {
-            color: var(--gray);
-            font-size: 16px;
-        }
-        
-        /* License Section */
-        .license-section {
-            margin: 30px 0;
-            padding: 25px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 16px;
-            border: 2px solid #e9ecef;
-        }
-        
-.license-input-group {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-@media (min-width: 768px) {
-    .license-input-group {
-        grid-template-columns: 1fr 1fr auto;
+     /* IMPROVED WELCOME SCREEN CSS */
+    .welcome-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 20px;
     }
-}
 
-@media (max-width: 480px) {
-    .license-input-group {
-        grid-template-columns: 1fr;
+    .welcome-box {
+        background: white;
+        width: 100%;
+        max-width: 450px; /* Tighter width for professional look */
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
     }
-}
-        .input-with-label {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
 
-.input-with-label label {
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 14px;
-    margin-left: 5px;
-}
+    .welcome-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 32px;
+        box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+    }
 
-.activate-button-container {
-    display: flex;
-    align-items: flex-end;
-}
+    .welcome-header h1 {
+        font-size: 26px;
+        color: #2c3e50;
+        margin-bottom: 5px;
+        font-weight: 800;
+    }
 
-.license-activate-btn {
-    padding: 16px 30px;
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    white-space: nowrap;
-    width: 100%;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
+    .welcome-header p {
+        color: #7f8c8d;
+        font-size: 14px;
+        margin-bottom: 30px;
+    }
 
-.license-activate-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
-}
+    /* FORM STYLING */
+    .license-form-group {
+        text-align: left;
+        margin-bottom: 15px;
+    }
 
-.license-activate-btn i {
-    font-size: 18px;
-}
+    .license-form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #34495e;
+        margin-bottom: 5px;
+        margin-left: 5px;
+    }
 
-.license-activate-btn:disabled {
-    background: var(--gray);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-        .license-input {
-            flex: 1;
-            padding: 16px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-        
-        .license-input:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
-        }
-        
-        .license-input.valid {
-            border-color: var(--success);
-            background: rgba(46, 204, 113, 0.05);
-        }
-        
-        .license-input.invalid {
-            border-color: var(--accent);
-            background: rgba(231, 76, 60, 0.05);
-        }
-        
-        .license-activate-btn {
-            padding: 16px 30px;
-            background: var(--gradient);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-        
-        .license-activate-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
-        }
-        
-        .license-status {
-            text-align: center;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 12px;
-            font-weight: 600;
-            display: none;
-        }
-        
-        .license-status.active {
-            display: block;
-            background: rgba(46, 204, 113, 0.1);
-            color: var(--success);
-            border: 2px solid rgba(46, 204, 113, 0.2);
-        }
-        
-        .license-status.expired {
-            display: block;
-            background: rgba(231, 76, 60, 0.1);
-            color: var(--accent);
-            border: 2px solid rgba(231, 76, 60, 0.2);
-        }
-        
-        .license-status.trial {
-            display: block;
-            background: rgba(52, 152, 219, 0.1);
-            color: var(--secondary);
-            border: 2px solid rgba(52, 152, 219, 0.2);
-        }
-        
-      .trial-info {
-    text-align: center;
-    padding: 12px;
-    margin: 15px 0;
-    background: rgba(52, 152, 219, 0.1);
-    border-radius: 12px;
-    border: 2px solid rgba(52, 152, 219, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+    .input-wrapper {
+        position: relative;
+    }
 
-.trial-info h4 {
-    color: var(--secondary);
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-}
+    .input-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+    }
 
-.trial-info p {
-    margin: 5px 0;
-    font-size: 14px;
-}
+    .license-input {
+        width: 100%;
+        padding: 12px 15px 12px 40px; /* Space for icon */
+        border: 2px solid #ecf0f1;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: 0.3s;
+        background: #f9fbfd;
+    }
+
+    .license-input:focus {
+        border-color: #3498db;
+        background: white;
+        outline: none;
+    }
+
+    /* ACTION BUTTONS */
+    .primary-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+
+    .primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    .divider {
+        margin: 20px 0;
+        position: relative;
+        text-align: center;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #eee;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 10px;
+        color: #95a5a6;
+        font-size: 12px;
+        position: relative;
+    }
+
+    .demo-btn {
+        width: 100%;
+        padding: 12px;
+        background: white;
+        border: 2px solid #ecf0f1;
+        color: #7f8c8d;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .demo-btn:hover {
+        border-color: #3498db;
+        color: #3498db;
+        background: #f8fbff;
+    }
+
+    /* ALERTS */
+    .license-status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        display: none;
+    }
+    .license-status.active { display: block; background: #d4edda; color: #155724; }
+    .license-status.expired { display: block; background: #f8d7da; color: #721c24; }
+
+    .copyright {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #bdc3c7;
+    }
+</style>
+
+<div class="welcome-container" id="welcome-container">
+    <div class="welcome-box">
+        <div class="welcome-logo">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="welcome-header">
+            <h1>CA Final Pro Tracker</h1>
+            <p>Professional Study Management System</p>
+        </div>
         
-        .license-actions {
-            display: flex;
-            gap: 15px;
-            margin: 25px 0;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        .get-license-btn, .buy-now-btn, .use-demo-btn {
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        .get-license-btn {
-            background: var(--gradient);
-            color: white;
-        }
-        
-        .buy-now-btn {
-            background: var(--premium);
-            color: white;
-        }
-        
-        .use-demo-btn {
-            background: #f8f9fa;
-            color: var(--primary);
-            border: 2px solid var(--secondary);
-        }
-        
-        .get-license-btn:hover, .buy-now-btn:hover, .use-demo-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .whatsapp-cta {
-            background: #25D366;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: all 0.3s;
-        }
-        
-        .whatsapp-cta:hover {
-            background: #128C7E;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
-        }
-        
-        .license-toggle {
-            text-align: center;
-            margin: 20px 0;
-        }
-        
-        .license-toggle-btn {
-            background: none;
-            border: none;
-            color: var(--secondary);
-            font-size: 15px;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        
-        .license-details {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .license-details.active {
-            display: block;
-        }
-        
-        .license-detail-item {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .license-detail-item i {
-            color: var(--secondary);
-            width: 20px;
-        }
-        
-        .premium-features {
-            margin-top: 30px;
-            padding: 25px;
-            background: rgba(255, 154, 0, 0.05);
-            border-radius: 16px;
-            border: 2px solid rgba(255, 154, 0, 0.2);
-        }
-        
-        .premium-features h3 {
-            color: #ff9a00;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .features-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: white;
-            border-radius: 10px;
-        }
-        
-        .feature-item i {
-            color: #ff9a00;
-            font-size: 18px;
-        }
-        
-        .demo-credentials {
-            margin-top: 25px;
-            padding: 20px;
-            background: rgba(46, 204, 113, 0.05);
-            border-radius: 12px;
-            border: 2px solid rgba(46, 204, 113, 0.2);
-            text-align: center;
-        }
-        
-        .demo-credentials h4 {
-            color: var(--success);
-            margin-bottom: 10px;
-        }
-        
-        .demo-license {
-            font-family: monospace;
-            background: #2c3e50;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin: 10px 0;
-            word-break: break-all;
-        }
-        
-        .premium-only {
-            position: relative;
-        }
-        
-        .lock-icon {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: #ff9a00;
-            font-size: 18px;
-        }
-        
-        .demo-video {
-            margin: 30px 0;
-            text-align: center;
-        }
-        
-        .demo-video a {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px 25px;
-            background: #ff0000;
-            color: white;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .demo-video a:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(255, 0, 0, 0.3);
-        }
-        
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 30px 0;
-            flex-wrap: wrap;
-        }
-        
-        .social-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            font-size: 22px;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        
-        .social-link:hover {
-            background: var(--secondary);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-        }
-        
-        .start-btn {
-            display: block;
-            width: 100%;
-            padding: 18px;
-            background: var(--gradient);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 20px;
-        }
-        
-        .start-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(52, 152, 219, 0.3);
-        }
-        
-        .copyright {
-            text-align: center;
-            margin-top: 25px;
-            font-size: 14px;
-            color: var(--gray);
-        }
+        <div class="license-form-group">
+            <label>Name</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input type="text" id="user-name-input" class="license-input" placeholder="Satyam Kumar">
+            </div>
+        </div>
+
+        <div class="license-form-group">
+            <label>License Key</label>
+            <div class="input-wrapper">
+                <i class="fas fa-key"></i>
+                <input type="text" id="license-input" class="license-input" placeholder="XXXX-XXXX-XXXX-C">
+            </div>
+        </div>
+
+        <button class="primary-btn" id="license-activate-btn">
+            <i class="fas fa-rocket"></i> Activate & Start
+        </button>
+
+        <div class="license-status" id="license-status"></div>
+
+        <div class="divider"><span>OR</span></div>
+
+        <button class="demo-btn" id="use-demo-btn">
+            <i class="fas fa-laptop-code"></i> Try 6-Day Demo Mode
+        </button>
+
+        <div class="copyright">
+            © 2026 CA Final Pro Tracker • Offline Version
+        </div>
+    </div>
+</div>
+
         
         /* ============= APP CONTAINER ============= */
         .app-container {
@@ -3849,148 +3561,61 @@ document.getElementById('license-input').addEventListener('input', function(e) {
     e.target.value = value;
 });
         
+// ====================
+// FIXED VALIDATION LOGIC
+// ====================
 function validateLicense(licenseKey) {
     try {
-        // ===== STEP 1: CLEAN AND SANITIZE =====
-        let cleanKey = licenseKey.trim().toUpperCase();
-        
-        // Remove ALL non-alphanumeric characters (dashes, spaces, etc.)
-        cleanKey = cleanKey.replace(/[^A-Z0-9]/g, '');
-        
-        console.log('License validation:', { original: licenseKey, cleanKey });
-        
-        // ===== STEP 2: HANDLE DEMO LICENSE =====
-   // Handle demo license
-const demoKeyClean = "DEMOCAFINAL2C";
-if (cleanKey === demoKeyClean) {
-    return { 
-        valid: true, 
-        data: { 
-            key: licenseKey,
-            type: 'DEMO', 
-            customer: userNameInput.value || 'Demo User', // Use entered name
-            expiry: '2026-12-31' 
-        } 
-    };
-}
-        
-        // ===== STEP 3: CHECK LENGTH =====
-        // Format should be 13 alphanumeric characters (12 payload + 1 checksum)
+        // 1. Clean the key
+        let cleanKey = licenseKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+        // 2. Check for Master Demo Key bypass
+        const demoKeyClean = "DEMOCAFINAL2C";
+        if (cleanKey === demoKeyClean) {
+            return { 
+                valid: true, 
+                data: { key: licenseKey, type: 'DEMO', customer: 'Demo User', expiry: '2026-12-31' } 
+            };
+        }
+
+        // 3. Length Check
         if (cleanKey.length !== 13) {
-            return { 
-                valid: false, 
-                error: `License key must be 13 characters (got ${cleanKey.length}). Format: 12 letters/numbers + 1 checksum` 
-            };
+            return { valid: false, error: 'Key must be 13 characters.' };
         }
-        
-        // ===== STEP 4: VALIDATE ALPHANUMERIC =====
-        if (!/^[A-Z0-9]{13}$/.test(cleanKey)) {
-            return { 
-                valid: false, 
-                error: 'License key must contain only letters A-Z and numbers 0-9' 
-            };
-        }
-        
-        // ===== STEP 5: EXTRACT PAYLOAD AND CHECKSUM =====
+
+        // 4. Extract parts
         const payload = cleanKey.substring(0, 12);
         const providedChecksum = cleanKey.substring(12, 13);
-        
-        // ===== STEP 6: WEIGHTED MODULO-36 CHECKSUM CALCULATION =====
+
+        // 5. CRITICAL FIX: Match the Generator's Algorithm exactly
+        // The generator uses payload.charCodeAt(i) directly.
         let sum = 0;
-        
         for (let i = 0; i < payload.length; i++) {
-            const char = payload.charAt(i);
-            let charValue;
-            
-            // Convert character to value (0-9, A-Z)
-            if (char >= '0' && char <= '9') {
-                charValue = parseInt(char);
-            } else if (char >= 'A' && char <= 'Z') {
-                charValue = char.charCodeAt(0) - 55; // A=10, B=11, ..., Z=35
-            } else {
-                return { valid: false, error: `Invalid character in license key: ${char}` };
-            }
-            
-            const weight = i + 1; // 1-based position
-            sum += charValue * weight;
+            const charCode = payload.charCodeAt(i); // Get ASCII value
+            sum += charCode * (i + 1); // Multiply by position
         }
-        
-        // Calculate modulo 36
+
         const moduloResult = sum % 36;
-        
-        // Convert result to base-36 character (0-9, A-Z)
-        let calculatedChecksum;
-        if (moduloResult < 10) {
-            calculatedChecksum = moduloResult.toString(); // 0-9
-        } else {
-            calculatedChecksum = String.fromCharCode(moduloResult + 55); // A-Z
-        }
-        
-        console.log('Checksum calculation:', {
-            payload,
-            sum,
-            moduloResult,
-            calculatedChecksum,
-            providedChecksum
-        });
-        
-        // ===== STEP 7: VERIFY CHECKSUM =====
+        const calculatedChecksum = moduloResult.toString(36).toUpperCase();
+
+        // 6. Verify
         if (calculatedChecksum !== providedChecksum) {
-            return { 
-                valid: false, 
-                error: `Invalid license key. Checksum mismatch: expected ${calculatedChecksum}, got ${providedChecksum}` 
-            };
+            console.log("Checksum Mismatch:", calculatedChecksum, "vs", providedChecksum);
+            return { valid: false, error: 'Invalid License Key' };
         }
-        
-        // ===== STEP 8: EXPIRY CHECK =====
-        const expiryDate = new Date('2026-12-31');
-        const currentDate = new Date();
-        
-        if (expiryDate < currentDate) {
-            return { valid: false, error: 'License has expired' };
-        }
-        
-        // ===== STEP 9: CONSTRUCT LICENSE DATA =====
-        // Format key for display (add dashes)
-        const formattedKey = cleanKey.substring(0, 4) + '-' + 
-                           cleanKey.substring(4, 8) + '-' + 
-                           cleanKey.substring(8, 12) + '-' + 
-                           providedChecksum;
-        
-        // Determine license type from payload
-        let licenseType = 'PREMIUM';
-        let customerName = 'Premium User';
-        
-        // Check for special prefixes
-        if (payload.startsWith('DEMO')) {
-            licenseType = 'DEMO';
-            customerName = 'Demo User';
-        } else if (payload.startsWith('STU') || payload.includes('STUDENT')) {
-            licenseType = 'STUDENT';
-            customerName = 'Student User';
-        } else if (payload.startsWith('TRIAL')) {
-            licenseType = 'TRIAL';
-            customerName = 'Trial User';
-        }
-        
-        // ===== STEP 10: RETURN VALID LICENSE =====
+
         return { 
             valid: true, 
             data: { 
-                key: formattedKey,
-                originalKey: licenseKey,
-                type: licenseType, 
-                customer: customerName, 
-                expiry: '2026-12-31',
-                deviceId: deviceId,
-                checksumVerified: true,
-                validationDate: new Date().toISOString()
+                key: cleanKey, 
+                type: 'PREMIUM', 
+                customer: 'User', 
+                expiry: 'Lifetime' 
             } 
         };
-        
+
     } catch (error) {
-        console.error('License validation error:', error);
-        return { valid: false, error: 'License validation failed: ' + error.message };
+        return { valid: false, error: 'Validation Error' };
     }
 }
 
@@ -4069,29 +3694,42 @@ if (validation.valid) {
 }
 
         
+// ====================
+// FIXED DEMO LOGIC
+// ====================
 function useDemoLicense() {
     const userNameInput = document.getElementById('user-name-input');
     const licenseInput = document.getElementById('license-input');
     
-    // Auto-fill name if empty
-    if (!userNameInput.value.trim()) {
-        userNameInput.value = "Demo User";
-    }
-    
-    // Auto-fill demo license key
+    // 1. Auto-fill details visually
+    userNameInput.value = "Guest User";
     licenseInput.value = "DEMO-CAFI-NAL2-C";
     
-    // Trigger activation
+    // 2. Set Trial Data for 6 Days
+    const startDate = new Date();
+    // Save trial data immediately
+    const trialData = {
+        active: true,
+        startDate: startDate.toISOString(),
+        duration: 6 // 6 Days
+    };
+    DataStorage.save('trial', trialData);
+    
+    // 3. Set User Data
+    currentUser.name = "Guest User";
+    currentUser.initials = "GU";
+    DataStorage.save('user', currentUser);
+
+    // 4. Show success and Redirect
+    const statusEl = document.getElementById('license-status');
+    statusEl.className = 'license-status active';
+    statusEl.innerHTML = '<i class="fas fa-check"></i> 6-Day Trial Activated!';
+    
     setTimeout(() => {
-        document.getElementById('license-activate-btn').click();
-    }, 500);
-    
-    // Visual feedback
-    userNameInput.classList.add('manual-highlight');
-    licenseInput.classList.add('manual-highlight');
-    
-    showToast('Demo license loaded! Click "Activate & Start" to begin', 'success');
+        enableAppAccess(); // Go to dashboard
+    }, 800);
 }
+
         function showLicenseStatus(type, message) {
     const statusEl = document.getElementById('license-status');
     statusEl.className = `license-status ${type}`;
@@ -6811,6 +6449,7 @@ function highlightManualEntries() {
     </script>
 </body>
 </html>
+
 
 
 
