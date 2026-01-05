@@ -1,325 +1,345 @@
-I'll help you create a clean, minimal license welcome screen. Here's the step-by-step guide with code changes:
+Here is the analysis of the issues and the corrected code.
+🔍 Analysis: Why it wasn't working
+ * License Validation Bug (CRITICAL):
+   * The Problem: Your Generator and your App were doing math differently.
+   * Generator logic: Used charCode (ASCII value, e.g., 'A' is 65).
+   * App logic: Converted 'A' to 10, 'B' to 11.
+   * Result: The checksums would never match, so the app always rejected the key. I have synchronized the math in the code below.
+ * Layout Issues:
+   * The "Activate" button was floating awkwardly because of the grid layout.
+   * The "Use Demo" button was too far away.
+   * I have grouped them into a clean "Login Card" style.
+ * Navigation Issue:
+   * The buttons were just running the validation but not triggering the UI switch to app-container effectively in all cases. I have updated the enableAppAccess flow.
+🚀 The Solution
+Replace the entire <body> content up to the <script> tag and update the specific JavaScript functions as shown below.
+Part 1: Replace the CSS & HTML (The Professional UI)
+Replace your existing <style> block (specifically the Welcome section parts) and the <div class="welcome-container"> block with this:
+<style>
+    /* ... Keep your existing :root and general resets ... */
 
-STEP 1: REMOVE UNNECESSARY SECTIONS
-
-Find and DELETE these sections from your HTML:
-
-1. Remove Premium Features Box (Lines ~730-776):
-
-```html
-<!-- DELETE THIS ENTIRE SECTION -->
-<div class="premium-features">
-    <h3><i class="fas fa-crown"></i> Premium Features</h3>
-    <div class="features-list">
-        <!-- ... all feature items ... -->
-    </div>
-</div>
-```
-
-1. Remove Demo Credentials Box (Lines ~778-795):
-
-```html
-<!-- DELETE THIS ENTIRE SECTION -->
-<div class="demo-credentials">
-    <h4><i class="fas fa-info-circle"></i> Demo License</h4>
-    <p>Try the app with demo license (7-day trial):</p>
-    <div class="demo-license" id="demo-license">
-        DEMO-CAFI-NAL2-C
-    </div>
-    <p style="font-size: 14px; margin-top: 10px;">
-        Copy and paste this key to activate demo mode
-    </p>
-</div>
-```
-
-1. Remove Social Links (Lines ~797-818):
-
-```html
-<!-- DELETE THIS ENTIRE SECTION -->
-<div class="social-links">
-    <a href="https://satqm.github.io/Portfolio-/" target="_blank" class="social-link" title="Portfolio">
-        <i class="fas fa-user-tie"></i>
-    </a>
-    <!-- ... other social links ... -->
-</div>
-```
-
-STEP 2: SIMPLIFY LICENSE SECTION
-
-Replace the entire license section (Lines ~664-717) with this simplified version:
-
-```html
-<!-- License Section - SIMPLIFIED VERSION -->
-<div class="license-section">
-    <div class="license-input-group">
-        <div class="input-with-label">
-            <label for="user-name-input"><i class="fas fa-user"></i> Your Name</label>
-            <input type="text" 
-                   id="user-name-input" 
-                   class="license-input" 
-                   placeholder="Enter your full name"
-                   maxlength="50">
-        </div>
-        <div class="input-with-label">
-            <label for="license-input"><i class="fas fa-key"></i> License Key</label>
-            <input type="text" 
-                   id="license-input" 
-                   class="license-input" 
-                   placeholder="XXXX-XXXX-XXXX-X (13 characters)"
-                   maxlength="19"
-                   pattern="[A-Z0-9-]{13,19}"
-                   title="Format: XXXX-XXXX-XXXX-C">
-        </div>
-        <div class="activate-button-container">
-            <button class="license-activate-btn" id="license-activate-btn">
-                <i class="fas fa-rocket"></i> Activate & Start
-            </button>
-        </div>
-    </div>
-    
-    <div class="license-status" id="license-status"></div>
-    
-    <div class="trial-info" id="trial-info" style="display: none;">
-        <h4><i class="fas fa-clock"></i> Trial Period Active</h4>
-        <p>You have <span id="trial-days">7</span> days left in your trial period.</p>
-    </div>
-    
-    <div class="license-actions">
-        <button class="use-demo-btn" id="use-demo-btn">
-            <i class="fas fa-play-circle"></i> Use Demo License
-        </button>
-        <a href="https://wa.me/919142300129" target="_blank" class="get-license-btn">
-            <i class="fab fa-whatsapp"></i> Get License Key
-        </a>
-    </div>
-    
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="https://wa.me/919142300129" target="_blank" class="whatsapp-cta">
-            <i class="fab fa-whatsapp"></i> Contact for License on WhatsApp
-        </a>
-    </div>
-</div>
-```
-
-STEP 3: UPDATE THE WELCOME HEADER
-
-Replace the welcome header section (Lines ~630-640) with this:
-
-```html
-<div class="welcome-header">
-    <div class="welcome-logo">
-        <i class="fas fa-graduation-cap"></i>
-    </div>
-    <h1>CA Final Pro Tracker</h1>
-    <p>Professional Offline Study Management System</p>
-</div>
-
-<div class="demo-video">
-    <a href="https://youtube.com/@__satyamkumar?si=yTdGDrWa-VE2_R5m" target="_blank">
-        <i class="fab fa-youtube"></i> Watch Demo Video
-    </a>
-</div>
-```
-
-STEP 4: UPDATE COPYRIGHT SECTION
-
-Replace the copyright section (Lines ~820-824) with this:
-
-```html
-<div class="copyright">
-    © 2026 CA Final Pro Tracker • Professional Version
-</div>
-```
-
-STEP 5: UPDATE CSS FOR SIMPLIFIED LAYOUT
-
-Add this CSS to remove extra spacing (add at the end of your CSS, before the closing </style>):
-
-```css
-/* Simplified layout adjustments */
-.welcome-box {
-    padding: 30px;
-    max-width: 500px;
-}
-
-.license-actions {
-    display: flex;
-    gap: 15px;
-    margin: 25px 0;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.license-actions .use-demo-btn,
-.license-actions .get-license-btn {
-    padding: 14px 24px;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: none;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: center;
-    text-decoration: none;
-}
-
-.license-actions .use-demo-btn {
-    background: #f8f9fa;
-    color: var(--primary);
-    border: 2px solid var(--secondary);
-}
-
-.license-actions .get-license-btn {
-    background: #25D366;
-    color: white;
-    border: 2px solid #25D366;
-}
-
-.license-actions .use-demo-btn:hover,
-.license-actions .get-license-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.license-details {
-    display: none !important;
-}
-
-.license-toggle {
-    display: none;
-}
-
-.whatsapp-cta {
-    background: #25D366;
-    color: white;
-    padding: 12px 20px;
-    border-radius: 12px;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s;
-}
-
-.whatsapp-cta:hover {
-    background: #128C7E;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(37, 211, 102, 0.3);
-}
-
-@media (max-width: 768px) {
-    .license-input-group {
-        grid-template-columns: 1fr !important;
+    /* IMPROVED WELCOME SCREEN CSS */
+    .welcome-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 20px;
     }
-    
-    .license-actions {
-        flex-direction: column;
-    }
-    
-    .license-actions .use-demo-btn,
-    .license-actions .get-license-btn {
+
+    .welcome-box {
+        background: white;
         width: 100%;
+        max-width: 450px; /* Tighter width for professional look */
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: white;
+        font-size: 32px;
+        box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    .welcome-header h1 {
+        font-size: 26px;
+        color: #2c3e50;
+        margin-bottom: 5px;
+        font-weight: 800;
+    }
+
+    .welcome-header p {
+        color: #7f8c8d;
+        font-size: 14px;
+        margin-bottom: 30px;
+    }
+
+    /* FORM STYLING */
+    .license-form-group {
+        text-align: left;
+        margin-bottom: 15px;
+    }
+
+    .license-form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #34495e;
+        margin-bottom: 5px;
+        margin-left: 5px;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-wrapper i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #95a5a6;
+    }
+
+    .license-input {
+        width: 100%;
+        padding: 12px 15px 12px 40px; /* Space for icon */
+        border: 2px solid #ecf0f1;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: 0.3s;
+        background: #f9fbfd;
+    }
+
+    .license-input:focus {
+        border-color: #3498db;
+        background: white;
+        outline: none;
+    }
+
+    /* ACTION BUTTONS */
+    .primary-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 10px;
+    }
+
+    .primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+    }
+
+    .divider {
+        margin: 20px 0;
+        position: relative;
+        text-align: center;
+    }
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #eee;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 10px;
+        color: #95a5a6;
+        font-size: 12px;
+        position: relative;
+    }
+
+    .demo-btn {
+        width: 100%;
+        padding: 12px;
+        background: white;
+        border: 2px solid #ecf0f1;
+        color: #7f8c8d;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .demo-btn:hover {
+        border-color: #3498db;
+        color: #3498db;
+        background: #f8fbff;
+    }
+
+    /* ALERTS */
+    .license-status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        display: none;
+    }
+    .license-status.active { display: block; background: #d4edda; color: #155724; }
+    .license-status.expired { display: block; background: #f8d7da; color: #721c24; }
+
+    .copyright {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #bdc3c7;
+    }
+</style>
+
+<div class="welcome-container" id="welcome-container">
+    <div class="welcome-box">
+        <div class="welcome-logo">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <div class="welcome-header">
+            <h1>CA Final Pro Tracker</h1>
+            <p>Professional Study Management System</p>
+        </div>
+        
+        <div class="license-form-group">
+            <label>Name</label>
+            <div class="input-wrapper">
+                <i class="fas fa-user"></i>
+                <input type="text" id="user-name-input" class="license-input" placeholder="Satyam Kumar">
+            </div>
+        </div>
+
+        <div class="license-form-group">
+            <label>License Key</label>
+            <div class="input-wrapper">
+                <i class="fas fa-key"></i>
+                <input type="text" id="license-input" class="license-input" placeholder="XXXX-XXXX-XXXX-C">
+            </div>
+        </div>
+
+        <button class="primary-btn" id="license-activate-btn">
+            <i class="fas fa-rocket"></i> Activate & Start
+        </button>
+
+        <div class="license-status" id="license-status"></div>
+
+        <div class="divider"><span>OR</span></div>
+
+        <button class="demo-btn" id="use-demo-btn">
+            <i class="fas fa-laptop-code"></i> Try 6-Day Demo Mode
+        </button>
+
+        <div class="copyright">
+            © 2026 CA Final Pro Tracker • Offline Version
+        </div>
+    </div>
+</div>
+
+Part 2: Correct the JavaScript Logic (The Brains)
+Find your existing validateLicense function and useDemoLicense function in your <script> tag and replace them completely with this corrected code.
+// ====================
+// FIXED VALIDATION LOGIC
+// ====================
+function validateLicense(licenseKey) {
+    try {
+        // 1. Clean the key
+        let cleanKey = licenseKey.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+        // 2. Check for Master Demo Key bypass
+        const demoKeyClean = "DEMOCAFINAL2C";
+        if (cleanKey === demoKeyClean) {
+            return { 
+                valid: true, 
+                data: { key: licenseKey, type: 'DEMO', customer: 'Demo User', expiry: '2026-12-31' } 
+            };
+        }
+
+        // 3. Length Check
+        if (cleanKey.length !== 13) {
+            return { valid: false, error: 'Key must be 13 characters.' };
+        }
+
+        // 4. Extract parts
+        const payload = cleanKey.substring(0, 12);
+        const providedChecksum = cleanKey.substring(12, 13);
+
+        // 5. CRITICAL FIX: Match the Generator's Algorithm exactly
+        // The generator uses payload.charCodeAt(i) directly.
+        let sum = 0;
+        for (let i = 0; i < payload.length; i++) {
+            const charCode = payload.charCodeAt(i); // Get ASCII value
+            sum += charCode * (i + 1); // Multiply by position
+        }
+
+        const moduloResult = sum % 36;
+        const calculatedChecksum = moduloResult.toString(36).toUpperCase();
+
+        // 6. Verify
+        if (calculatedChecksum !== providedChecksum) {
+            console.log("Checksum Mismatch:", calculatedChecksum, "vs", providedChecksum);
+            return { valid: false, error: 'Invalid License Key' };
+        }
+
+        return { 
+            valid: true, 
+            data: { 
+                key: cleanKey, 
+                type: 'PREMIUM', 
+                customer: 'User', 
+                expiry: 'Lifetime' 
+            } 
+        };
+
+    } catch (error) {
+        return { valid: false, error: 'Validation Error' };
     }
 }
-```
 
-STEP 6: UPDATE JAVASCRIPT FOR AUTO-FILL DEMO
-
-Find the useDemoLicense function (around line ~2120-2180) and REPLACE it with:
-
-```javascript
+// ====================
+// FIXED DEMO LOGIC
+// ====================
 function useDemoLicense() {
     const userNameInput = document.getElementById('user-name-input');
     const licenseInput = document.getElementById('license-input');
     
-    // Auto-fill name if empty
-    if (!userNameInput.value.trim()) {
-        userNameInput.value = "Demo User";
-    }
-    
-    // Auto-fill demo license key
+    // 1. Auto-fill details visually
+    userNameInput.value = "Guest User";
     licenseInput.value = "DEMO-CAFI-NAL2-C";
     
-    // Trigger activation
-    setTimeout(() => {
-        document.getElementById('license-activate-btn').click();
-    }, 500);
-    
-    // Visual feedback
-    userNameInput.classList.add('manual-highlight');
-    licenseInput.classList.add('manual-highlight');
-    
-    showToast('Demo license loaded! Click "Activate & Start" to begin', 'success');
-}
-```
-
-Find the activateLicense function and ADD this at the beginning (after the variable declarations):
-
-```javascript
-// Auto-highlight demo inputs
-if (licenseKey === "DEMO-CAFI-NAL2-C") {
-    userNameInput.classList.add('manual-highlight');
-    licenseInput.classList.add('manual-highlight');
-}
-```
-
-STEP 7: UPDATE VALIDATION MESSAGES
-
-Find the validateLicense function and UPDATE the demo license check (around line ~2050):
-
-```javascript
-// Handle demo license
-const demoKeyClean = "DEMOCAFINAL2C";
-if (cleanKey === demoKeyClean) {
-    return { 
-        valid: true, 
-        data: { 
-            key: licenseKey,
-            type: 'DEMO', 
-            customer: userNameInput.value || 'Demo User', // Use entered name
-            expiry: '2026-12-31' 
-        } 
+    // 2. Set Trial Data for 6 Days
+    const startDate = new Date();
+    // Save trial data immediately
+    const trialData = {
+        active: true,
+        startDate: startDate.toISOString(),
+        duration: 6 // 6 Days
     };
+    DataStorage.save('trial', trialData);
+    
+    // 3. Set User Data
+    currentUser.name = "Guest User";
+    currentUser.initials = "GU";
+    DataStorage.save('user', currentUser);
+
+    // 4. Show success and Redirect
+    const statusEl = document.getElementById('license-status');
+    statusEl.className = 'license-status active';
+    statusEl.innerHTML = '<i class="fas fa-check"></i> 6-Day Trial Activated!';
+    
+    setTimeout(() => {
+        enableAppAccess(); // Go to dashboard
+    }, 800);
 }
-```
 
-STEP 8: FINAL CLEANUP
-
-Remove these unnecessary event listeners from your JavaScript (if they exist):
-
-· License toggle button events
-· Buy now button events
-· Any other premium/demo specific events
-
----
-
-HOW TO INSTALL:
-
-1. Open your HTML file in a text editor
-2. Find and DELETE the sections mentioned in Step 1
-3. REPLACE the sections with the code provided in Steps 2, 3, and 4
-4. ADD the CSS from Step 5 to your style section
-5. UPDATE the JavaScript functions as in Steps 6 and 7
-6. Save the file and test it
-
-FINAL RESULT:
-
-Your welcome screen will now have only:
-
-1. Logo and title
-2. "Watch Demo Video" link
-3. Name input box
-4. License key input box
-5. "Activate & Start" button
-6. "Use Demo License" button (auto-fills both fields)
-7. "Get License Key" button (opens WhatsApp)
-8. WhatsApp contact link
-
-The demo license will auto-fill both name and key when clicked, and users can immediately activate and start using the app.
-
-Note: Test thoroughly to ensure the auto-fill and activation work correctly with the demo license key DEMO-CAFI-NAL2-C.
+🛠️ Next Step
+ * Copy the HTML/CSS Block and replace your welcome-container and add the CSS to your style block.
+ * Copy the JavaScript Block and replace the existing validateLicense and useDemoLicense functions.
+ * Run the file.
+Result:
+ * The UI will look like a professional login card.
+ * The WhatsApp link is gone from the main view.
+ * Clicking "Try 6-Day Demo Mode" will auto-fill, say "Activated", and take you to the dashboard.
+ * Any valid key generated by your generator will now actually work because the math matches.
