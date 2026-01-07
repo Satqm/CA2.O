@@ -3498,43 +3498,46 @@
         }
         
         function updateGlobalKPIs() {
-            let totalActualHours = 0;
-            let totalPlannedHours = userStudyPlan?.totalHours || 720;
-            let completedTopics = 0;
-            let completedSubjects = 0;
-            let totalSubtopicsCompleted = 0;
-            let totalSubtopics = 0;
+    let totalActualHours = 0;
+    let totalPlannedHours = userStudyPlan?.totalHours || 720;
+    let completedTopics = 0;
+    let completedSubjects = 0;
+    let totalSubtopicsCompleted = 0;
+    let totalSubtopics = 0;
+    let totalTopicsCount = 0;
+    
+    if (userProgress.subjects) {
+        for (const subjectId in userProgress.subjects) {
+            const subject = userProgress.subjects[subjectId];
             
-            if (userProgress.subjects) {
-                for (const subjectId in userProgress.subjects) {
-                    const subject = userProgress.subjects[subjectId];
-                    
-                    let subjectCompleted = true;
-                    for (const topicName in subject.topics) {
-                        const topic = subject.topics[topicName];
-                        
-                        if (topic.status === 'completed') {
-                            completedTopics++;
-                        } else {
-                            subjectCompleted = false;
+            let subjectCompleted = true;
+            for (const topicName in subject.topics) {
+                const topic = subject.topics[topicName];
+                totalTopicsCount++;
+                
+                if (topic.status === 'completed') {
+                    completedTopics++;
+                } else {
+                    subjectCompleted = false;
+                }
+                
+                if (topic.subtopics) {
+                    Object.values(topic.subtopics).forEach(subtopic => {
+                        totalActualHours += subtopic.actualHours || 0;
+                        totalSubtopics++;
+                        if (subtopic.completed) {
+                            totalSubtopicsCompleted++;
                         }
-                        
-                        if (topic.subtopics) {
-                            Object.values(topic.subtopics).forEach(subtopic => {
-                                totalActualHours += subtopic.actualHours || 0;
-                                totalSubtopics++;
-                                if (subtopic.completed) {
-                                    totalSubtopicsCompleted++;
-                                }
-                            });
-                        }
-                    }
-                    
-                    if (subjectCompleted) {
-                        completedSubjects++;
-                    }
+                    });
                 }
             }
+            
+            if (subjectCompleted && Object.keys(subject.topics).length > 0) {
+                completedSubjects++;
+            }
+        }
+    }
+   
             
             // Calculate success rate
             let successRate = 0;
@@ -3815,17 +3818,18 @@
                     return subjectActual;
                 });
                 
-                const backgroundColors = actualHours.map((actual, index) => {
-                    const suggested = suggestedHours[index];
-                    const achievement = suggested > 0 ? actual / suggested : 0;
-                    
-                    if (achievement >= 1) return 'rgba(46, 204, 113, 0.7)';
-                    if (achievement >= 0.8) return 'rgba(52, 152, 219, 0.7)';
-                    if (achievement >= 0.6) return 'rgba(243, 156, 18, 0.7)';
-                    if (achievement >= 0.4) return 'rgba(231, 76, 60, 0.5)';
-                    if (achievement >= 0.2) return 'rgba(155, 89, 182, 0.5)';
-                    return 'rgba(149, 165, 166, 0.5)';
-                });
+             const backgroundColors = actualHours.map((actual, index) => {
+    const suggested = suggestedHours[index];
+    const achievement = suggested > 0 ? actual / suggested : 0;
+    
+    // Always use green color for actual hours with varying opacity based on achievement
+    if (achievement >= 1) return 'rgba(46, 204, 113, 0.9)';  // Darker green for 100%+
+    if (achievement >= 0.8) return 'rgba(46, 204, 113, 0.7)'; // Green for 80-99%
+    if (achievement >= 0.6) return 'rgba(46, 204, 113, 0.6)'; // Lighter green for 60-79%
+    if (achievement >= 0.4) return 'rgba(46, 204, 113, 0.5)'; // Even lighter for 40-59%
+    if (achievement >= 0.2) return 'rgba(46, 204, 113, 0.4)'; // Very light for 20-39%
+    return 'rgba(46, 204, 113, 0.3)'; // Lightest green for 0-19%
+});
                 
                 chartData = {
                     labels: subjectNames,
@@ -5246,3 +5250,4 @@
     </script>
 </body>
 </html>
+
