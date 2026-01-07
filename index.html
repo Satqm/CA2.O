@@ -3790,44 +3790,81 @@
                 });
             }
             
-            // Export all data
             static async exportAll() {
-                const stores = [
-                    'user', 'progress', 'targets', 'completedTargets',
-                    'studyPlan', 'videos', 'resources', 'stats', 'settings'
-                ];
-                
-                const allData = {};
-                
-                for (const storeName of stores) {
-                    const data = await IndexedDBStorage.getAll(storeName);
-                    if (data.length > 0) {
-                        allData[storeName] = data;
-                    }
-                }
-                
-                allData.exportDate = new Date().toISOString();
-                allData.version = '2.0';
-                allData.app = 'CA Final Pro Tracker';
-                
-                return JSON.stringify(allData, null, 2);
-            }
+    try {
+        const [user, progress, targets, completedTargets, studyPlan, videos, resources, stats, motivation] = await Promise.all([
+            IndexedDBStorage.get('user', 'user'),
+            IndexedDBStorage.get('progress', 'progress'),
+            IndexedDBStorage.getAll('targets'),
+            IndexedDBStorage.getAll('completedTargets'),
+            IndexedDBStorage.get('studyPlan', 'studyPlan'),
+            IndexedDBStorage.getAll('videos'),
+            IndexedDBStorage.getAll('resources'),
+            IndexedDBStorage.get('stats', 'stats'),
+            IndexedDBStorage.get('motivation', 'motivation')   // Added this line
+        ]);
+        
+        const allData = {
+            user: user || initializeUser(),
+            progress: progress || initializeProgress(),
+            targets: targets || [],
+            completedTargets: completedTargets || [],
+            studyPlan: studyPlan || initializeStudyPlan(),
+            videos: videos || [],
+            resources: resources || [],
+            stats: stats || initializeStats(),
+            motivation: motivation || {   // Added this line
+                dailyActivity: {},
+                customQuotes: [],
+                weeklyQuotes: [],
+                weeklyGoals: {},
+                streaks: { current: 0, longest: 0, lastStudyDate: null }
+            },
+            exportDate: new Date().toISOString(),
+            version: '1.1'   // Updated version
+        };
+        
+        return JSON.stringify(allData, null, 2);
+    } catch (error) {
+        console.error('Error exporting data:', error);
+        return null;
+    }
+}
             
             // Import all data
-            static async importAll(jsonData) {
-                try {
-                    const data = JSON.parse(jsonData);
-                    
-                    // Clear existing data first
-                    const stores = [
-                        'user', 'progress', 'targets', 'completedTargets',
-                        'studyPlan', 'videos', 'resources', 'stats', 'settings'
-                    ];
-                    
-                    for (const storeName of stores) {
-                        await IndexedDBStorage.clear(storeName);
-                    }
-                    
+          static async importAll(jsonData) {
+    try {
+        const data = JSON.parse(jsonData);
+        
+        // Handle old backups that don't have motivation data
+        if (!data.motivation) {
+            data.motivation = {
+                dailyActivity: {},
+                customQuotes: [],
+                weeklyQuotes: [],
+                weeklyGoals: {},
+                streaks: { current: 0, longest: 0, lastStudyDate: null }
+            };
+        }
+        
+        // Save all data to IndexedDB
+        await Promise.all([
+            IndexedDBStorage.set('user', 'user', data.user),
+            IndexedDBStorage.set('progress', 'progress', data.progress),
+            IndexedDBStorage.setAll('targets', data.targets),
+            IndexedDBStorage.setAll('completedTargets', data.completedTargets),
+            IndexedDBStorage.set('studyPlan', 'studyPlan', data.studyPlan),
+            IndexedDBStorage.setAll('videos', data.videos),
+            IndexedDBStorage.setAll('resources', data.resources),
+            IndexedDBStorage.set('stats', 'stats', data.stats),
+            IndexedDBStorage.set('motivation', 'motivation', data.motivation)   // Added this line
+        ]);
+        
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: 'Invalid backup file format' };
+    }
+}
                     // Import new data
                     for (const storeName of stores) {
                         if (data[storeName] && Array.isArray(data[storeName])) {
@@ -3866,46 +3903,59 @@
             }
             
             // Load user data from IndexedDB
-            static async loadUserData() {
-                try {
-                    const [
-                        user, progress, targets, completedTargets,
-                        studyPlan, videos, resources, stats
-                    ] = await Promise.all([
-                        IndexedDBStorage.get('user', 'user'),
-                        IndexedDBStorage.get('progress', 'progress'),
-                        IndexedDBStorage.getAll('targets'),
-                        IndexedDBStorage.getAll('completedTargets'),
-                        IndexedDBStorage.get('studyPlan', 'studyPlan'),
-                        IndexedDBStorage.getAll('videos'),
-                        IndexedDBStorage.getAll('resources'),
-                        IndexedDBStorage.get('stats', 'stats')
-                    ]);
-                    
-                    return {
-                        user: user || initializeUser(),
-                        progress: progress || initializeProgress(),
-                        targets: targets || [],
-                        completedTargets: completedTargets || [],
-                        studyPlan: studyPlan || initializeStudyPlan(),
-                        videos: videos || [],
-                        resources: resources || [],
-                        stats: stats || initializeStats()
-                    };
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    return {
-                        user: initializeUser(),
-                        progress: initializeProgress(),
-                        targets: [],
-                        completedTargets: [],
-                        studyPlan: initializeStudyPlan(),
-                        videos: [],
-                        resources: [],
-                        stats: initializeStats()
-                    };
-                }
+           static async loadUserData() {
+    try {
+        const [user, progress, targets, completedTargets, studyPlan, videos, resources, stats, motivation] = await Promise.all([
+            IndexedDBStorage.get('user', 'user'),
+            IndexedDBStorage.get('progress', 'progress'),
+            IndexedDBStorage.getAll('targets'),
+            IndexedDBStorage.getAll('completedTargets'),
+            IndexedDBStorage.get('studyPlan', 'studyPlan'),
+            IndexedDBStorage.getAll('videos'),
+            IndexedDBStorage.getAll('resources'),
+            IndexedDBStorage.get('stats', 'stats'),
+            IndexedDBStorage.get('motivation', 'motivation')   // Added this line
+        ]);
+        
+        return {
+            user: user || initializeUser(),
+            progress: progress || initializeProgress(),
+            targets: targets || [],
+            completedTargets: completedTargets || [],
+            studyPlan: studyPlan || initializeStudyPlan(),
+            videos: videos || [],
+            resources: resources || [],
+            stats: stats || initializeStats(),
+            motivation: motivation || {   // Added this line
+                dailyActivity: {},
+                customQuotes: [],
+                weeklyQuotes: [],
+                weeklyGoals: {},
+                streaks: { current: 0, longest: 0, lastStudyDate: null }
             }
+        };
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        // Return default data in case of error
+        return {
+            user: initializeUser(),
+            progress: initializeProgress(),
+            targets: [],
+            completedTargets: [],
+            studyPlan: initializeStudyPlan(),
+            videos: [],
+            resources: [],
+            stats: initializeStats(),
+            motivation: {   // Added this line
+                dailyActivity: {},
+                customQuotes: [],
+                weeklyQuotes: [],
+                weeklyGoals: {},
+                streaks: { current: 0, longest: 0, lastStudyDate: null }
+            }
+        };
+    }
+}
             
             // Save specific data
             static async save(storeName, data) {
@@ -7260,5 +7310,6 @@
     </script>
 </body>
 </html>
+
 
 
