@@ -3597,7 +3597,7 @@
             document.getElementById('overall-progress').textContent = `${Math.round((totalSubtopicsCompleted / totalSubtopics) * 100)}%`;
             document.getElementById('subjects-completed').textContent = completedSubjects;
             document.getElementById('topics-completed').textContent = completedTopics;
-            document.getElementById('total-topics').textContent = Object.keys(syllabusData).reduce((sum, id) => sum + syllabusData[id].topics.length, 0);
+            document.getElementById('total-topics').textContent = totalTopicsCount;
             document.getElementById('plan-completion').textContent = `${Math.round((totalActualHours / totalPlannedHours) * 100)}%`;
             document.getElementById('targets-achieved').textContent = `${achievedTargets} / ${totalTargets}`;
             document.getElementById('success-rate').textContent = `${successRate}%`;
@@ -5250,4 +5250,5 @@
     </script>
 </body>
 </html>
+
 
