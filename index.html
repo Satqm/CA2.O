@@ -4445,35 +4445,52 @@
         }
         
         function updateTopicStatusBasedOnHours(subjectId, topicName, totalHours) {
-            const topic = syllabusData[subjectId]?.topics.find(t => t.name === topicName);
-            if (!topic) return;
-            
-            const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
-            const suggestedHours = (topic.weightage / 100) * subjectPlannedHours;
-            
-            let status = 'not-started';
-            if (totalHours >= suggestedHours) {
-                status = 'completed';
-            } else if (totalHours > 0) {
-                status = 'inprogress';
-            }
-            
-            userProgress.subjects[subjectId].topics[topicName].status = status;
-            
-            // Update UI
-            const statusElement = document.querySelector(`.topic-status[data-subject="${subjectId}"][data-topic="${topicName}"]`);
-            if (statusElement) {
-                statusElement.className = `topic-status status-${status}`;
-                
-                // Calculate percentage for in-progress
-                if (status === 'inprogress') {
-                    const percentage = Math.round((totalHours / suggestedHours) * 100);
-                    statusElement.innerHTML = `<span class="progress-indicator ${status}"></span>${percentage}%`;
-                } else {
-                    statusElement.innerHTML = `<span class="progress-indicator ${status}"></span>${status === 'completed' ? 'Completed' : 'Not Started'}`;
-                }
-            }
+    const topic = syllabusData[subjectId]?.topics.find(t => t.name === topicName);
+    if (!topic) return;
+
+    const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+    const suggestedHours = (topic.weightage / 100) * subjectPlannedHours;
+
+    // Check if all subtopics have actual hours > 0
+    const topicProgress = userProgress.subjects[subjectId]?.topics[topicName];
+    let allSubtopicsFilled = false;
+    
+    if (topicProgress && topicProgress.subtopics) {
+        const subtopics = Object.values(topicProgress.subtopics);
+        if (subtopics.length > 0) {
+            allSubtopicsFilled = subtopics.every(subtopic => 
+                subtopic.actualHours > 0
+            );
         }
+    }
+
+    let status = 'not-started';
+    
+    // A topic is completed if either:
+    // 1. All subtopics have actual hours filled (> 0), OR
+    // 2. Total hours >= suggested hours (original logic)
+    if (allSubtopicsFilled || totalHours >= suggestedHours) {
+        status = 'completed';
+    } else if (totalHours > 0) {
+        status = 'inprogress';
+    }
+
+    userProgress.subjects[subjectId].topics[topicName].status = status;
+
+    // Update UI
+    const statusElement = document.querySelector(`.topic-status[data-subject="${subjectId}"][data-topic="${topicName}"]`);
+    if (statusElement) {
+        statusElement.className = `topic-status status-${status}`;
+
+        // Calculate percentage for in-progress
+        if (status === 'inprogress') {
+            const percentage = Math.round((totalHours / suggestedHours) * 100);
+            statusElement.innerHTML = `<span class="progress-indicator ${status}"></span>${percentage}%`;
+        } else {
+            statusElement.innerHTML = `<span class="progress-indicator ${status}"></span>${status === 'completed' ? 'Completed' : 'Not Started'}`;
+        }
+    }
+}
         
         function scheduleSubtopicSave(subjectId, topicName, subtopicName, hours) {
             // Update in-memory progress immediately
@@ -4694,9 +4711,10 @@
                         }
                     }
                     
-                    if (subjectCompleted) {
-                        completedSubjects++;
-                    }
+                // A subject is completed only if it has topics and all are completed
+            if (subjectCompleted && Object.keys(subject.topics).length > 0) {
+                completedSubjects++;
+            }
                 }
             }
             
@@ -4978,16 +4996,17 @@
                 });
                 
                 const backgroundColors = actualHours.map((actual, index) => {
-                    const suggested = suggestedHours[index];
-                    const achievement = suggested > 0 ? actual / suggested : 0;
-                    
-                    if (achievement >= 1) return 'rgba(46, 204, 113, 0.7)';
-                    if (achievement >= 0.8) return 'rgba(52, 152, 219, 0.7)';
-                    if (achievement >= 0.6) return 'rgba(243, 156, 18, 0.7)';
-                    if (achievement >= 0.4) return 'rgba(231, 76, 60, 0.5)';
-                    if (achievement >= 0.2) return 'rgba(155, 89, 182, 0.5)';
-                    return 'rgba(149, 165, 166, 0.5)';
-                });
+    const suggested = suggestedHours[index];
+    const achievement = suggested > 0 ? actual / suggested : 0;
+    
+    // Always use green color for actual hours with varying opacity based on achievement
+    if (achievement >= 1) return 'rgba(46, 204, 113, 0.9)';  // Darker green for 100%+
+    if (achievement >= 0.8) return 'rgba(46, 204, 113, 0.7)'; // Green for 80-99%
+    if (achievement >= 0.6) return 'rgba(46, 204, 113, 0.6)'; // Lighter green for 60-79%
+    if (achievement >= 0.4) return 'rgba(46, 204, 113, 0.5)'; // Even lighter for 40-59%
+    if (achievement >= 0.2) return 'rgba(46, 204, 113, 0.4)'; // Very light for 20-39%
+    return 'rgba(46, 204, 113, 0.3)'; // Lightest green for 0-19%
+});
                 
                 chartData = {
                     labels: subjectNames,
@@ -6179,3 +6198,4 @@
     </script>
 </body>
 </html>
+
