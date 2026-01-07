@@ -3511,35 +3511,57 @@
     const subject = userProgress.subjects[subjectId];
     
     let subjectCompleted = true;
-    for (const topicName in subject.topics) {
-        const topic = subject.topics[topicName];
-        totalTopicsCount++;
-        
-        // NEW LOGIC: Topic completion check
-        let topicCompleted = false;
-        if (topic.status === 'completed') {
-            topicCompleted = true;
-        } else if (syllabusData[subjectId]) {
-            // Calculate topic completion based on subtopics
-            const topicData = syllabusData[subjectId].topics.find(t => t.name === topicName);
-            if (topicData && topic.subtopics) {
-                let allSubtopicsFilled = true;
-                Object.values(topic.subtopics).forEach(subtopic => {
-                    if ((subtopic.actualHours || 0) <= 0) {
-                        allSubtopicsFilled = false;
-                    }
-                });
-                topicCompleted = allSubtopicsFilled;
+ for (const topicName in subject.topics) {
+    const topic = subject.topics[topicName];
+    totalTopicsCount++;
+    
+    // Calculate suggested hours for this topic
+    const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+    const topicData = syllabusData[subjectId]?.topics?.find(t => t.name === topicName);
+    const topicWeightage = topicData?.weightage || 0;
+    const suggestedHours = (topicWeightage / 100) * subjectPlannedHours;
+    
+    let topicHours = 0;
+    let allSubtopicsFilled = true;
+    let subtopicCount = 0;
+    
+    // Calculate topic hours and check subtopics
+    if (topic.subtopics) {
+        Object.values(topic.subtopics).forEach(subtopic => {
+            const hours = subtopic.actualHours || 0;
+            topicHours += hours;
+            totalActualHours += hours;
+            totalSubtopics++;
+            subtopicCount++;
+            
+            if (subtopic.completed) {
+                totalSubtopicsCompleted++;
             }
-        }
-        
-        if (topicCompleted) {
-            completedTopics++;
-        } else {
-            subjectCompleted = false;
-        }
-        // ... rest of code
+            
+            if (hours <= 0) {
+                allSubtopicsFilled = false;
+            }
+        });
+   // Save the updated progress data after updating topic statuses
+DataStorage.save('progress', userProgress); }
+    
+    // NEW LOGIC: Topic is completed if ALL subtopics have actualHours > 0 OR total hours ≥ suggested hours
+    let topicCompleted = false;
+    if (topic.status === 'completed') {
+        topicCompleted = true;
+    } else if (allSubtopicsFilled || (suggestedHours > 0 && topicHours >= suggestedHours)) {
+        topicCompleted = true;
+        topic.status = 'completed'; // Update the topic status
+    } else if (topicHours > 0 && topic.status === 'not-started') {
+        topic.status = 'inprogress';
     }
+    
+    if (topicCompleted) {
+        completedTopics++;
+    } else {
+        subjectCompleted = false;
+    }
+}
     
     // NEW LOGIC: Subject is completed only when ALL its topics are completed
     if (subjectCompleted && Object.keys(subject.topics).length > 0) {
@@ -3667,40 +3689,50 @@
             let totalSubtopicsCompleted = 0;
             let totalSubtopics = 0;
             
-           for (const topicName in subject.topics) {
+for (const topicName in subject.topics) {
     const topic = subject.topics[topicName];
     
-    // NEW LOGIC: Topic completion check
-    let topicCompleted = false;
-    if (topic.status === 'completed') {
-        topicCompleted = true;
-    } else if (topicData && topic.subtopics) {
-        // Check if all subtopics have actualHours > 0
-        let allSubtopicsFilled = true;
+    // Calculate suggested hours for this topic
+    const subjectPlannedHours = userStudyPlan?.subjectHours?.[subjectId] || 0;
+    const topicData = subjectData.topics.find(t => t.name === topicName);
+    const topicWeightage = topicData?.weightage || 0;
+    const suggestedHours = (topicWeightage / 100) * subjectPlannedHours;
+    
+    let topicHours = 0;
+    let allSubtopicsFilled = true;
+    
+    if (topic.subtopics) {
         Object.values(topic.subtopics).forEach(subtopic => {
-            if ((subtopic.actualHours || 0) <= 0) {
+            const hours = subtopic.actualHours || 0;
+            topicHours += hours;
+            subjectActualHours += hours;
+            totalSubtopics++;
+            
+            if (subtopic.completed) {
+                totalSubtopicsCompleted++;
+            }
+            
+            if (hours <= 0) {
                 allSubtopicsFilled = false;
             }
         });
-        topicCompleted = allSubtopicsFilled;
+    }
+    
+    // NEW LOGIC: Topic is completed if ALL subtopics have actualHours > 0 OR total hours ≥ suggested hours
+    let topicCompleted = false;
+    if (topic.status === 'completed') {
+        topicCompleted = true;
+    } else if (allSubtopicsFilled || (suggestedHours > 0 && topicHours >= suggestedHours)) {
+        topicCompleted = true;
+        topic.status = 'completed'; // Update the topic status
+    } else if (topicHours > 0 && topic.status === 'not-started') {
+        topic.status = 'inprogress';
     }
     
     if (topicCompleted) {
         completedTopics++;
     }
-    // ... rest of code
 }
-                
-                if (topic.subtopics) {
-                    Object.values(topic.subtopics).forEach(subtopic => {
-                        subjectActualHours += subtopic.actualHours || 0;
-                        totalSubtopics++;
-                        if (subtopic.completed) {
-                            totalSubtopicsCompleted++;
-                        }
-                    });
-                }
-            }
             
             const subjectTargets = [...userTargets, ...completedTargets].filter(t => t.subject === subjectId);
             const totalSubjectTargets = subjectTargets.length;
@@ -3724,18 +3756,27 @@ let allTopicsCompleted = true;
 for (const topicName in subject.topics) {
     const topic = subject.topics[topicName];
     const topicData = subjectData.topics.find(t => t.name === topicName);
+    const topicWeightage = topicData?.weightage || 0;
+    const suggestedHours = (topicWeightage / 100) * subjectPlannedHours;
+    
+    let topicHours = 0;
+    let allSubtopicsFilled = true;
+    
+    if (topic.subtopics) {
+        Object.values(topic.subtopics).forEach(subtopic => {
+            const hours = subtopic.actualHours || 0;
+            topicHours += hours;
+            if (hours <= 0) {
+                allSubtopicsFilled = false;
+            }
+        });
+    }
     
     let topicCompleted = false;
     if (topic.status === 'completed') {
         topicCompleted = true;
-    } else if (topicData && topic.subtopics) {
-        let allSubtopicsFilled = true;
-        Object.values(topic.subtopics).forEach(subtopic => {
-            if ((subtopic.actualHours || 0) <= 0) {
-                allSubtopicsFilled = false;
-            }
-        });
-        topicCompleted = allSubtopicsFilled;
+    } else if (allSubtopicsFilled || (suggestedHours > 0 && topicHours >= suggestedHours)) {
+        topicCompleted = true;
     }
     
     if (!topicCompleted) {
@@ -5337,6 +5378,7 @@ if (allSubtopicsFilled || totalTopicHours >= suggestedHours) {
     </script>
 </body>
 </html>
+
 
 
 
