@@ -3832,28 +3832,29 @@
                 });
             }
             
-            // Get all items from a store
-            static async getAll(storeName) {
-                return new Promise((resolve, reject) => {
-                    if (!db) {
-                        reject(new Error('Database not initialized'));
-                        return;
-                    }
-                    
-                    const transaction = db.transaction([storeName], 'readonly');
-                    const store = transaction.objectStore(storeName);
-                    const request = store.getAll();
-                    
-                    request.onsuccess = () => {
-                        const items = request.result || [];
-                        // Filter out migration record
-                        const result = items.filter(item => item.id !== 'migration')
-                                          .map(item => item.data || item);
-                        resolve(result);
-                    };
-                    request.onerror = () => reject(request.error);
-                });
+              // Get all items from a store
+    static async getAll(storeName) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Database not initialized'));
+                return;
             }
+            
+            const transaction = db.transaction([storeName], 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+            
+            request.onsuccess = () => {
+                const items = request.result || [];
+                // For targets and completedTargets, we need all items
+                const result = items
+                    .filter(item => item.id && item.id.includes(storeName)) // Only get items for this store
+                    .map(item => item.data || item);
+                resolve(result);
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
             
             // Clear a store
             static async clear(storeName) {
@@ -3993,32 +3994,40 @@
                 }
             }
             
-            // Save specific data
-            static async save(storeName, data) {
-                try {
-                    if (storeName === 'targets' || storeName === 'completedTargets' || 
-                        storeName === 'videos' || storeName === 'resources') {
-                        // These stores contain multiple items, need to save all
-                        await IndexedDBStorage.clear(storeName);
-                        for (const item of data) {
-                            await IndexedDBStorage.set(storeName, {
-                                id: `item_${Date.now()}_${Math.random()}`,
-                                data: item
-                            });
-                        }
-                    } else {
-                        // Single item stores
-                        await IndexedDBStorage.set(storeName, {
-                            id: storeName,
-                            data: data
-                        });
-                    }
-                    return true;
-                } catch (error) {
-                    console.error(`Error saving ${storeName}:`, error);
-                    return false;
+               // Save specific data
+    static async save(storeName, data) {
+        try {
+            if (storeName === 'targets' || storeName === 'completedTargets') {
+                // For targets and completedTargets, save each item individually
+                await IndexedDBStorage.clear(storeName);
+                for (let i = 0; i < data.length; i++) {
+                    await IndexedDBStorage.set(storeName, {
+                        id: `${storeName}_${i}_${Date.now()}`,
+                        data: data[i]
+                    });
                 }
+            } else if (storeName === 'videos' || storeName === 'resources') {
+                // These stores contain multiple items, need to save all
+                await IndexedDBStorage.clear(storeName);
+                for (let i = 0; i < data.length; i++) {
+                    await IndexedDBStorage.set(storeName, {
+                        id: `${storeName}_${i}_${Date.now()}`,
+                        data: data[i]
+                    });
+                }
+            } else {
+                // Single item stores
+                await IndexedDBStorage.set(storeName, {
+                    id: storeName,
+                    data: data
+                });
             }
+            return true;
+        } catch (error) {
+            console.error(`Error saving ${storeName}:`, error);
+            return false;
+        }
+    }
             
             // Auto-save with debounce
             static async autoSave(storeName, data) {
@@ -6162,7 +6171,7 @@
             });
             
                 
-            // Add the completeTarget function
+              // Add the completeTarget function
             async function completeTarget(index) {
                 if (index >= 0 && index < userTargets.length) {
                     const target = userTargets[index];
@@ -6180,19 +6189,21 @@
                     completedTargets.push(completedTarget);
                     userTargets.splice(index, 1);
                     
-                    // Save changes
-                    await Promise.all([
-                        DataStorage.manualSave('targets', userTargets),
-                        DataStorage.manualSave('completedTargets', completedTargets),
-                        DataStorage.manualSave('progress', userProgress)
-                    ]);
-                    
-                    // Update UI
-                    loadTargets();
-                    loadTargetHistory();
-                    updateDashboard();
-                    
-                    showToast('Target marked as complete! Subtopic updated in Subjects tab.', 'success');
+                    try {
+                        // Save ALL changes to IndexedDB
+                        await DataStorage.manualSave('targets', userTargets);
+                        await DataStorage.manualSave('completedTargets', completedTargets);
+                        
+                        // Update UI
+                        loadTargets();
+                        loadTargetHistory();
+                        updateDashboard();
+                        
+                        showToast('Target marked as complete! Subtopic updated in Subjects tab.', 'success');
+                    } catch (error) {
+                        console.error('Error saving completed target:', error);
+                        showToast('Error saving completed target. Please try again.', 'error');
+                    }
                 }
             }
             // Add event listeners for auto-update subtopic buttons
@@ -7348,6 +7359,7 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
 
 
