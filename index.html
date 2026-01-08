@@ -2331,28 +2331,76 @@
                 gap: 10px;
             }
         }
-                /* New Heatmap Styles */
+            /* Heatmap Fixes */
         .heatmap-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: 30px repeat(7, 1fr);
             gap: 2px;
             margin: 20px auto;
             max-width: 600px;
         }
         
         .heatmap-cell {
-            width: 24px;
-            height: 24px;
-            border-radius: 3px;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
             background-color: #ebedf0;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s;
+            position: relative;
         }
         
         .heatmap-cell:hover {
-            transform: scale(1.2);
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             z-index: 10;
+        }
+        
+        .heatmap-week-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+        
+        .month-container {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .heatmap-weekdays {
+            display: grid;
+            grid-template-columns: 30px repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: var(--gray);
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 10px auto;
+        }
+        
+        .heatmap-select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 2px solid #e9ecef;
+            background: white;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .heatmap-select:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
         
         .month-label {
@@ -2373,6 +2421,7 @@
         .empty-day:hover {
             transform: none;
         }
+        
     </style>
 </head>
 <body>
@@ -7226,12 +7275,14 @@ async function deleteTarget(index) {
         let currentHeatmapMonth = new Date().getMonth(); // 0-11
         
            // ==================== NEW HEATMAP FUNCTIONS ====================
-        function initializeHeatmap() {
+            function initializeHeatmap() {
             // Populate year dropdown
             const yearSelect = document.getElementById('heatmap-year-select');
             yearSelect.innerHTML = '';
             
             const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth(); // 0-11
+            
             for (let year = currentYear - 2; year <= currentYear + 1; year++) {
                 const option = document.createElement('option');
                 option.value = year;
@@ -7243,7 +7294,11 @@ async function deleteTarget(index) {
             }
             
             // Set current month in dropdown
-            document.getElementById('heatmap-month-select').value = currentHeatmapMonth;
+            document.getElementById('heatmap-month-select').value = currentMonth;
+            
+            // Set global variables
+            currentHeatmapYear = currentYear;
+            currentHeatmapMonth = currentMonth;
             
             // Generate heatmap for current month
             generateMonthHeatmap(currentHeatmapYear, currentHeatmapMonth);
@@ -7252,9 +7307,15 @@ async function deleteTarget(index) {
             updateHeatmapTitle();
         }
         
-        function generateMonthHeatmap(year, month) {
+             function generateMonthHeatmap(year, month) {
             const heatmapGrid = document.getElementById('heatmap-grid');
             heatmapGrid.innerHTML = '';
+            
+            // Reset grid layout for month view (IMPORTANT!)
+            heatmapGrid.style.gridTemplateColumns = '30px repeat(7, 1fr)';
+            heatmapGrid.style.gap = '2px';
+            heatmapGrid.style.maxWidth = '600px';
+            heatmapGrid.style.margin = '0 auto';
             
             // Get first day of month (0=Sun, 1=Mon, etc.)
             const firstDay = new Date(year, month, 1).getDay();
@@ -7262,6 +7323,7 @@ async function deleteTarget(index) {
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             
             // Adjust for Monday as first day of week (0=Mon, 6=Sun)
+            // We want Monday = 0, Tuesday = 1, ..., Sunday = 6
             const adjustedFirstDay = (firstDay === 0) ? 6 : firstDay - 1;
             
             let totalMonthHours = 0;
@@ -7269,8 +7331,8 @@ async function deleteTarget(index) {
             
             // Get data for all days in month
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month, day);
-                const dateString = date.toISOString().split('T')[0];
+                // Create date string in YYYY-MM-DD format (FIXED)
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 // Calculate hours studied for this day
                 let hours = 0;
@@ -7318,6 +7380,8 @@ async function deleteTarget(index) {
                         cell.style.backgroundColor = 'transparent';
                         cell.style.border = 'none';
                         cell.style.cursor = 'default';
+                        cell.style.width = '32px';
+                        cell.style.height = '32px';
                     } else {
                         const hours = monthData[dayNumber] || 0;
                         
@@ -7331,49 +7395,52 @@ async function deleteTarget(index) {
                         }
                         
                         cell.style.backgroundColor = color;
-                        cell.dataset.date = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+                        cell.style.width = '32px';
+                        cell.style.height = '32px';
+                        cell.style.borderRadius = '4px';
+                        cell.style.display = 'flex';
+                        cell.style.alignItems = 'center';
+                        cell.style.justifyContent = 'center';
+                        cell.style.cursor = 'pointer';
+                        cell.style.transition = 'all 0.2s';
+                        
+                        // Create date string for this cell
+                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
+                        cell.dataset.date = dateStr;
                         cell.dataset.hours = hours;
                         
                         // Add tooltip
-                        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNumber).padStart(2, '0')}`;
                         cell.title = `${dateStr}: ${hours} hours`;
                         
                         // Add day number
-                        const dayLabel = document.createElement('div');
+                        const dayLabel = document.createElement('span');
                         dayLabel.textContent = dayNumber;
-                        dayLabel.style.fontSize = '11px';
+                        dayLabel.style.fontSize = '12px';
                         dayLabel.style.fontWeight = '600';
                         dayLabel.style.color = hours > 0 ? '#fff' : '#666';
                         dayLabel.style.textAlign = 'center';
-                        dayLabel.style.paddingTop = '2px';
                         cell.appendChild(dayLabel);
                         
                         // Add click event to view details
                         cell.addEventListener('click', function() {
                             showDayDetails(dateStr, hours);
                         });
+                        
+                        // Add hover effects
+                        cell.addEventListener('mouseover', function() {
+                            if (dayNumber >= 1 && dayNumber <= daysInMonth) {
+                                this.style.transform = 'scale(1.1)';
+                                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                                this.style.zIndex = '10';
+                            }
+                        });
+                        
+                        cell.addEventListener('mouseout', function() {
+                            this.style.transform = 'scale(1)';
+                            this.style.boxShadow = 'none';
+                            this.style.zIndex = '1';
+                        });
                     }
-                    
-                    cell.style.width = '32px';
-                    cell.style.height = '32px';
-                    cell.style.borderRadius = '4px';
-                    cell.style.display = 'flex';
-                    cell.style.alignItems = 'center';
-                    cell.style.justifyContent = 'center';
-                    cell.style.cursor = 'pointer';
-                    cell.style.transition = 'all 0.2s';
-                    
-                    cell.addEventListener('mouseover', function() {
-                        if (dayNumber >= 1 && dayNumber <= daysInMonth) {
-                            this.style.transform = 'scale(1.1)';
-                            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-                        }
-                    });
-                    
-                    cell.addEventListener('mouseout', function() {
-                        this.style.transform = 'scale(1)';
-                        this.style.boxShadow = 'none';
-                    });
                     
                     heatmapGrid.appendChild(cell);
                 }
@@ -7386,16 +7453,15 @@ async function deleteTarget(index) {
             updateMonthStats(year, month, monthData);
         }
         
-        function generateYearHeatmap(year) {
+              function generateYearHeatmap(year) {
             const heatmapGrid = document.getElementById('heatmap-grid');
             heatmapGrid.innerHTML = '';
-            
-            // Hide weekdays header for year view
-            document.querySelector('.heatmap-weekdays').style.display = 'none';
             
             // Create year view (12 months grid)
             heatmapGrid.style.gridTemplateColumns = 'repeat(4, 1fr)';
             heatmapGrid.style.gap = '15px';
+            heatmapGrid.style.maxWidth = '800px';
+            heatmapGrid.style.margin = '0 auto';
             
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             
@@ -7408,6 +7474,7 @@ async function deleteTarget(index) {
                 monthContainer.style.borderRadius = '8px';
                 monthContainer.style.padding = '10px';
                 monthContainer.style.backgroundColor = 'white';
+                monthContainer.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
                 
                 // Month header
                 const monthHeader = document.createElement('div');
@@ -7416,6 +7483,7 @@ async function deleteTarget(index) {
                 monthHeader.style.textAlign = 'center';
                 monthHeader.style.marginBottom = '8px';
                 monthHeader.style.color = 'var(--primary)';
+                monthHeader.style.fontSize = '14px';
                 monthContainer.appendChild(monthHeader);
                 
                 // Create mini calendar for the month
@@ -7423,16 +7491,19 @@ async function deleteTarget(index) {
                 miniGrid.style.display = 'grid';
                 miniGrid.style.gridTemplateColumns = 'repeat(7, 1fr)';
                 miniGrid.style.gap = '2px';
+                miniGrid.style.justifyContent = 'center';
                 
                 const firstDay = new Date(year, monthIndex, 1).getDay();
                 const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+                
+                // Adjust for Monday as first day of week (0=Mon, 6=Sun)
                 const adjustedFirstDay = (firstDay === 0) ? 6 : firstDay - 1;
                 
                 // Add empty cells for days before 1st
                 for (let i = 0; i < adjustedFirstDay; i++) {
                     const emptyCell = document.createElement('div');
-                    emptyCell.style.width = '12px';
-                    emptyCell.style.height = '12px';
+                    emptyCell.style.width = '14px';
+                    emptyCell.style.height = '14px';
                     emptyCell.style.backgroundColor = 'transparent';
                     miniGrid.appendChild(emptyCell);
                 }
@@ -7440,8 +7511,8 @@ async function deleteTarget(index) {
                 // Add cells for each day
                 let monthHours = 0;
                 for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(year, monthIndex, day);
-                    const dateString = date.toISOString().split('T')[0];
+                    // Create date string in YYYY-MM-DD format (FIXED)
+                    const dateString = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     
                     // Get hours from data
                     let hours = 0;
@@ -7464,11 +7535,16 @@ async function deleteTarget(index) {
                     }
                     
                     const cell = document.createElement('div');
-                    cell.style.width = '12px';
-                    cell.style.height = '12px';
+                    cell.style.width = '14px';
+                    cell.style.height = '14px';
                     cell.style.borderRadius = '2px';
                     cell.style.backgroundColor = color;
                     cell.title = `${dateString}: ${hours} hours`;
+                    cell.style.cursor = 'pointer';
+                    
+                    cell.addEventListener('click', function() {
+                        showDayDetails(dateString, hours);
+                    });
                     
                     miniGrid.appendChild(cell);
                 }
@@ -7478,9 +7554,9 @@ async function deleteTarget(index) {
                 // Month total
                 const monthTotal = document.createElement('div');
                 monthTotal.textContent = `${monthHours}h`;
-                monthTotal.style.fontSize = '11px';
+                monthTotal.style.fontSize = '12px';
                 monthTotal.style.textAlign = 'center';
-                monthTotal.style.marginTop = '5px';
+                monthTotal.style.marginTop = '8px';
                 monthTotal.style.fontWeight = '600';
                 monthTotal.style.color = monthHours > 0 ? 'var(--success)' : 'var(--gray)';
                 monthContainer.appendChild(monthTotal);
@@ -7595,9 +7671,10 @@ async function deleteTarget(index) {
             alert(detailsHTML);
         }
         
-        function toggleHeatmapView() {
+            function toggleHeatmapView() {
             const toggleBtn = document.getElementById('toggle-view-btn');
             const weekdaysHeader = document.querySelector('.heatmap-weekdays');
+            const heatmapGrid = document.getElementById('heatmap-grid');
             
             if (heatmapViewMode === 'month') {
                 // Switch to year view
@@ -7605,10 +7682,18 @@ async function deleteTarget(index) {
                 toggleBtn.innerHTML = '<i class="fas fa-calendar-alt"></i> Switch to Month View';
                 toggleBtn.style.background = 'var(--warning)';
                 
-                // Hide month selector, show only year
+                // Hide month selector and navigation buttons
                 document.getElementById('heatmap-month-select').style.display = 'none';
                 document.getElementById('prev-month-btn').style.display = 'none';
                 document.getElementById('next-month-btn').style.display = 'none';
+                
+                // Reset grid for year view
+                heatmapGrid.style.gridTemplateColumns = 'repeat(4, 1fr)';
+                heatmapGrid.style.gap = '15px';
+                heatmapGrid.style.maxWidth = '800px';
+                heatmapGrid.style.margin = '0 auto';
+                
+                // Hide weekdays header
                 weekdaysHeader.style.display = 'none';
                 
                 generateYearHeatmap(currentHeatmapYear);
@@ -7618,10 +7703,18 @@ async function deleteTarget(index) {
                 toggleBtn.innerHTML = '<i class="fas fa-calendar-week"></i> Switch to Year View';
                 toggleBtn.style.background = 'var(--secondary)';
                 
-                // Show month selector
+                // Show month selector and navigation buttons
                 document.getElementById('heatmap-month-select').style.display = 'inline-block';
                 document.getElementById('prev-month-btn').style.display = 'inline-block';
                 document.getElementById('next-month-btn').style.display = 'inline-block';
+                
+                // Reset grid for month view (VERY IMPORTANT!)
+                heatmapGrid.style.gridTemplateColumns = '30px repeat(7, 1fr)';
+                heatmapGrid.style.gap = '2px';
+                heatmapGrid.style.maxWidth = '600px';
+                heatmapGrid.style.margin = '0 auto';
+                
+                // Show weekdays header
                 weekdaysHeader.style.display = 'grid';
                 
                 generateMonthHeatmap(currentHeatmapYear, currentHeatmapMonth);
@@ -7709,16 +7802,20 @@ async function deleteTarget(index) {
             return weekDays;
         }
         
-             // Function to update heatmap data when study hours are logged
+               // Function to update heatmap data when study hours are logged
         async function updateHeatmapData(dateString, hours) {
+            // The dateString should already be in YYYY-MM-DD format
             const year = dateString.split('-')[0];
             
             if (!userMotivation.heatmapData[year]) {
                 userMotivation.heatmapData[year] = {};
             }
             
-            // Add or update hours for the date
-            userMotivation.heatmapData[year][dateString] = (userMotivation.heatmapData[year][dateString] || 0) + hours;
+            // IMPORTANT: Make sure we're adding hours, not replacing
+            const currentHours = userMotivation.heatmapData[year][dateString] || 0;
+            userMotivation.heatmapData[year][dateString] = currentHours + hours;
+            
+            console.log(`Updated heatmap: ${dateString} = ${userMotivation.heatmapData[year][dateString]} hours`);
             
             // Save to IndexedDB
             await DataStorage.manualSave('motivation', userMotivation, (success) => {
@@ -7752,6 +7849,7 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
 
 
