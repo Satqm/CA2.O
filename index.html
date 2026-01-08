@@ -4979,7 +4979,7 @@
             DataStorage.autoSave('progress', userProgress);
         }
         
-        async function saveSubtopicProgress(subjectId, topicName, subtopicName, hours, callback) {
+           async function saveSubtopicProgress(subjectId, topicName, subtopicName, hours, callback) {
             try {
                 // Update in-memory progress
                 if (!userProgress.subjects[subjectId]) {
@@ -5008,23 +5008,31 @@
                 
                 // Update topic total
                 updateTopicTotal(subjectId, topicName);
-                            // Save the updated progress
-            await DataStorage.manualSave('progress', userProgress, (success) => {
-                if (success) {
-                    console.log(`Updated subtopic "${subtopicName}" with ${actualHours} hours from completed target.`);
-                    
-                    // Update the Subjects page UI if it's currently active
-                    if (currentPage === 'subjects') {
-                        loadSubjectContent();
+                
+                // Save the updated progress
+                await DataStorage.manualSave('progress', userProgress, (success) => {
+                    if (success) {
+                        console.log(`Updated subtopic "${subtopicName}" with ${hours} hours from completed target.`);
+                        
+                        // Update the Subjects page UI if it's currently active
+                        if (currentPage === 'subjects') {
+                            loadSubjectContent();
+                        }
+                        
+                        // Also update heatmap data
+                        if (hours > 0) {
+                            const today = new Date().toISOString().split('T')[0];
+                            updateHeatmapData(today, hours);
+                        }
                     }
-                    
-                    // Also update heatmap data
-                    if (actualHours > 0) {
-                        const today = new Date().toISOString().split('T')[0];
-                        updateHeatmapData(today, actualHours);
-                    }
-                }
-            });
+                });
+                
+                if (callback) callback(true);
+                
+            } catch (error) {
+                console.error('Error saving subtopic:', error);
+                if (callback) callback(false);
+            }
         }
         
         // Helper function to check if a target matches syllabus structure
@@ -7340,6 +7348,7 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
 
 
