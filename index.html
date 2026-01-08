@@ -7225,6 +7225,7 @@ async function deleteTarget(index) {
         let currentHeatmapYear = new Date().getFullYear();
         let currentHeatmapMonth = new Date().getMonth(); // 0-11
         
+           // ==================== NEW HEATMAP FUNCTIONS ====================
         function initializeHeatmap() {
             // Populate year dropdown
             const yearSelect = document.getElementById('heatmap-year-select');
@@ -7659,165 +7660,7 @@ async function deleteTarget(index) {
             updateHeatmapTitle();
         }
         
-        function showPrevYearHeatmap() {
-            const currentYear = parseInt(document.getElementById('heatmap-year').textContent);
-            const newYear = currentYear - 1;
-            document.getElementById('heatmap-year').textContent = newYear;
-            
-            // Regenerate heatmap for previous year
-            generateHeatmapForYear(newYear);
-        }
-        
-        function showNextYearHeatmap() {
-            const currentYear = parseInt(document.getElementById('heatmap-year').textContent);
-            const newYear = currentYear + 1;
-            
-            if (newYear > new Date().getFullYear()) {
-                showToast('Cannot view future years', 'warning');
-                return;
-            }
-            
-            document.getElementById('heatmap-year').textContent = newYear;
-            generateHeatmapForYear(newYear);
-        }
-        
-        function generateHeatmapForYear(year) {
-            // Similar to generateHeatmap but for specific year
-            const heatmapGrid = document.getElementById('heatmap-grid');
-            heatmapGrid.innerHTML = '';
-            
-            // Hide months header
-            document.getElementById('heatmap-months').style.display = 'none';
-            
-            // Generate month-wise view for the specified year
-            const months = [
-                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-            ];
-            
-            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-            // Adjust for leap year
-            if ((year % 4 === 0 && year % 100 > 0) || year % 400 == 0) {
-                daysInMonth[1] = 29;
-            }
-            
-            // Create a container for each month
-            let totalDaysAdded = 0;
-            
-            for (let month = 0; month < 12; month++) {
-                // Add month label
-                const monthLabel = document.createElement('div');
-                monthLabel.className = 'month-label';
-                monthLabel.textContent = months[month];
-                monthLabel.style.gridColumn = '1 / span 7';
-                monthLabel.style.textAlign = 'center';
-                monthLabel.style.fontWeight = 'bold';
-                monthLabel.style.margin = '10px 0 5px 0';
-                monthLabel.style.color = 'var(--primary)';
-                heatmapGrid.appendChild(monthLabel);
-                
-                // Get first day of the month
-                const firstDay = new Date(year, month, 1).getDay();
-                
-                // Add empty cells for days before the 1st
-                for (let i = 0; i < firstDay; i++) {
-                    const emptyCell = document.createElement('div');
-                    emptyCell.className = 'heatmap-cell empty-day';
-                    emptyCell.style.backgroundColor = 'transparent';
-                    emptyCell.style.border = 'none';
-                    heatmapGrid.appendChild(emptyCell);
-                }
-                
-                // Add cells for each day of the month
-                for (let day = 1; day <= daysInMonth[month]; day++) {
-                    const date = new Date(year, month, day);
-                    const dateString = date.toISOString().split('T')[0];
-                    
-                    // Get hours from heatmap data
-                    const hours = userMotivation.heatmapData[year]?.[dateString] || 0;
-                    
-                    // Determine color based on hours
-                    let color = '#ebedf0'; // No data
-                    if (hours > 0) {
-                        if (hours <= 2) color = '#c6e48b';
-                        else if (hours <= 4) color = '#7bc96f';
-                        else if (hours <= 6) color = '#239a3b';
-                        else color = '#196127'; // 7+ hours
-                    }
-                    
-                    // Create cell
-                    const cell = document.createElement('div');
-                    cell.className = 'heatmap-cell';
-                    cell.style.backgroundColor = color;
-                    cell.style.width = '24px';
-                    cell.style.height = '24px';
-                    cell.style.borderRadius = '3px';
-                    cell.style.margin = '2px';
-                    cell.dataset.date = dateString;
-                    cell.dataset.hours = hours;
-                    cell.title = `${dateString}: ${hours} hours`;
-                    
-                    // Add day number
-                    const dayNumber = document.createElement('span');
-                    dayNumber.textContent = day;
-                    dayNumber.style.fontSize = '9px';
-                    dayNumber.style.color = hours > 0 ? '#fff' : '#666';
-                    dayNumber.style.position = 'absolute';
-                    dayNumber.style.top = '1px';
-                    dayNumber.style.left = '1px';
-                    cell.appendChild(dayNumber);
-                    
-                    heatmapGrid.appendChild(cell);
-                    totalDaysAdded++;
-                }
-                
-                // Add empty cells to complete the week (if needed)
-                const daysInWeek = 7;
-                const cellsInMonth = firstDay + daysInMonth[month];
-                const remainingCells = cellsInMonth % daysInWeek;
-                if (remainingCells > 0) {
-                    for (let i = 0; i < (daysInWeek - remainingCells); i++) {
-                        const emptyCell = document.createElement('div');
-                        emptyCell.className = 'heatmap-cell empty-day';
-                        emptyCell.style.backgroundColor = 'transparent';
-                        emptyCell.style.border = 'none';
-                        heatmapGrid.appendChild(emptyCell);
-                    }
-                }
-            }
-            
-            // Update stats for this year
-            updateHeatmapStatsForYear(year);
-        }
-        
-        function updateHeatmapStatsForYear(year) {
-            const yearData = userMotivation.heatmapData[year] || {};
-            
-            let currentStreak = 0;
-            let bestStreak = 0;
-            let tempStreak = 0;
-            let totalDaysStudied = 0;
-            
-            // Sort dates
-            const sortedDates = Object.keys(yearData).sort();
-            
-            sortedDates.forEach(dateString => {
-                const hours = yearData[dateString] || 0;
-                
-                if (hours > 0) {
-                    totalDaysStudied++;
-                    tempStreak++;
-                    bestStreak = Math.max(bestStreak, tempStreak);
-                } else {
-                    tempStreak = 0;
-                }
-            });
-            
-            // Update UI
-            document.getElementById('current-streak').textContent = currentStreak;
-            document.getElementById('total-days-studied').textContent = totalDaysStudied;
-            document.getElementById('best-streak').textContent = bestStreak;
-        }
+       
         
         function updateQuoteProgress() {
             const now = new Date();
@@ -7909,6 +7752,7 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
 
 
