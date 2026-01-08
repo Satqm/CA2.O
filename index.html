@@ -2331,6 +2331,48 @@
                 gap: 10px;
             }
         }
+                /* New Heatmap Styles */
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        
+        .heatmap-cell {
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            background-color: #ebedf0;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+        
+        .month-label {
+            grid-column: 1 / span 7;
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0 5px 0;
+            color: var(--primary);
+            font-size: 14px;
+        }
+        
+        .empty-day {
+            background-color: transparent !important;
+            border: none !important;
+            cursor: default;
+        }
+        
+        .empty-day:hover {
+            transform: none;
+        }
     </style>
 </head>
 <body>
@@ -6163,12 +6205,74 @@
                 });
                       });
             
-            document.querySelectorAll('.complete-target-btn').forEach((btn, index) => {
+                    document.querySelectorAll('.complete-target-btn').forEach((btn, index) => {
                 btn.addEventListener('click', async function() {
                     const targetIndex = this.closest('.target-item').getAttribute('data-index');
                     await completeTarget(targetIndex);
                 });
             });
+            
+            // Add event listeners for auto-update subtopic buttons
+            document.querySelectorAll('.auto-update-subtopic-btn').forEach((btn, index) => {
+                btn.addEventListener('click', async function() {
+                    const targetIndex = this.closest('.target-item').getAttribute('data-index');
+                    const target = userTargets[targetIndex];
+                    
+                    if (target && target.subtopic) {
+                        // Temporarily change button to show updating
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                        this.disabled = true;
+                        
+                        // Update the subtopic without completing the target
+                        await updateSubtopicFromCompletedTarget(target);
+                        
+                        // Restore button
+                        this.innerHTML = '<i class="fas fa-check"></i> Updated!';
+                        setTimeout(() => {
+                            this.innerHTML = '<i class="fas fa-sync-alt"></i> Update Subtopic';
+                            this.disabled = false;
+                        }, 2000);
+                        
+                        showToast(`Subtopic "${target.subtopic}" updated with ${target.actualHours || 0} hours`, 'success');
+                    }
+                });
+            });
+            
+            // Add the completeTarget function
+            async function completeTarget(index) {
+                if (index >= 0 && index < userTargets.length) {
+                    const target = userTargets[index];
+                    target.completed = true;
+                    target.status = 'completed';
+                    
+                    // Auto-update the corresponding subtopic in Subjects tab
+                    if (target.autoUpdateSubtopic !== false && target.subtopic && 
+                        target.subject && target.topic && target.actualHours > 0) {
+                        await updateSubtopicFromCompletedTarget(target);
+                    }
+                    
+                    // Move target from userTargets to completedTargets
+                    const completedTarget = { ...target };
+                    completedTargets.push(completedTarget);
+                    userTargets.splice(index, 1);
+                    
+                    try {
+                        // Save ALL changes to IndexedDB
+                        await DataStorage.manualSave('targets', userTargets);
+                        await DataStorage.manualSave('completedTargets', completedTargets);
+                        
+                        // Update UI
+                        loadTargets();
+                        loadTargetHistory();
+                        updateDashboard();
+                        
+                        showToast('Target marked as complete! Subtopic updated in Subjects tab.', 'success');
+                    } catch (error) {
+                        console.error('Error saving completed target:', error);
+                        showToast('Error saving completed target. Please try again.', 'error');
+                    }
+                }
+            }
             
                 
               // Add the completeTarget function
@@ -6278,8 +6382,7 @@ async function deleteTarget(index) {
             });
         }
     }
-}
-        
+}   
                // Function to automatically update subtopic hours from completed target
         async function updateSubtopicFromCompletedTarget(target) {
             // Only update if the target has subject, topic, and subtopic
@@ -7067,77 +7170,125 @@ async function deleteTarget(index) {
             const year = new Date().getFullYear();
             document.getElementById('heatmap-year').textContent = year;
             
-            // Generate months header
+              // Remove months header - we'll show month names inside the grid
             const monthsContainer = document.getElementById('heatmap-months');
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            monthsContainer.innerHTML = '';
+            monthsContainer.style.display = 'none'; // Hide the header
             
-            let monthsHtml = '';
-            months.forEach(month => {
-                monthsHtml += `<div>${month}</div>`;
-            });
-            monthsContainer.innerHTML = monthsHtml;
-            
-            // Generate heatmap grid
+            // Generate heatmap grid - Month-wise view
             const heatmapGrid = document.getElementById('heatmap-grid');
             heatmapGrid.innerHTML = '';
+            heatmapGrid.style.gridTemplateColumns = 'repeat(7, 1fr)'; // 7 days per week
+            heatmapGrid.style.maxWidth = '600px'; // Limit width
+            heatmapGrid.style.margin = '0 auto'; // Center the grid
             
-            // Calculate start day of the year
-            const startDate = new Date(year, 0, 1);
-            const startDay = startDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            // Create month-wise view
+            const months = [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+            ];
             
-            // Add empty cells for days before Jan 1
-            for (let i = 0; i < startDay; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.className = 'heatmap-cell';
-                emptyCell.style.backgroundColor = '#ebedf0';
-                heatmapGrid.appendChild(emptyCell);
+            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            // Adjust for leap year
+            if ((year % 4 === 0 && year % 100 > 0) || year % 400 == 0) {
+                daysInMonth[1] = 29;
             }
             
-            // Generate cells for each day of the year
-            const daysInYear = ((year % 4 === 0 && year % 100 > 0) || year % 400 == 0) ? 366 : 365;
+            // Create a container for each month
+            let totalDaysAdded = 0;
             
-            for (let day = 1; day <= daysInYear; day++) {
-                const date = new Date(year, 0, day);
-                const dateString = date.toISOString().split('T')[0];
+            for (let month = 0; month < 12; month++) {
+                // Add month label
+                const monthLabel = document.createElement('div');
+                monthLabel.className = 'month-label';
+                monthLabel.textContent = months[month];
+                monthLabel.style.gridColumn = '1 / span 7'; // Span all 7 columns
+                monthLabel.style.textAlign = 'center';
+                monthLabel.style.fontWeight = 'bold';
+                monthLabel.style.margin = '10px 0 5px 0';
+                monthLabel.style.color = 'var(--primary)';
+                heatmapGrid.appendChild(monthLabel);
                 
-                // Calculate hours studied for this day from targets
-                let hours = 0;
-                const allTargets = [...userTargets, ...completedTargets];
-                allTargets.forEach(target => {
-                    if (target.date === dateString) {
-                        hours += target.actualHours || 0;
+                // Get first day of the month
+                const firstDay = new Date(year, month, 1).getDay();
+                
+                // Add empty cells for days before the 1st
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'heatmap-cell empty-day';
+                    emptyCell.style.backgroundColor = 'transparent';
+                    emptyCell.style.border = 'none';
+                    heatmapGrid.appendChild(emptyCell);
+                }
+                
+                // Add cells for each day of the month
+                for (let day = 1; day <= daysInMonth[month]; day++) {
+                    const date = new Date(year, month, day);
+                    const dateString = date.toISOString().split('T')[0];
+                    
+                    // Calculate hours studied for this day
+                    let hours = 0;
+                    const allTargets = [...userTargets, ...completedTargets];
+                    allTargets.forEach(target => {
+                        if (target.date === dateString) {
+                            hours += target.actualHours || 0;
+                        }
+                    });
+                    
+                    // Store in heatmap data
+                    if (!userMotivation.heatmapData[year]) {
+                        userMotivation.heatmapData[year] = {};
                     }
-                });
-                
-                // Store in heatmap data
-                if (!userMotivation.heatmapData[year]) {
-                    userMotivation.heatmapData[year] = {};
+                    userMotivation.heatmapData[year][dateString] = hours;
+                    
+                    // Determine color based on hours
+                    let color = '#ebedf0'; // No data
+                    if (hours > 0) {
+                        if (hours <= 2) color = '#c6e48b';
+                        else if (hours <= 4) color = '#7bc96f';
+                        else if (hours <= 6) color = '#239a3b';
+                        else color = '#196127'; // 7+ hours
+                    }
+                    
+                    // Create cell
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    cell.style.backgroundColor = color;
+                    cell.style.width = '24px';
+                    cell.style.height = '24px';
+                    cell.style.borderRadius = '3px';
+                    cell.style.margin = '2px';
+                    cell.dataset.date = dateString;
+                    cell.dataset.hours = hours;
+                    cell.title = `${dateString}: ${hours} hours`;
+                    
+                    // Add day number
+                    const dayNumber = document.createElement('span');
+                    dayNumber.textContent = day;
+                    dayNumber.style.fontSize = '9px';
+                    dayNumber.style.color = hours > 0 ? '#fff' : '#666';
+                    dayNumber.style.position = 'absolute';
+                    dayNumber.style.top = '1px';
+                    dayNumber.style.left = '1px';
+                    cell.appendChild(dayNumber);
+                    
+                    heatmapGrid.appendChild(cell);
+                    totalDaysAdded++;
                 }
-                userMotivation.heatmapData[year][dateString] = hours;
                 
-                // Determine color based on hours
-                let color = '#ebedf0'; // No data
-                if (hours > 0) {
-                    if (hours <= 2) color = '#c6e48b';
-                    else if (hours <= 4) color = '#7bc96f';
-                    else if (hours <= 6) color = '#239a3b';
-                    else color = '#196127'; // 7+ hours
+                // Add empty cells to complete the week (if needed)
+                const daysInWeek = 7;
+                const cellsInMonth = firstDay + daysInMonth[month];
+                const remainingCells = cellsInMonth % daysInWeek;
+                if (remainingCells > 0) {
+                    for (let i = 0; i < (daysInWeek - remainingCells); i++) {
+                        const emptyCell = document.createElement('div');
+                        emptyCell.className = 'heatmap-cell empty-day';
+                        emptyCell.style.backgroundColor = 'transparent';
+                        emptyCell.style.border = 'none';
+                        heatmapGrid.appendChild(emptyCell);
+                    }
                 }
-                
-                // Create cell
-                const cell = document.createElement('div');
-                cell.className = 'heatmap-cell';
-                cell.style.backgroundColor = color;
-                cell.dataset.date = dateString;
-                cell.dataset.hours = hours;
-                
-                // Add tooltip
-                const tooltip = document.createElement('div');
-                tooltip.className = 'heatmap-tooltip';
-                tooltip.textContent = `${dateString}: ${hours} hours`;
-                cell.appendChild(tooltip);
-                
-                heatmapGrid.appendChild(cell);
             }
             
             // Calculate and update stats
@@ -7206,39 +7357,104 @@ async function deleteTarget(index) {
             const heatmapGrid = document.getElementById('heatmap-grid');
             heatmapGrid.innerHTML = '';
             
-            // Generate cells for the specified year
-            const daysInYear = ((year % 4 === 0 && year % 100 > 0) || year % 400 == 0) ? 366 : 365;
+            // Hide months header
+            document.getElementById('heatmap-months').style.display = 'none';
             
-            for (let day = 1; day <= daysInYear; day++) {
-                const date = new Date(year, 0, day);
-                const dateString = date.toISOString().split('T')[0];
+            // Generate month-wise view for the specified year
+            const months = [
+                'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+            ];
+            
+            const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            // Adjust for leap year
+            if ((year % 4 === 0 && year % 100 > 0) || year % 400 == 0) {
+                daysInMonth[1] = 29;
+            }
+            
+            // Create a container for each month
+            let totalDaysAdded = 0;
+            
+            for (let month = 0; month < 12; month++) {
+                // Add month label
+                const monthLabel = document.createElement('div');
+                monthLabel.className = 'month-label';
+                monthLabel.textContent = months[month];
+                monthLabel.style.gridColumn = '1 / span 7';
+                monthLabel.style.textAlign = 'center';
+                monthLabel.style.fontWeight = 'bold';
+                monthLabel.style.margin = '10px 0 5px 0';
+                monthLabel.style.color = 'var(--primary)';
+                heatmapGrid.appendChild(monthLabel);
                 
-                // Get hours from heatmap data
-                const hours = userMotivation.heatmapData[year]?.[dateString] || 0;
+                // Get first day of the month
+                const firstDay = new Date(year, month, 1).getDay();
                 
-                // Determine color based on hours
-                let color = '#ebedf0'; // No data
-                if (hours > 0) {
-                    if (hours <= 2) color = '#c6e48b';
-                    else if (hours <= 4) color = '#7bc96f';
-                    else if (hours <= 6) color = '#239a3b';
-                    else color = '#196127'; // 7+ hours
+                // Add empty cells for days before the 1st
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyCell = document.createElement('div');
+                    emptyCell.className = 'heatmap-cell empty-day';
+                    emptyCell.style.backgroundColor = 'transparent';
+                    emptyCell.style.border = 'none';
+                    heatmapGrid.appendChild(emptyCell);
                 }
                 
-                // Create cell
-                const cell = document.createElement('div');
-                cell.className = 'heatmap-cell';
-                cell.style.backgroundColor = color;
-                cell.dataset.date = dateString;
-                cell.dataset.hours = hours;
+                // Add cells for each day of the month
+                for (let day = 1; day <= daysInMonth[month]; day++) {
+                    const date = new Date(year, month, day);
+                    const dateString = date.toISOString().split('T')[0];
+                    
+                    // Get hours from heatmap data
+                    const hours = userMotivation.heatmapData[year]?.[dateString] || 0;
+                    
+                    // Determine color based on hours
+                    let color = '#ebedf0'; // No data
+                    if (hours > 0) {
+                        if (hours <= 2) color = '#c6e48b';
+                        else if (hours <= 4) color = '#7bc96f';
+                        else if (hours <= 6) color = '#239a3b';
+                        else color = '#196127'; // 7+ hours
+                    }
+                    
+                    // Create cell
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    cell.style.backgroundColor = color;
+                    cell.style.width = '24px';
+                    cell.style.height = '24px';
+                    cell.style.borderRadius = '3px';
+                    cell.style.margin = '2px';
+                    cell.dataset.date = dateString;
+                    cell.dataset.hours = hours;
+                    cell.title = `${dateString}: ${hours} hours`;
+                    
+                    // Add day number
+                    const dayNumber = document.createElement('span');
+                    dayNumber.textContent = day;
+                    dayNumber.style.fontSize = '9px';
+                    dayNumber.style.color = hours > 0 ? '#fff' : '#666';
+                    dayNumber.style.position = 'absolute';
+                    dayNumber.style.top = '1px';
+                    dayNumber.style.left = '1px';
+                    cell.appendChild(dayNumber);
+                    
+                    heatmapGrid.appendChild(cell);
+                    totalDaysAdded++;
+                }
                 
-                // Add tooltip
-                const tooltip = document.createElement('div');
-                tooltip.className = 'heatmap-tooltip';
-                tooltip.textContent = `${dateString}: ${hours} hours`;
-                cell.appendChild(tooltip);
-                
-                heatmapGrid.appendChild(cell);
+                // Add empty cells to complete the week (if needed)
+                const daysInWeek = 7;
+                const cellsInMonth = firstDay + daysInMonth[month];
+                const remainingCells = cellsInMonth % daysInWeek;
+                if (remainingCells > 0) {
+                    for (let i = 0; i < (daysInWeek - remainingCells); i++) {
+                        const emptyCell = document.createElement('div');
+                        emptyCell.className = 'heatmap-cell empty-day';
+                        emptyCell.style.backgroundColor = 'transparent';
+                        emptyCell.style.border = 'none';
+                        heatmapGrid.appendChild(emptyCell);
+                    }
+                }
             }
             
             // Update stats for this year
@@ -7359,6 +7575,7 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
 
 
