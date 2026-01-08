@@ -6192,66 +6192,45 @@
             });
         }
         
-           async function updateTargetHours(index, hours) {
-            if (index >= 0 && index < userTargets.length) {
-                const target = userTargets[index];
-                const previousHours = target.actualHours || 0;
-                target.actualHours = hours;
-                
-                if (hours >= target.plannedHours) {
-                    target.completed = true;
-                    target.status = 'completed';
-                }
-                
-                // Update heatmap data
-                if (hours !== previousHours) {
-                    await updateHeatmapData(target.date, hours - previousHours);
-                }
-                
-                await DataStorage.manualSave('targets', userTargets, (success) => {
-                    if (success) {
-                        loadTargets();
-                        updateDashboard();
-                    }
-                });
-            }
+         async function updateTargetHours(index, hours) {
+    if (index >= 0 && index < userTargets.length) {
+        const target = userTargets[index];
+        const previousHours = target.actualHours || 0;
+        target.actualHours = hours;
+        
+        if (hours >= target.plannedHours) {
+            target.completed = true;
+            target.status = 'completed';
         }
         
-          async function completeTarget(index) {
-            if (index >= 0 && index < userTargets.length) {
-                const target = userTargets[index];
-                
-                if (target.actualHours === 0) {
-                    showToast('Cannot complete target with 0 actual hours', 'error');
-                    return;
-                }
-                
-                target.completed = true;
-                target.completedDate = new Date().toISOString();
-                target.status = 'completed';
-                
-                const achievement = target.plannedHours > 0 ? 
-                    Math.round((target.actualHours || 0) / target.plannedHours * 100) : 0;
-                target.achievement = achievement;
-                
-                // AUTO-UPDATE: Update the corresponding subtopic in Subjects tab
-                await updateSubtopicFromCompletedTarget(target);
-                
-                completedTargets.push(target);
-                userTargets.splice(index, 1);
-                
-                await Promise.all([
-                    DataStorage.save('targets', userTargets),
-                    DataStorage.save('completedTargets', completedTargets)
-                ]);
-                
+        // Update heatmap data
+        if (hours !== previousHours) {
+            await updateHeatmapData(target.date, hours - previousHours);
+        }
+        
+        await DataStorage.manualSave('targets', userTargets, (success) => {
+            if (success) {
                 loadTargets();
-                loadTargetHistory();
                 updateDashboard();
-                
-                showToast('Target completed! Subtopic hours updated in Subjects tab.', 'success');
             }
-              }
+        });
+    }
+}
+
+// Fix the incomplete deleteTarget function
+async function deleteTarget(index) {
+    if (confirm('Are you sure you want to delete this target?')) {
+        if (index >= 0 && index < userTargets.length) {
+            userTargets.splice(index, 1);
+            await DataStorage.manualSave('targets', userTargets, (success) => {
+                if (success) {
+                    loadTargets();
+                    updateDashboard();
+                }
+            });
+        }
+    }
+}
         
         // Function to automatically update subtopic hours from completed target
         async function updateSubtopicFromCompletedTarget(target) {
@@ -7315,4 +7294,5 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
