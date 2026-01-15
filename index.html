@@ -3962,28 +3962,30 @@
             }
             
               // Get all items from a store
-    static async getAll(storeName) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                reject(new Error('Database not initialized'));
-                return;
-            }
-            
-            const transaction = db.transaction([storeName], 'readonly');
-            const store = transaction.objectStore(storeName);
-            const request = store.getAll();
-            
-            request.onsuccess = () => {
-                const items = request.result || [];
-                // For targets and completedTargets, we need all items
-                const result = items
-                    .filter(item => item.id && item.id.includes(storeName)) // Only get items for this store
-                    .map(item => item.data || item);
-                resolve(result);
-            };
-            request.onerror = () => reject(request.error);
-        });
-    }
+static async getAll(storeName) {
+    return new Promise((resolve, reject) => {
+        if (!db) {
+            reject(new Error('Database not initialized'));
+            return;
+        }
+        
+        const transaction = db.transaction([storeName], 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.getAll();
+        
+        request.onsuccess = () => {
+            const items = request.result || [];
+            // Extract data field from each item
+            const result = items.map(item => {
+                // For array stores, return the data field
+                // For single object stores, also return the data field
+                return item.data || item;
+            });
+            resolve(result);
+        };
+        request.onerror = () => reject(request.error);
+    });
+}
             
             // Clear a store
             static async clear(storeName) {
@@ -4003,65 +4005,96 @@
             }
             
             // Export all data
-            static async exportAll() {
-                const stores = [
-                    'user', 'progress', 'targets', 'completedTargets',
-                    'studyPlan', 'videos', 'resources', 'stats', 'settings'
-                ];
-                
-                const allData = {};
-                
-                for (const storeName of stores) {
-                    const data = await IndexedDBStorage.getAll(storeName);
-                    if (data.length > 0) {
-                        allData[storeName] = data;
-                    }
-                }
-                
-                allData.exportDate = new Date().toISOString();
-                allData.version = '2.0';
-                allData.app = 'CA Final Pro Tracker';
-                
-                return JSON.stringify(allData, null, 2);
+   static async exportAll() {
+    const singleObjectStores = ['user', 'progress', 'studyPlan', 'stats', 'settings', 'motivation'];
+    const arrayStores = ['targets', 'completedTargets', 'videos', 'resources'];
+    const allStores = [...singleObjectStores, ...arrayStores];
+    
+    const allData = {};
+    
+    for (const storeName of allStores) {
+        if (singleObjectStores.includes(storeName)) {
+            // Single object store - get single item
+            const data = await IndexedDBStorage.get(storeName, storeName);
+            if (data) {
+                allData[storeName] = [data]; // Wrap in array for compatibility
             }
+        } else {
+            // Array store - get all items
+            const data = await IndexedDBStorage.getAll(storeName);
+            if (data && data.length > 0) {
+                allData[storeName] = data;
+            }
+        }
+    }
+    
+    allData.exportDate = new Date().toISOString();
+    allData.version = '2.0';
+    allData.app = 'CA Final Pro Tracker';
+    
+    return JSON.stringify(allData, null, 2);
+}
             
             // Import all data
-            static async importAll(jsonData) {
-                try {
-                    const data = JSON.parse(jsonData);
-                    
-                    // Clear existing data first
-                    const stores = [
-                        'user', 'progress', 'targets', 'completedTargets',
-                        'studyPlan', 'videos', 'resources', 'stats', 'settings'
-                    ];
-                    
-                    for (const storeName of stores) {
-                        await IndexedDBStorage.clear(storeName);
+static async importAll(jsonData) {
+    try {
+        const data = JSON.parse(jsonData);
+        
+        // Define store types
+        const singleObjectStores = ['user', 'progress', 'studyPlan', 'stats', 'settings', 'motivation'];
+        const arrayStores = ['targets', 'completedTargets', 'videos', 'resources'];
+        const allStores = [...singleObjectStores, ...arrayStores];
+        
+        // Clear existing data first
+        for (const storeName of allStores) {
+            await IndexedDBStorage.clear(storeName);
+        }
+        
+        // Import new data
+        for (const storeName of allStores) {
+            if (data[storeName]) {
+                if (singleObjectStores.includes(storeName)) {
+                    // Single object store
+                    if (Array.isArray(data[storeName]) && data[storeName].length > 0) {
+                        // Take first item from array (backward compatibility)
+                        await IndexedDBStorage.set(storeName, {
+                            id: storeName,
+                            data: data[storeName][0]
+                        });
+                    } else if (typeof data[storeName] === 'object') {
+                        // Direct object
+                        await IndexedDBStorage.set(storeName, {
+                            id: storeName,
+                            data: data[storeName]
+                        });
                     }
-                    
-                    // Import new data
-                    for (const storeName of stores) {
-                        if (data[storeName] && Array.isArray(data[storeName])) {
-                            for (const item of data[storeName]) {
-                                await IndexedDBStorage.set(storeName, {
-                                    id: storeName,
-                                    data: item
-                                });
-                            }
+                } else if (arrayStores.includes(storeName)) {
+                    // Array store - save each item with unique ID
+                    if (Array.isArray(data[storeName])) {
+                        for (let i = 0; i < data[storeName].length; i++) {
+                            const item = data[storeName][i];
+                            // Use existing ID or create a unique one
+                            const id = item.id || `${storeName}_${i}_${Date.now()}`;
+                            await IndexedDBStorage.set(storeName, {
+                                id: id,
+                                data: item
+                            });
                         }
                     }
-                    
-                    return { success: true, message: 'Data imported successfully' };
-                } catch (error) {
-                    console.error('Import error:', error);
-                    return { 
-                        success: false, 
-                        error: 'Invalid backup file format or corrupted data' 
-                    };
                 }
             }
         }
+        
+        return { success: true, message: 'Data imported successfully' };
+    } catch (error) {
+        console.error('Import error:', error);
+        return { 
+            success: false, 
+            error: 'Invalid backup file format or corrupted data' 
+        };
+    }
+}
+}
 
 
         // ==================== DATA STORAGE SYSTEM ====================
@@ -4083,18 +4116,18 @@
                                     const [
                         user, progress, targets, completedTargets,
                         studyPlan, videos, resources, stats,
-                        motivation
-                    ] = await Promise.all([
-                        IndexedDBStorage.get('user', 'user'),
-                        IndexedDBStorage.get('progress', 'progress'),
-                        IndexedDBStorage.getAll('targets'),
-                        IndexedDBStorage.getAll('completedTargets'),
-                        IndexedDBStorage.get('studyPlan', 'studyPlan'),
-                        IndexedDBStorage.getAll('videos'),
-                        IndexedDBStorage.getAll('resources'),
-                        IndexedDBStorage.get('stats', 'stats'),
-                        IndexedDBStorage.get('motivation', 'motivation')
-                    ]);
+                   motivation
+   ] = await Promise.all([
+    IndexedDBStorage.get('user', 'user'),
+    IndexedDBStorage.get('progress', 'progress'),
+    IndexedDBStorage.getAll('targets'),
+    IndexedDBStorage.getAll('completedTargets'),
+    IndexedDBStorage.get('studyPlan', 'studyPlan'),
+    IndexedDBStorage.getAll('videos'),
+    IndexedDBStorage.getAll('resources'),
+    IndexedDBStorage.get('stats', 'stats'),
+    IndexedDBStorage.get('motivation', 'motivation')
+           ]);
                     
                                    return {
                         user: user || initializeUser(),
@@ -4124,39 +4157,38 @@
             }
             
                // Save specific data
-    static async save(storeName, data) {
-        try {
-            if (storeName === 'targets' || storeName === 'completedTargets') {
-                // For targets and completedTargets, save each item individually
-                await IndexedDBStorage.clear(storeName);
+static async save(storeName, data) {
+    try {
+        const singleObjectStores = ['user', 'progress', 'studyPlan', 'stats', 'settings', 'motivation'];
+        const arrayStores = ['targets', 'completedTargets', 'videos', 'resources'];
+        
+        if (arrayStores.includes(storeName)) {
+            // Array store - clear and save all items with IDs
+            await IndexedDBStorage.clear(storeName);
+            if (Array.isArray(data)) {
                 for (let i = 0; i < data.length; i++) {
+                    const item = data[i];
+                    // Preserve existing ID or create new one
+                    const id = item.id || `${storeName}_${i}_${Date.now()}`;
                     await IndexedDBStorage.set(storeName, {
-                        id: `${storeName}_${i}_${Date.now()}`,
-                        data: data[i]
+                        id: id,
+                        data: item
                     });
                 }
-            } else if (storeName === 'videos' || storeName === 'resources') {
-                // These stores contain multiple items, need to save all
-                await IndexedDBStorage.clear(storeName);
-                for (let i = 0; i < data.length; i++) {
-                    await IndexedDBStorage.set(storeName, {
-                        id: `${storeName}_${i}_${Date.now()}`,
-                        data: data[i]
-                    });
-                }
-            } else {
-                // Single item stores
-                await IndexedDBStorage.set(storeName, {
-                    id: storeName,
-                    data: data
-                });
             }
-            return true;
-        } catch (error) {
-            console.error(`Error saving ${storeName}:`, error);
-            return false;
+        } else if (singleObjectStores.includes(storeName)) {
+            // Single object store
+            await IndexedDBStorage.set(storeName, {
+                id: storeName,
+                data: data
+            });
         }
+        return true;
+    } catch (error) {
+        console.error(`Error saving ${storeName}:`, error);
+        return false;
     }
+}
             
             // Auto-save with debounce
             static async autoSave(storeName, data) {
@@ -7850,6 +7882,7 @@ console.log('ServiceWorker registration successful with scope:', registration.sc
     </script>
 </body>
 </html>
+
 
 
 
