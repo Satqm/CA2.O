@@ -1,0 +1,422 @@
+---
+name: humanize
+description: |
+  Rewrite AI-sounding text to read naturally without changing facts.
+  Use when editing prose for inflated claims, sales language, vague
+  sources, stock AI vocabulary, passive voice, chatbot filler,
+  formatting artifacts, or formulaic structure. Based on Wikipedia's
+  "Signs of AI writing" (WikiProject AI Cleanup).
+metadata:
+  version: "1.0.0"
+  type: skill
+---
+
+# Humanize: Remove AI Writing Patterns
+
+Rewrite text so it reads like a person wrote it. Do not change facts, invent details, or add claims.
+
+## Core Rules
+
+1. **Find AI patterns first.** Scan for the specific tells listed below.
+2. **Keep every claim.** You may shorten, expand, merge, or split paragraphs. You may not drop a fact, name, number, date, quote, or citation.
+3. **Do not invent facts.** Missing detail? Ask the user or simplify the sentence. No guessing.
+4. **Match the tone.** Formal stays formal. Casual stays casual. Personal writing may keep quirks, mixed feelings, and asides.
+5. **Use simple verbs.** Prefer *is*, *are*, *has*, *says* over *serves as*, *stands as*, *boasts*.
+
+## Voice Matching
+
+If the user shares a writing sample:
+
+1. Note sentence length, word choice, paragraph openings, punctuation, transitions.
+2. Match those habits. Keep deliberate quirks and repetition.
+3. Sample overrides style rules below, including the dash rule.
+
+If no sample, write plain and neutral for factual text. Add personality only when the genre calls for it (blog, essay, opinion, personal story).
+
+---
+
+## Section 1: Content Patterns
+
+### 1.1 Inflated Importance
+**Watch for:** stands as, testament to, plays a pivotal role, underscores its importance, reflects broader trends, marks a shift, focal point, indelible mark, deeply rooted.
+
+**Before:**
+> The institute was established in 1989, marking a pivotal moment in the evolution of regional statistics in Spain.
+
+**After:**
+> The institute was established in 1989, part of a wider decentralization effort in Spain.
+
+---
+
+### 1.2 Name-Dropping to Prove Importance
+**Watch for:** profiled in independent coverage, cited by major outlets, maintains an active social media presence.
+
+**Before:**
+> Her views have been cited in The New York Times, BBC, Financial Times, and The Hindu. She has over 500,000 followers.
+
+**After:**
+> Her views have been cited in The New York Times and the BBC.
+
+Keep only citations with useful context. Cut follower counts and outlet lists with no substance.
+
+---
+
+### 1.3 Shallow -ing Phrases
+**Watch for:** highlighting, underscoring, symbolizing, reflecting, contributing to, showcasing, encompassing, cultivating.
+
+**Before:**
+> The temple's colors resonate with the region's beauty, symbolizing Texas bluebonnets, reflecting the community's deep connection to the land.
+
+**After:**
+> The temple is painted blue, green, and gold, colors meant to evoke Texas bluebonnets.
+
+Keep the -ing phrase only if the source directly supports it.
+
+---
+
+### 1.4 Sales Language
+**Watch for:** boasts, vibrant, groundbreaking, nestled in, naturally beautiful, commitment to, breathtaking, must-visit, stunning, renowned.
+
+**Before:**
+> Nestled within the breathtaking region of Gonder, Alamata Raya Kobo is a vibrant town with rich cultural heritage and stunning natural beauty.
+
+**After:**
+> Alamata Raya Kobo is a town in the Gonder region of Ethiopia.
+
+---
+
+### 1.5 Vague Sources
+**Watch for:** Experts argue, Industry reports state, Observers have cited, Some critics say, several sources claim.
+
+**Before:**
+> Experts believe the river plays a crucial role in the regional ecosystem.
+
+**After:**
+> Researchers study the river for its unusual characteristics.
+
+Name the real source when available. Otherwise cut the unsupported claim. Never invent one.
+
+---
+
+### 1.6 Formulaic Conclusions and Outlooks
+**Watch for:** Despite its..., faces several challenges..., Despite these challenges..., continues to thrive, Future Outlook.
+
+**Before:**
+> Despite its prosperity, Korattur faces challenges including traffic and water scarcity. Despite these challenges, with its strategic location, Korattur continues to thrive as part of Chennai's growth.
+
+**After:**
+> Korattur has recurring traffic congestion and water shortages.
+
+Add dates or actions only when sourced. Cut the vague optimism.
+
+---
+
+## Section 2: Language and Grammar Patterns
+
+### 2.1 Overused AI Vocabulary
+**High-frequency words:** delve, intricate, vibrant, crucial, pivotal, showcase, underscore, testament, meticulous, tapestry, landscape (abstract), foster, align with, enhance, enduring, quietly, garner, interplay.
+
+**Before:**
+> An enduring testament to colonial influence is the widespread adoption of pasta in the local culinary landscape, showcasing how these dishes have integrated.
+
+**After:**
+> Pasta dishes, introduced during Italian colonization, remain common, especially in the south.
+
+---
+
+### 2.2 Avoiding Simple Copulatives
+**Watch for:** serves as, stands as, operates as, features, boasts replacing is/are/has.
+
+**Before:**
+> The gallery serves as LAAA's exhibition space. It features four rooms and boasts 3,000 square feet.
+
+**After:**
+> The gallery is LAAA's exhibition space. It has four rooms totaling 3,000 square feet.
+
+---
+
+### 2.3 Not X but Y and Clipped Endings
+**Watch for:** It is not just X, but also Y. / It is not X, rather it is Y. / ..., no guessing.
+
+**Before:**
+> It's not just a song, it's a statement. / The options come from the item, no guessing.
+
+**After:**
+> The song's heavy beat adds to its aggressive tone. / The options come from the selected item without forcing the user to guess.
+
+---
+
+### 2.4 Forced Groups of Three
+**Watch for:** adjective triplets or three-item lists used to simulate completeness.
+
+**Before:**
+> The event features innovation, inspiration, and industry insights.
+
+**After:**
+> The event includes talks and panels, plus time for informal networking.
+
+Use the number of items the meaning actually needs.
+
+---
+
+### 2.5 Changing Names and Repeated Openings
+**Watch for:** synonym cycling for the same subject or three or more sentences starting with the same word.
+
+**Before:**
+> The protagonist faces challenges. The main character must overcome obstacles. The hero returns home.
+
+**After:**
+> The protagonist faces challenges but eventually triumphs and returns home.
+
+Merge sentences, change the subject, or begin with the action. Keep the repeated word when it serves a purpose.
+
+---
+
+### 2.6 False From X to Y Ranges
+**Watch for:** from A to Z covering topics that are not a real range.
+
+**Before:**
+> Our journey takes us from the Big Bang to dark matter.
+
+**After:**
+> The book covers the Big Bang, star formation, and current theories about dark matter.
+
+---
+
+### 2.7 Passive Voice and Missing Subjects
+**Watch for:** hidden actors, dropped subjects, no configuration file needed.
+
+**Before:**
+> No configuration file needed. Results are preserved automatically.
+
+**After:**
+> You do not need a configuration file. The system preserves the results automatically.
+
+---
+
+## Section 3: Formatting and Style Patterns
+
+### 3.1 Title as Heading
+Do not repeat the article title as a Level 1 or Level 2 header at the top of the text.
+
+### 3.2 Title Case Headings
+Use sentence case, not title case, for headings.
+
+**Before:** Impact of Technology and Digitalization
+**After:** Impact of technology and digitalization
+
+### 3.3 Excessive Bold
+Bold only when it serves a real purpose. Remove mechanical bolding of key terms.
+
+### 3.4 Inline-Header Lists
+Convert bullet + bolded term + colon + description into prose when a list adds no value.
+
+**Before:**
+> - **User Experience:** The interface has been improved.
+> - **Performance:** Speed has been enhanced.
+
+**After:**
+> The update improves the interface and speeds up load times.
+
+### 3.5 Em Dash Overuse
+**Rule:** The final rewrite must not contain em dashes (—) or en dashes (–) unless the writer's sample uses them. Replace with period, comma, colon, or parentheses. Check for spaced dashes and double hyphens before returning.
+
+**Before:**
+> The policy — announced without warning — affects thousands.
+
+**After:**
+> The policy, announced without warning, affects thousands.
+
+### 3.6 Emojis as Formatting
+Remove emojis from headings, bullets, and text.
+
+### 3.7 Curly Quotes
+Use straight quotes (" ") unless the source format requires curly quotes.
+
+### 3.8 Skipping Heading Levels
+Do not jump from a title straight to a Level 3 heading. Keep heading levels sequential.
+
+---
+
+## Section 4: Metatext and Chatbot Artifacts
+
+### 4.1 Conversational Leftovers
+Remove: I hope this helps, Certainly!, Here is a draft, Let me know if..., Want me to..., Should I continue?
+
+### 4.2 Knowledge-Cutoff Disclaimers
+Remove or rewrite: As of my last update, While details are limited, It is believed that, she maintains a low profile.
+
+State what is known. Do not fill gaps with plausible guesses.
+
+**Before:**
+> Her early life is not documented, suggesting she keeps personal details private. She likely grew up in a middle-class household.
+
+**After:**
+> Her early life is not documented in the available sources.
+
+### 4.3 Placeholder Brackets
+Do not leave unfilled placeholders like [Insert Name], [Describe section], or 2025-XX-XX. Ask for the detail or remove the sentence.
+
+### 4.4 Markdown Mix-ups
+Return plain text, not markdown syntax, unless the target format is markdown. Do not wrap output in code fences.
+
+### 4.5 Internal Output Artifacts
+Remove any of these if present:
+- ChatGPT: oaicite:0, turn0search0, [oai_citation:0]
+- Gemini: '', [span_1](start_span)
+- Grok: <grok-card data-id="...">
+- DeepSeek: 【85†L261-269】
+- Perplexity: [attached_file:1], ppl-ai-file-upload
+
+---
+
+## Section 5: Citation and Sourcing Rules
+
+1. **Never fabricate citations.** No fake DOIs, ISBNs, URLs, or references.
+2. **Check DOIs.** A DOI must exist and link to the correct article.
+3. **Book citations need page numbers.** A whole book is not verifiable.
+4. **Check URLs.** A URL must return a real page. If it 404s and has no archive, it was likely hallucinated.
+5. **Check categories and templates.** Do not invent Wikipedia categories or MediaWiki parameters.
+6. **Verify before shortening.** If you cut a citation, make sure the remaining text still supports the claim.
+
+---
+
+## Section 6: Filler and Hedging
+
+### 6.1 Filler Phrases
+- In order to → To
+- Due to the fact that → Because
+- At this point in time → Now
+- In the event that → If
+- Has the ability to → Can
+- It is important to note that → (remove entirely)
+
+### 6.2 Qualifier Piles
+**Before:** It could potentially possibly be argued that the policy might have some effect.
+**After:** The policy may affect outcomes.
+
+Keep one qualifier only when meaning requires it.
+
+### 6.3 Generic Positive Endings
+Cut vague send-offs like: The future looks bright, Exciting times lie ahead, This represents a major step in the right direction.
+
+End on the last concrete fact.
+
+---
+
+## Section 7: Advanced Patterns
+
+### 7.1 Hyphenated Word Pairs
+Keep the hyphen before a noun (a high-quality report). Drop it after (the report is high quality).
+
+### 7.2 Fake Deeper Truth
+Remove: The real question is, at its core, in reality, what really matters, fundamentally.
+
+**Before:** At its core, what matters is organizational readiness.
+**After:** The question is whether teams can adapt. That depends on whether the organization is ready to change.
+
+### 7.3 Announcing the Next Point
+Remove: Let's dive in, here's what you need to know, without further ado, heads up, quick note, one thing that bit me.
+
+Start with the content.
+
+### 7.4 Heading Repeated Below Itself
+Remove the first sentence after a heading if it only restates the heading.
+
+### 7.5 Writing About the Previous Version
+Describe current behavior only. Mention past versions only in changelogs or migration guides.
+
+### 7.6 Forced Punchlines and Fragments
+One short sentence can add emphasis. A row of fragments feels forced. Use natural sentence lengths.
+
+### 7.7 Formulaic Sayings
+Replace: X is the Y of Z, X becomes a trap, the language of trust, the currency of.
+
+**Before:** Symmetry is the language of trust.
+**After:** Symmetric layouts feel more predictable to users.
+
+### 7.8 Fake-Candid Openings
+Remove: Honestly?, Look, Here's the thing, Let's be honest, Real talk as standalone hooks.
+
+State the point directly.
+
+### 7.9 Answering Objections No One Raised
+Remove unsupported defenses like: This isn't mainly about..., I'm not saying..., Don't get me wrong.
+
+Keep objections only when the text names its source or answers in full.
+
+### 7.10 Rejecting Fake Alternatives
+Remove options that the text dismisses and never uses again.
+
+**Before:**
+> A tempting approach would be to restart the service, but that would drop sessions. Rotation happens in place.
+
+**After:**
+> Session tokens are rotated in place, and clients refresh transparently.
+
+---
+
+## Section 8: False Positives — What Not to Flag
+
+Do not treat any single item below as proof of AI writing:
+
+| Item | Reason |
+|------|--------|
+| Perfect grammar | Professionals and editors exist |
+| Mixed casual/formal style | Reflects field, age, or habit |
+| Bland or dry prose | Needs specific tells, not just dryness |
+| Formal or academic words | Only specific overused words count |
+| Salutations on comments | Predates ChatGPT by centuries |
+| One "however" or "additionally" | AI-coded only in piles |
+| Curly quotes alone | Many systems auto-curl by default |
+| Em dashes alone | Common in journalism and editing |
+| One short sentence | Flag fragments only in a row |
+| Deliberate repetition | "She came. She saw. She conquered." |
+| "Honestly" mid-sentence | The tell is the standalone opener |
+| Useful limits and disclaimers | Keep legal, safety, scope statements |
+| Real alternatives | Keep options readers may consider |
+| Unsourced claims | Most of the web is unsourced |
+| Clean formatting | Visual editors produce clean output |
+| Quoted text | Do not rewrite phrases inside quotations |
+
+**When unsure, look for several patterns together.** One em dash proves nothing. Several stock patterns in the same passage are strong evidence.
+
+---
+
+## Section 9: Human Details to Keep
+
+Preserve these unless they hurt meaning:
+
+- Specific, unusual details (real addresses, odd quotes, quirky phrases)
+- Mixed feelings and unresolved tension
+- Dated, era-bound slang or in-jokes
+- Deliberate first-person choices
+- Variety in sentence length
+- Genuine asides or self-corrections
+- Edits made before November 30, 2022
+
+---
+
+## Rewrite Process
+
+Follow this workflow for any humanization task:
+
+1. **Scan.** Mark every AI pattern found.
+2. **Draft.** Rewrite the text, keeping all claims. Read it aloud. Check rhythm, verbs, and formality.
+3. **Check.**
+   - What still sounds AI-generated?
+   - Did the rewrite add or remove any fact, name, number, date, quote, or citation?
+   Treat any unsupported addition or lost claim as an error.
+4. **Finalize.** State each point naturally. If a sentence stays awkward, rewrite the paragraph around its main point. Remove all em dashes unless the writer's sample uses them.
+
+## Output Format
+
+- **Pasted text:** Return the draft, a short list of remaining AI patterns, and the final rewrite.
+- **File mode:** Write only the final text to the file. Change prose only. Keep code, data, and link targets unchanged. Give a short summary.
+- **Embedded mode:** Return only the final text.
+
+## Source
+
+Based on [Wikipedia: Signs of AI writing](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing), maintained by WikiProject AI Cleanup. Patterns come from reviews of AI-generated text on Wikipedia.
+
+> "LLMs use statistical algorithms to guess what should come next. The result tends toward the most statistically likely result that applies to the widest variety of cases."
